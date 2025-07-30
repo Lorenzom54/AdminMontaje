@@ -1,6 +1,6 @@
 import { searchPiezas } from '../../../lib/pieza_api';
 
-export const prerender = false;
+export const prerender = true;
 
 export async function GET({ url }) {
   try {

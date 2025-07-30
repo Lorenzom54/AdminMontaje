@@ -1,6 +1,6 @@
 import { fetchObraById, updateObra, deleteObra } from '../../../lib/obra_api';
 
-export const prerender = false;
+export const prerender = true;
 
 // GET - Obtener obra por ID
 export async function GET({ params }) {

@@ -1,6 +1,6 @@
 import { fetchConjuntoById, updateConjunto, deleteConjunto } from '../../../lib/conjunto_api';
 
-export const prerender = false;
+export const prerender = true;
 
 // GET - Obtener conjunto por ID
 export async function GET({ params }) {

@@ -1,6 +1,6 @@
 import { searchOperarios } from '../../../lib/operario_api';
 
-export const prerender = false;
+export const prerender = true;
 
 export async function GET({ url }) {
   try {

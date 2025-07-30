@@ -1,6 +1,6 @@
 import { fetchChapaById, updateChapa, deleteChapa } from '../../../lib/chapa_api';
 
-export const prerender = false;
+export const prerender = true;
 
 // GET - Obtener chapa por ID
 export async function GET({ params }) {
