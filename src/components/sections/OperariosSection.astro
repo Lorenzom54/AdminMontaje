@@ -81,7 +81,7 @@ const rolesPorTipo = operarios.reduce((acc, operario) => {
     <div class="table-header">
       <h3>Operarios Registrados</h3>
       <div class="table-filters">
-        <select class="filter-select">
+        <select class="filter-select" id="rol-filter">
           <option>Todos los roles</option>
           <option>Administrador</option>
           <option>Supervisor</option>
@@ -91,6 +91,7 @@ const rolesPorTipo = operarios.reduce((acc, operario) => {
         <input 
           type="text" 
           class="filter-input" 
+          id="search-input"
           placeholder="Buscar por nombre o email..."
         />
       </div>
@@ -230,21 +231,29 @@ const rolesPorTipo = operarios.reduce((acc, operario) => {
 <script type="module">
   // Filtros en tiempo real
   document.addEventListener('DOMContentLoaded', function() {
-    const rolFilter = document.querySelector('.operarios-section .filter-select');
-    const searchInput = document.querySelector('.operarios-section .filter-input');
-    const tableRows = document.querySelectorAll('.operarios-section .data-table tbody tr');
+    const rolFilter = document.getElementById('rol-filter');
+    const searchInput = document.getElementById('search-input');
+    const tableRows = document.querySelectorAll('.data-table tbody tr');
 
     function filterTable() {
-      const rolValue = rolFilter.value.toLowerCase();
-      const searchValue = searchInput.value.toLowerCase();
+      const rolValue = rolFilter ? rolFilter.value.toLowerCase() : '';
+      const searchValue = searchInput ? searchInput.value.toLowerCase().trim() : '';
+
+      console.log('Filtros aplicados:', { rolValue, searchValue }); // Debug
 
       tableRows.forEach(row => {
-        const rol = row.querySelector('.rol-badge').textContent.toLowerCase();
-        const nombre = row.cells[0].textContent.toLowerCase();
-        const email = row.cells[3].textContent.toLowerCase();
+        const rolBadge = row.querySelector('.rol-badge');
+        const nombreCell = row.cells[0];
+        const emailCell = row.cells[3];
+        
+        if (!rolBadge || !nombreCell || !emailCell) return;
+        
+        const rol = rolBadge.textContent.toLowerCase().trim();
+        const nombre = nombreCell.textContent.toLowerCase().trim();
+        const email = emailCell.textContent.toLowerCase().trim();
 
-        const matchesRol = !rolValue || rol.includes(rolValue);
-        const matchesSearch = !searchValue || 
+        const matchesRol = rolValue === '' || rol.includes(rolValue);
+        const matchesSearch = searchValue === '' || 
           nombre.includes(searchValue) || 
           email.includes(searchValue);
 
@@ -256,8 +265,8 @@ const rolesPorTipo = operarios.reduce((acc, operario) => {
       });
     }
 
-    if (rolFilter && searchInput && tableRows.length > 0) {
-      rolFilter.addEventListener('change', filterTable);
+    if (rolFilter) rolFilter.addEventListener('change', filterTable);
+    if (searchInput) {
       searchInput.addEventListener('input', filterTable);
     }
   });
