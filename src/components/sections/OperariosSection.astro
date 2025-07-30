@@ -226,3 +226,39 @@ const rolesPorTipo = operarios.reduce((acc, operario) => {
     }
   }
 </style>
+
+<script type="module">
+  // Filtros en tiempo real
+  document.addEventListener('DOMContentLoaded', function() {
+    const rolFilter = document.querySelector('.operarios-section .filter-select');
+    const searchInput = document.querySelector('.operarios-section .filter-input');
+    const tableRows = document.querySelectorAll('.operarios-section .data-table tbody tr');
+
+    function filterTable() {
+      const rolValue = rolFilter.value.toLowerCase();
+      const searchValue = searchInput.value.toLowerCase();
+
+      tableRows.forEach(row => {
+        const rol = row.querySelector('.rol-badge').textContent.toLowerCase();
+        const nombre = row.cells[0].textContent.toLowerCase();
+        const email = row.cells[3].textContent.toLowerCase();
+
+        const matchesRol = !rolValue || rol.includes(rolValue);
+        const matchesSearch = !searchValue || 
+          nombre.includes(searchValue) || 
+          email.includes(searchValue);
+
+        if (matchesRol && matchesSearch) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    }
+
+    if (rolFilter && searchInput && tableRows.length > 0) {
+      rolFilter.addEventListener('change', filterTable);
+      searchInput.addEventListener('input', filterTable);
+    }
+  });
+</script>
