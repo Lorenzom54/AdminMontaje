@@ -75,17 +75,22 @@ export async function updateObra(id, updates) {
 
 // Eliminar obra
 export async function deleteObra(id) {
-  const { data, error } = await supabase
-    .from('obras')
-    .delete()
-    .eq('id', id)
+  try {
+    const { data, error } = await supabase
+      .from('obras')
+      .delete()
+      .eq('id', id)
 
-  if (error) {
-    console.error('Error al eliminar obra:', error.message);
-    return { success: false, error: error.message };
+    if (error) {
+      console.error('Error al eliminar obra:', error.message);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, data };
+  } catch (err) {
+    console.error('Error inesperado al eliminar obra:', err.message);
+    return { success: false, error: err.message };
   }
-
-  return { success: true, data };
 }
 
 // Buscar obras por filtros
