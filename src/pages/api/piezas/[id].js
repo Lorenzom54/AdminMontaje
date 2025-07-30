@@ -1,11 +1,6 @@
 import { fetchPiezaById, updatePieza, deletePieza } from '../../../lib/pieza_api';
 
-export const prerender = true;
-
-export async function getStaticPaths() {
-  // Return empty array since these are API endpoints that should be generated on-demand
-  return [];
-}
+export const prerender = false;
 
 // GET - Obtener pieza por ID
 export async function GET({ params }) {

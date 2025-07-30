@@ -1,6 +1,6 @@
 import { addPieza } from '../../../lib/pieza_api';
 
-export const prerender = true;
+export const prerender = false;
 
 export async function POST({ request }) {
   try {

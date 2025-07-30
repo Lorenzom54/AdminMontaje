@@ -1,11 +1,6 @@
 import { fetchOperarioById, updateOperario, deleteOperario } from '../../../lib/operario_api';
 
-export const prerender = true;
-
-export async function getStaticPaths() {
-  // Return empty array since these are API endpoints that should be generated on-demand
-  return [];
-}
+export const prerender = false;
 
 // GET - Obtener operario por ID
 export async function GET({ params }) {
