@@ -4,6 +4,12 @@ import { fetchObrasForSelect } from '../../lib/conjunto_api';
 
 // Obtener obras para el select
 const obras = await fetchObrasForSelect();
+
+// Mapear obras al formato esperado por FormField
+const obraOptions = obras.map(obra => ({
+  value: obra.id.toString(),
+  label: obra.nombre
+}));
 ---
 
 <form class="conjuntos-form" id="conjuntos-form">
