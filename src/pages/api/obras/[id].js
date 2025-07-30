@@ -2,6 +2,11 @@ import { fetchObraById, updateObra, deleteObra } from '../../../lib/obra_api';
 
 export const prerender = true;
 
+export async function getStaticPaths() {
+  // Return empty array since these are API endpoints that should be generated on-demand
+  return [];
+}
+
 // GET - Obtener obra por ID
 export async function GET({ params }) {
   try {
