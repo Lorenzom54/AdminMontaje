@@ -1,0 +1,421 @@
+---
+import { FASES } from '../../lib/pieza_api';
+
+interface Props {
+  piezas: Array<{
+    id: number;
+    codigo: string;
+    tipo_material: string;
+    colada: string;
+    fase: number;
+    conjunto_id: number;
+    chapa_id: number;
+    created_at: string;
+    conjuntos?: { nombre: string };
+    chapas?: { codigo: number };
+  }>;
+}
+
+const { piezas } = Astro.props;
+
+// Función para formatear fechas
+function formatDate(dateString) {
+  if (!dateString) return '-';
+  return new Date(dateString).toLocaleDateString('es-ES');
+}
+---
+
+<div class="table-container">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Código</th>
+        <th>Tipo Material</th>
+        <th>Fase</th>
+        <th>Conjunto</th>
+        <th>Chapa</th>
+        <th>Colada</th>
+        <th>Fecha Creación</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {piezas.map((pieza) => (
+        <tr>
+          <td>
+            <div class="pieza-info">
+              <strong>{pieza.codigo}</strong>
+              <span class="pieza-id">ID: {pieza.id}</span>
+            </div>
+          </td>
+          <td>
+            <span class="material-badge">
+              {pieza.tipo_material || '-'}
+            </span>
+          </td>
+          <td>
+            <span class={`fase-badge fase-${pieza.fase}`}>
+              {FASES[pieza.fase] || 'Desconocida'}
+            </span>
+          </td>
+          <td>
+            <div class="conjunto-info">
+              <span>{pieza.conjuntos?.nombre || '-'}</span>
+            </div>
+          </td>
+          <td>
+            <div class="chapa-info">
+              <span>{pieza.chapas?.codigo ? `#${pieza.chapas.codigo}` : '-'}</span>
+            </div>
+          </td>
+          <td>
+            <div class="colada-info">
+              <span>{pieza.colada || '-'}</span>
+            </div>
+          </td>
+          <td>{formatDate(pieza.created_at)}</td>
+          <td>
+            <div class="action-buttons">
+              <button class="btn-icon" title="Ver detalles" onclick={`openModal('detail-pieza-${pieza.id}')`}>
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+              </button>
+              <button class="btn-icon" title="Editar" onclick={`editPieza('${pieza.id}')`}>
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+              </button>
+              <button class="btn-icon btn-delete" title="Eliminar" onclick={`deletePieza('${pieza.id}', '${pieza.codigo}')`}>
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </button>
+            </div>
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
+
+<style>
+  .table-container {
+    overflow-x: auto;
+  }
+
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .data-table th {
+    padding: 16px;
+    text-align: left;
+    font-size: 12px;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .data-table td {
+    padding: 16px;
+    border-bottom: 1px solid #f3f4f6;
+    vertical-align: middle;
+  }
+
+  .data-table tr:hover {
+    background: #f9fafb;
+  }
+
+  .pieza-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .pieza-id {
+    font-size: 12px;
+    color: #6b7280;
+    font-family: 'Monaco', 'Menlo', monospace;
+  }
+
+  .material-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    background: #e0e7ff;
+    color: #3730a3;
+  }
+
+  .fase-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .fase-badge.fase-0 {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  .fase-badge.fase-1 {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  .fase-badge.fase-2 {
+    background: #dbeafe;
+    color: #1d4ed8;
+  }
+
+  .fase-badge.fase-3 {
+    background: #d1fae5;
+    color: #065f46;
+  }
+
+  .conjunto-info,
+  .chapa-info,
+  .colada-info {
+    font-size: 12px;
+    color: #6b7280;
+    font-family: 'Monaco', 'Menlo', monospace;
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 8px;
+  }
+
+  .btn-icon {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: #f3f4f6;
+    color: #6b7280;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btn-icon:hover {
+    background: #e5e7eb;
+    color: #374151;
+  }
+
+  .btn-delete:hover {
+    background: #fee2e2;
+    color: #dc2626;
+  }
+
+  @media (max-width: 768px) {
+    .data-table {
+      font-size: 14px;
+    }
+
+    .data-table th,
+    .data-table td {
+      padding: 12px 8px;
+    }
+  }
+</style>
+
+<script type="module">
+  // Función para editar pieza
+  window.editPieza = async function(piezaId) {
+    try {
+      const response = await fetch(`/api/piezas/${piezaId}`);
+      const result = await response.json();
+      
+      if (result.success) {
+        const pieza = result.data;
+        
+        // Llenar el formulario con los datos existentes
+        const form = document.getElementById('piezas-form');
+        if (form) {
+          form.querySelector('[name="codigo"]').value = pieza.codigo || '';
+          form.querySelector('[name="tipo_material"]').value = pieza.tipo_material || '';
+          form.querySelector('[name="colada"]').value = pieza.colada || '';
+          form.querySelector('[name="fase"]').value = pieza.fase?.toString() || '';
+          form.querySelector('[name="conjunto_id"]').value = pieza.conjunto_id?.toString() || '';
+          form.querySelector('[name="chapa_id"]').value = pieza.chapa_id?.toString() || '';
+          
+          // Cambiar el comportamiento del formulario para actualizar
+          form.setAttribute('data-edit-id', piezaId);
+          form.querySelector('.btn-submit').innerHTML = `
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            Actualizar Pieza
+          `;
+          
+          // Cambiar el título del modal
+          const modal = document.getElementById('modal-nueva-pieza');
+          const title = modal.querySelector('.modal-title');
+          if (title) {
+            title.textContent = 'Editar Pieza';
+          }
+          
+          // Abrir el modal
+          openModal('modal-nueva-pieza');
+        }
+      }
+    } catch (error) {
+      console.error('Error al cargar pieza para editar:', error);
+      alert('Error al cargar los datos de la pieza');
+    }
+  };
+
+  // Función para eliminar pieza
+  window.deletePieza = async function(piezaId, piezaCodigo) {
+    if (confirm(`¿Estás seguro de que quieres eliminar la pieza "${piezaCodigo}"? Esta acción no se puede deshacer.`)) {
+      try {
+        const response = await fetch(`/api/piezas/${piezaId}`, {
+          method: 'DELETE'
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          alert('Pieza eliminada correctamente');
+          location.reload();
+        } else {
+          throw new Error(result.error || 'Error al eliminar la pieza');
+        }
+      } catch (error) {
+        console.error('Error al eliminar pieza:', error);
+        alert('Error al eliminar la pieza: ' + error.message);
+      }
+    }
+  };
+
+  // Modificar el comportamiento del formulario para manejar edición
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('piezas-form');
+    if (form) {
+      // Remover event listeners existentes para evitar duplicados
+      const newForm = form.cloneNode(true);
+      form.parentNode.replaceChild(newForm, form);
+      
+      newForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const editId = newForm.getAttribute('data-edit-id');
+        const isEditing = !!editId;
+        
+        const formData = new FormData(newForm);
+        const submitButton = newForm.querySelector('.btn-submit');
+        
+        // Prevenir múltiples envíos
+        if (submitButton.disabled) {
+          return;
+        }
+        
+        // Deshabilitar botón durante el envío
+        submitButton.disabled = true;
+        const originalText = submitButton.innerHTML;
+        submitButton.innerHTML = `
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="animate-spin">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          ${isEditing ? 'Actualizando...' : 'Creando...'}
+        `;
+
+        const body = {
+          codigo: formData.get('codigo'),
+          tipo_material: formData.get('tipo_material'),
+          colada: formData.get('colada'),
+          fase: formData.get('fase'),
+          conjunto_id: formData.get('conjunto_id'),
+          chapa_id: formData.get('chapa_id'),
+        };
+
+        try {
+          const url = isEditing ? `/api/piezas/${editId}` : '/api/piezas/create';
+          const method = isEditing ? 'PUT' : 'POST';
+          
+          const res = await fetch(url, {
+            method: method,
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(body)
+          });
+
+          const json = await res.json();
+          
+          if (json.success) {
+            // Mostrar éxito
+            submitButton.innerHTML = `
+              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+              ${isEditing ? '¡Pieza actualizada!' : '¡Pieza creada!'}
+            `;
+            submitButton.style.background = '#10b981';
+            
+            // Recargar la página después de un breve delay
+            setTimeout(() => {
+              location.reload();
+            }, 1500);
+          } else {
+            throw new Error(json.error || `Error al ${isEditing ? 'actualizar' : 'crear'} la pieza`);
+          }
+        } catch (error) {
+          console.error(`Error al ${isEditing ? 'actualizar' : 'crear'} pieza:`, error);
+          
+          // Mostrar error
+          submitButton.innerHTML = `
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+            Error al ${isEditing ? 'actualizar' : 'crear'}
+          `;
+          submitButton.style.background = '#ef4444';
+          
+          // Restaurar botón después de un delay
+          setTimeout(() => {
+            submitButton.innerHTML = originalText;
+            submitButton.style.background = '';
+            submitButton.disabled = false;
+          }, 2000);
+        }
+      });
+    }
+  });
+
+  // Limpiar formulario cuando se cierra el modal
+  document.addEventListener('click', function(e) {
+    if (e.target.matches('[data-close-modal="modal-nueva-pieza"]')) {
+      const form = document.getElementById('piezas-form');
+      if (form) {
+        form.reset();
+        form.removeAttribute('data-edit-id');
+        form.querySelector('.btn-submit').innerHTML = `
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          Crear Pieza
+        `;
+        
+        // Restaurar título del modal
+        const modal = document.getElementById('modal-nueva-pieza');
+        const title = modal.querySelector('.modal-title');
+        if (title) {
+          title.textContent = 'Nueva Pieza';
+        }
+      }
+    }
+  });
+</script>

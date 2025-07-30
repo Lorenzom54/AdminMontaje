@@ -3,7 +3,19 @@ import PageHeader from '../PageHeader.astro';
 import Modal from '../Modal.astro';
 import PiezasForm from '../forms/PiezasForm.astro';
 import DetailModal from '../DetailModal.astro';
+import TablePieza from '../table/TablePieza.astro';
 import PiezaDetail from '../detail/PiezaDetail.astro';
+import { fetchPiezas, FASES } from '../../lib/pieza_api';
+
+const piezas = await fetchPiezas();
+
+// Calcular estadísticas dinámicas
+const totalPiezas = piezas.length;
+const piezasPorFase = piezas.reduce((acc, pieza) => {
+  const fase = FASES[pieza.fase] || 'Desconocida';
+  acc[fase] = (acc[fase] || 0) + 1;
+  return acc;
+}, {});
 ---
 
 <PageHeader 
@@ -21,7 +33,7 @@ import PiezaDetail from '../detail/PiezaDetail.astro';
         </svg>
       </div>
       <div class="stat-content">
-        <div class="stat-number">1,234</div>
+        <div class="stat-number">{totalPiezas}</div>
         <div class="stat-label">Total Piezas</div>
       </div>
     </div>
@@ -33,8 +45,8 @@ import PiezaDetail from '../detail/PiezaDetail.astro';
         </svg>
       </div>
       <div class="stat-content">
-        <div class="stat-number">156</div>
-        <div class="stat-label">En Fabricación</div>
+        <div class="stat-number">{piezasPorFase['Corte'] || 0}</div>
+        <div class="stat-label">En Corte</div>
       </div>
     </div>
     
@@ -45,8 +57,8 @@ import PiezaDetail from '../detail/PiezaDetail.astro';
         </svg>
       </div>
       <div class="stat-content">
-        <div class="stat-number">89</div>
-        <div class="stat-label">Listas</div>
+        <div class="stat-number">{piezasPorFase['Soldadura'] || 0}</div>
+        <div class="stat-label">En Soldadura</div>
       </div>
     </div>
     
@@ -57,204 +69,39 @@ import PiezaDetail from '../detail/PiezaDetail.astro';
         </svg>
       </div>
       <div class="stat-content">
-        <div class="stat-number">98.5%</div>
-        <div class="stat-label">Calidad</div>
+        <div class="stat-number">{piezasPorFase['Montaje'] || 0}</div>
+        <div class="stat-label">En Montaje</div>
       </div>
     </div>
   </div>
 
   <div class="piezas-table">
     <div class="table-header">
-      <h3>Inventario de Piezas</h3>
+      <h3>Piezas Registradas</h3>
       <div class="table-filters">
-        <select class="filter-select">
-          <option>Todos los estados</option>
-          <option>En fabricación</option>
-          <option>Listas</option>
-          <option>Control calidad</option>
-          <option>Entregadas</option>
+        <select class="filter-select" id="fase-filter">
+          <option value="">Todas las fases</option>
+          <option value="0">Corte</option>
+          <option value="1">Biselado</option>
+          <option value="2">Montaje</option>
+          <option value="3">Soldadura</option>
         </select>
-        <select class="filter-select">
-          <option>Todos los tipos</option>
-          <option>Vigas</option>
-          <option>Columnas</option>
-          <option>Placas</option>
-          <option>Conectores</option>
-        </select>
+        <input 
+          type="text" 
+          class="filter-input" 
+          id="search-input"
+          placeholder="Buscar por código o colada..."
+        />
+        <button class="btn-import" onclick="openModal('modal-import-csv')">
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+          </svg>
+          Importar CSV
+        </button>
       </div>
     </div>
     
-    <div class="table-container">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Pieza</th>
-            <th>Tipo</th>
-            <th>Conjunto</th>
-            <th>Dimensiones</th>
-            <th>Material</th>
-            <th>Estado</th>
-            <th>Ubicación</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>
-              <div class="pieza-info">
-                <strong>Viga Principal VP-001</strong>
-                <span class="pieza-code">PZ-2024-001</span>
-              </div>
-            </td>
-            <td>
-              <div class="tipo-badge viga">
-                <span class="tipo-icon">⬜</span>
-                Viga
-              </div>
-            </td>
-            <td>Estructura Principal Bloque A</td>
-            <td>
-              <div class="dimensions">
-                <span>6000 × 300 × 200 mm</span>
-              </div>
-            </td>
-            <td>S275JR</td>
-            <td><span class="status-badge fabrication">En Fabricación</span></td>
-            <td>
-              <div class="location">
-                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                Taller A - Zona 2
-              </div>
-            </td>
-            <td>
-              <div class="action-buttons">
-                <button class="btn-icon" title="Ver detalles" onclick="openModal('detail-pieza-001')">
-                  <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                  </svg>
-                </button>
-                <button class="btn-icon" title="Editar">
-                  <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
-                </button>
-                <button class="btn-icon" title="QR Code">
-                  <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
-                  </svg>
-                </button>
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <div class="pieza-info">
-                <strong>Columna Central CC-012</strong>
-                <span class="pieza-code">PZ-2024-002</span>
-              </div>
-            </td>
-            <td>
-              <div class="tipo-badge columna">
-                <span class="tipo-icon">▬</span>
-                Columna
-              </div>
-            </td>
-            <td>Vigas Secundarias Nivel 2</td>
-            <td>
-              <div class="dimensions">
-                <span>3500 × 250 × 250 mm</span>
-              </div>
-            </td>
-            <td>S355JR</td>
-            <td><span class="status-badge ready">Lista</span></td>
-            <td>
-              <div class="location">
-                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                Almacén B - Estante 5
-              </div>
-            </td>
-            <td>
-              <div class="action-buttons">
-                <button class="btn-icon" title="Ver detalles" onclick="openModal('detail-pieza-002')">
-                  <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                  </svg>
-                </button>
-                <button class="btn-icon" title="Editar">
-                  <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
-                </button>
-                <button class="btn-icon" title="QR Code">
-                  <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
-                  </svg>
-                </button>
-              </div>
-            </td>
-          </tr>
-          <tr>
-            <td>
-              <div class="pieza-info">
-                <strong>Placa Conexión PL-045</strong>
-                <span class="pieza-code">PZ-2024-003</span>
-              </div>
-            </td>
-            <td>
-              <div class="tipo-badge placa">
-                <span class="tipo-icon">◼</span>
-                Placa
-              </div>
-            </td>
-            <td>Columnas Perimetrales</td>
-            <td>
-              <div class="dimensions">
-                <span>400 × 300 × 15 mm</span>
-              </div>
-            </td>
-            <td>S275JR</td>
-            <td><span class="status-badge quality">Control Calidad</span></td>
-            <td>
-              <div class="location">
-                <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                Control - Mesa 3
-              </div>
-            </td>
-            <td>
-              <div class="action-buttons">
-                <button class="btn-icon" title="Ver detalles" onclick="openModal('detail-pieza-003')">
-                  <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                  </svg>
-                </button>
-                <button class="btn-icon" title="Editar">
-                  <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                  </svg>
-                </button>
-                <button class="btn-icon" title="QR Code">
-                  <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
-                  </svg>
-                </button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+    <TablePieza piezas={piezas} />
   </div>
 </div>
 
@@ -263,66 +110,57 @@ import PiezaDetail from '../detail/PiezaDetail.astro';
   <PiezasForm />
 </Modal>
 
-<!-- Modales de Detalles -->
-<DetailModal id="detail-pieza-001" title="Viga Principal VP-001" type="pieza">
-  <PiezaDetail pieza={{
-    id: "PZ-2024-001",
-    nombre: "Viga Principal VP-001",
-    tipo: "Viga",
-    conjunto: "Estructura Principal Bloque A",
-    material: "S275JR",
-    largo: 6000,
-    ancho: 300,
-    alto: 200,
-    peso: 150.5,
-    estado: "En Fabricación",
-    ubicacion: "Taller A - Zona 2",
-    fechaEntrega: "28/02/2024",
-    prioridad: "Alta",
-    notas: "Viga principal para la estructura del bloque A. Requiere soldadura especial en los extremos.",
-    progreso: 75
-  }} />
-</DetailModal>
+<!-- Modal para Importar CSV -->
+<Modal id="modal-import-csv" title="Importar Piezas desde CSV" size="lg">
+  <div class="import-csv-form">
+    <div class="csv-instructions">
+      <h4>Formato del archivo CSV</h4>
+      <p>El archivo debe contener las siguientes columnas:</p>
+      <ul>
+        <li><strong>codigo</strong> - Código único de la pieza (obligatorio)</li>
+        <li><strong>tipo_material</strong> - Tipo de material (opcional, por defecto: "chapas y perfiles")</li>
+        <li><strong>colada</strong> - Código de colada (opcional)</li>
+        <li><strong>fase</strong> - Fase: 0=Corte, 1=Biselado, 2=Montaje, 3=Soldadura (opcional, por defecto: 0)</li>
+        <li><strong>conjunto_id</strong> - ID del conjunto (opcional)</li>
+        <li><strong>chapa_id</strong> - ID de la chapa (opcional)</li>
+      </ul>
+    </div>
+    
+    <div class="csv-upload">
+      <input type="file" id="csv-file" accept=".csv" />
+      <div class="upload-area" id="upload-area">
+        <svg width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+        </svg>
+        <p>Arrastra tu archivo CSV aquí o haz clic para seleccionar</p>
+      </div>
+    </div>
+    
+    <div class="csv-preview" id="csv-preview" style="display: none;">
+      <h4>Vista previa del archivo</h4>
+      <div class="preview-table" id="preview-table"></div>
+    </div>
+    
+    <div class="form-actions">
+      <button type="button" class="btn-cancel" data-close-modal="modal-import-csv">
+        Cancelar
+      </button>
+      <button type="button" class="btn-submit" id="import-btn" disabled>
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+        </svg>
+        Importar Piezas
+      </button>
+    </div>
+  </div>
+</Modal>
 
-<DetailModal id="detail-pieza-002" title="Columna Central CC-012" type="pieza">
-  <PiezaDetail pieza={{
-    id: "PZ-2024-002",
-    nombre: "Columna Central CC-012",
-    tipo: "Columna",
-    conjunto: "Vigas Secundarias Nivel 2",
-    material: "S355JR",
-    largo: 3500,
-    ancho: 250,
-    alto: 250,
-    peso: 245.8,
-    estado: "Lista",
-    ubicacion: "Almacén B - Estante 5",
-    fechaEntrega: "25/02/2024",
-    prioridad: "Media",
-    notas: "Columna central completada y lista para instalación.",
-    progreso: 100
-  }} />
-</DetailModal>
-
-<DetailModal id="detail-pieza-003" title="Placa Conexión PL-045" type="pieza">
-  <PiezaDetail pieza={{
-    id: "PZ-2024-003",
-    nombre: "Placa Conexión PL-045",
-    tipo: "Placa",
-    conjunto: "Columnas Perimetrales",
-    material: "S275JR",
-    largo: 400,
-    ancho: 300,
-    alto: 15,
-    peso: 14.1,
-    estado: "Control Calidad",
-    ubicacion: "Control - Mesa 3",
-    fechaEntrega: "20/02/2024",
-    prioridad: "Urgente",
-    notas: "Placa de conexión en proceso de control de calidad final.",
-    progreso: 95
-  }} />
-</DetailModal>
+<!-- Modales de Detalles dinámicos -->
+{piezas.map((pieza) => (
+  <DetailModal id={`detail-pieza-${pieza.id}`} title={`Pieza ${pieza.codigo}`} type="pieza">
+    <PiezaDetail pieza={pieza} />
+  </DetailModal>
+))}
 
 <style>
   .piezas-section {
@@ -407,9 +245,10 @@ import PiezaDetail from '../detail/PiezaDetail.astro';
   .table-filters {
     display: flex;
     gap: 12px;
+    align-items: center;
   }
 
-  .filter-select {
+  .filter-select, .filter-input {
     padding: 8px 12px;
     border: 1px solid #d1d5db;
     border-radius: 6px;
@@ -418,105 +257,380 @@ import PiezaDetail from '../detail/PiezaDetail.astro';
     color: #374151;
   }
 
-  .table-container {
-    overflow-x: auto;
+  .filter-input {
+    min-width: 200px;
   }
 
-  .data-table {
+  .btn-import {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: #10b981;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btn-import:hover {
+    background: #059669;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  }
+
+  /* Estilos para el modal de importación CSV */
+  .import-csv-form {
+    max-width: none;
+  }
+
+  .csv-instructions {
+    background: #f0f9ff;
+    border: 1px solid #0ea5e9;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 24px;
+  }
+
+  .csv-instructions h4 {
+    color: #0c4a6e;
+    margin-bottom: 8px;
+  }
+
+  .csv-instructions ul {
+    margin: 8px 0 0 20px;
+  }
+
+  .csv-upload {
+    margin-bottom: 24px;
+  }
+
+  #csv-file {
+    display: none;
+  }
+
+  .upload-area {
+    border: 2px dashed #d1d5db;
+    border-radius: 8px;
+    padding: 48px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .upload-area:hover {
+    border-color: #3b82f6;
+    background: #f8fafc;
+  }
+
+  .upload-area.dragover {
+    border-color: #3b82f6;
+    background: #eff6ff;
+  }
+
+  .upload-area svg {
+    margin: 0 auto 16px;
+    color: #6b7280;
+  }
+
+  .csv-preview {
+    margin-bottom: 24px;
+  }
+
+  .preview-table {
+    max-height: 300px;
+    overflow: auto;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+  }
+
+  .form-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    padding-top: 20px;
+    border-top: 1px solid #e5e7eb;
+  }
+
+  .btn-cancel {
+    padding: 10px 20px;
+    border: 1px solid #d1d5db;
+    background: white;
+    color: #374151;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btn-cancel:hover {
+    background: #f9fafb;
+    border-color: #9ca3af;
+  }
+
+  .btn-submit {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btn-submit:hover:not(:disabled) {
+    background: #2563eb;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  }
+
+  .btn-submit:disabled {
+    background: #9ca3af;
+    cursor: not-allowed;
+  }
+
+  @media (max-width: 768px) {
+    .stats-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .table-header {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 12px;
+    }
+
+    .table-filters {
+      flex-direction: column;
+    }
+  }
+</style>
+
+<script type="module">
+  // Filtros en tiempo real
+  document.addEventListener('DOMContentLoaded', function() {
+    const faseFilter = document.getElementById('fase-filter');
+    const searchInput = document.getElementById('search-input');
+    const tableRows = document.querySelectorAll('.data-table tbody tr');
+
+    function filterTable() {
+      const faseValue = faseFilter.value;
+      const searchValue = searchInput.value.toLowerCase();
+
+      tableRows.forEach(row => {
+        const fase = row.querySelector('.fase-badge').className;
+        const codigo = row.cells[0].textContent.toLowerCase();
+        const colada = row.cells[5].textContent.toLowerCase();
+
+        const matchesFase = !faseValue || fase.includes(`fase-${faseValue}`);
+        const matchesSearch = !searchValue || 
+          codigo.includes(searchValue) || 
+          colada.includes(searchValue);
+
+        if (matchesFase && matchesSearch) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    }
+
+    faseFilter.addEventListener('change', filterTable);
+    searchInput.addEventListener('input', filterTable);
+
+    // Funcionalidad de importación CSV
+    const csvFile = document.getElementById('csv-file');
+    const uploadArea = document.getElementById('upload-area');
+    const csvPreview = document.getElementById('csv-preview');
+    const previewTable = document.getElementById('preview-table');
+    const importBtn = document.getElementById('import-btn');
+    let csvData = null;
+
+    // Click en área de upload
+    uploadArea.addEventListener('click', () => csvFile.click());
+
+    // Drag and drop
+    uploadArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadArea.classList.add('dragover');
+    });
+
+    uploadArea.addEventListener('dragleave', () => {
+      uploadArea.classList.remove('dragover');
+    });
+
+    uploadArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadArea.classList.remove('dragover');
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        handleFile(files[0]);
+      }
+    });
+
+    // Selección de archivo
+    csvFile.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) {
+        handleFile(e.target.files[0]);
+      }
+    });
+
+    function handleFile(file) {
+      if (!file.name.endsWith('.csv')) {
+        alert('Por favor selecciona un archivo CSV válido');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const csv = e.target.result;
+        parseCSV(csv);
+      };
+      reader.readAsText(file);
+    }
+
+    function parseCSV(csv) {
+      const lines = csv.split('\n').filter(line => line.trim());
+      if (lines.length < 2) {
+        alert('El archivo CSV debe tener al menos una fila de encabezados y una fila de datos');
+        return;
+      }
+
+      const headers = lines[0].split(',').map(h => h.trim());
+      const rows = lines.slice(1).map(line => {
+        const values = line.split(',').map(v => v.trim());
+        const row = {};
+        headers.forEach((header, index) => {
+          row[header] = values[index] || '';
+        });
+        return row;
+      });
+
+      csvData = rows;
+      showPreview(headers, rows);
+      importBtn.disabled = false;
+    }
+
+    function showPreview(headers, rows) {
+      let html = '<table class="preview-data-table"><thead><tr>';
+      headers.forEach(header => {
+        html += `<th>${header}</th>`;
+      });
+      html += '</tr></thead><tbody>';
+
+      rows.slice(0, 5).forEach(row => {
+        html += '<tr>';
+        headers.forEach(header => {
+          html += `<td>${row[header] || '-'}</td>`;
+        });
+        html += '</tr>';
+      });
+
+      if (rows.length > 5) {
+        html += `<tr><td colspan="${headers.length}" style="text-align: center; font-style: italic;">... y ${rows.length - 5} filas más</td></tr>`;
+      }
+
+      html += '</tbody></table>';
+      previewTable.innerHTML = html;
+      csvPreview.style.display = 'block';
+    }
+
+    // Importar CSV
+    importBtn.addEventListener('click', async () => {
+      if (!csvData) return;
+
+      importBtn.disabled = true;
+      const originalText = importBtn.innerHTML;
+      importBtn.innerHTML = `
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="animate-spin">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+        Importando...
+      `;
+
+      try {
+        const response = await fetch('/api/piezas/import-csv', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ csvData })
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          importBtn.innerHTML = `
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            ¡Importado!
+          `;
+          importBtn.style.background = '#10b981';
+          
+          alert(result.message);
+          
+          setTimeout(() => {
+            location.reload();
+          }, 1500);
+        } else {
+          throw new Error(result.error || 'Error al importar CSV');
+        }
+      } catch (error) {
+        console.error('Error al importar CSV:', error);
+        alert('Error al importar CSV: ' + error.message);
+        
+        importBtn.innerHTML = originalText;
+        importBtn.disabled = false;
+      }
+    });
+  });
+</script>
+
+<style>
+  .preview-data-table {
     width: 100%;
     border-collapse: collapse;
+    font-size: 12px;
   }
 
-  .data-table th {
-    padding: 16px;
+  .preview-data-table th,
+  .preview-data-table td {
+    padding: 8px;
+    border: 1px solid #e5e7eb;
     text-align: left;
-    font-size: 12px;
+  }
+
+  .preview-data-table th {
+    background: #f9fafb;
     font-weight: 600;
     color: #6b7280;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
-    background: #f9fafb;
-    border-bottom: 1px solid #e5e7eb;
+    font-size: 11px;
   }
 
-  .data-table td {
-    padding: 16px;
-    border-bottom: 1px solid #f3f4f6;
-    vertical-align: middle;
-  }
-
-  .data-table tr:hover {
-    background: #f9fafb;
-  }
-
-  .pieza-info {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-
-  .pieza-code {
-    font-size: 12px;
-    color: #6b7280;
-    font-family: 'Monaco', 'Menlo', monospace;
-  }
-
-  .tipo-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 8px;
-    border-radius: 6px;
-    font-size: 12px;
-    font-weight: 600;
-  }
-
-  .tipo-badge.viga {
-    background: #dbeafe;
-    color: #1d4ed8;
-  }
-
-  .tipo-badge.columna {
-    background: #d1fae5;
-    color: #065f46;
-  }
-
-  .tipo-badge.placa {
-    background: #fef3c7;
-    color: #92400e;
-  }
-
-  .tipo-icon {
-    font-size: 10px;
-  }
-
-  .dimensions {
-    font-size: 12px;
-    color: #6b7280;
-    font-family: 'Monaco', 'Menlo', monospace;
-  }
-
-  .location {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 12px;
+  .preview-data-table td {
     color: #6b7280;
   }
 
-  .status-badge {
-    padding: 4px 12px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
   }
 
-  .status-badge.fabrication {
-    background: #fef3c7;
-    color: #92400e;
+  .animate-spin {
+    animation: spin 1s linear infinite;
   }
+</style>
 
   .status-badge.ready {
     background: #d1fae5;

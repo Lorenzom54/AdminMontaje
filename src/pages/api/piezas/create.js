@@ -1,0 +1,58 @@
+import { addPieza } from '../../../lib/pieza_api';
+
+export const prerender = false;
+
+export async function POST({ request }) {
+  try {
+    const body = await request.json();
+    
+    console.log('Datos recibidos:', body); // Para debug
+
+    const { codigo, tipo_material, colada, fase, conjunto_id, chapa_id } = body;
+
+    // Validaciones básicas
+    if (!codigo || tipo_material === undefined) {
+      return new Response(JSON.stringify({ 
+        success: false, 
+        error: 'Los campos código y tipo de material son obligatorios'
+      }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+    
+    // Preparar datos para inserción
+    const piezaData = {
+      codigo: codigo,
+      tipo_material: tipo_material,
+      colada: colada || null,
+      fase: parseInt(fase), // Convertir a número
+      conjunto_id: conjunto_id ? parseInt(conjunto_id) : null,
+      chapa_id: chapa_id ? parseInt(chapa_id) : null
+    };
+    
+    console.log('Datos a insertar:', piezaData); // Para debug
+
+    const result = await addPieza(piezaData);
+
+    if (!result.success) {
+      console.error('Error en addPieza:', result.error); // Para debug
+      return new Response(JSON.stringify(result), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    return new Response(JSON.stringify(result), {
+      status: 201,
+      headers: { 'Content-Type': 'application/json' },
+    });
+
+  } catch (error) {
+    console.error('Error en /api/piezas/create:', error);
+    return new Response(JSON.stringify({ success: false, error: 'Error al crear la pieza' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  }
+}

@@ -1,154 +1,75 @@
 ---
 import FormField from './FormField.astro';
+import { fetchConjuntosForSelect, fetchChapasForSelect } from '../../lib/pieza_api';
 
-const tipoOptions = [
-  { value: 'viga', label: 'Viga' },
-  { value: 'columna', label: 'Columna' },
-  { value: 'placa', label: 'Placa' },
-  { value: 'conector', label: 'Conector' },
-  { value: 'soporte', label: 'Soporte' }
+// Obtener datos para los selects
+const conjuntos = await fetchConjuntosForSelect();
+const chapas = await fetchChapasForSelect();
+
+const tipoMaterialOptions = [
+  { value: 'chapas y perfiles', label: 'Chapas y Perfiles' }
 ];
 
-const materialOptions = [
-  { value: 'S235JR', label: 'S235JR' },
-  { value: 'S275JR', label: 'S275JR' },
-  { value: 'S355JR', label: 'S355JR' },
-  { value: 'S460JR', label: 'S460JR' }
+const faseOptions = [
+  { value: '0', label: 'Corte' },
+  { value: '1', label: 'Biselado' },
+  { value: '2', label: 'Montaje' },
+  { value: '3', label: 'Soldadura' }
 ];
 
-const conjuntoOptions = [
-  { value: 'estructura-principal-a', label: 'Estructura Principal Bloque A' },
-  { value: 'vigas-secundarias-2', label: 'Vigas Secundarias Nivel 2' },
-  { value: 'columnas-perimetrales', label: 'Columnas Perimetrales' }
-];
-
-const estadoOptions = [
-  { value: 'planificada', label: 'Planificada' },
-  { value: 'en-fabricacion', label: 'En Fabricación' },
-  { value: 'control-calidad', label: 'Control de Calidad' },
-  { value: 'lista', label: 'Lista' },
-  { value: 'entregada', label: 'Entregada' }
-];
+const conjuntoOptions = conjuntos.map(c => ({ value: c.id.toString(), label: c.nombre }));
+const chapaOptions = chapas.map(c => ({ value: c.id.toString(), label: `#${c.codigo}` }));
 ---
 
 <form class="piezas-form" id="piezas-form">
   <div class="form-grid">
     <div class="form-column">
       <FormField 
-        label="Nombre de la Pieza" 
-        name="nombre" 
+        label="Código de la Pieza" 
+        name="codigo" 
         required={true}
-        placeholder="Ej: Viga Principal VP-001"
+        placeholder="Ej: PZ-001"
       />
       
       <FormField 
-        label="Tipo" 
-        name="tipo" 
+        label="Tipo de Material" 
+        name="tipo_material" 
         type="select"
-        options={tipoOptions}
+        options={tipoMaterialOptions}
+        required={true}
+      />
+      
+      <FormField 
+        label="Colada" 
+        name="colada" 
+        placeholder="Ej: COL2024001"
+      />
+    </div>
+    
+    <div class="form-column">
+      <FormField 
+        label="Fase" 
+        name="fase" 
+        type="select"
+        options={faseOptions}
         required={true}
       />
       
       <FormField 
         label="Conjunto" 
-        name="conjunto" 
+        name="conjunto_id" 
         type="select"
         options={conjuntoOptions}
-        required={true}
       />
       
       <FormField 
-        label="Material" 
-        name="material" 
+        label="Chapa" 
+        name="chapa_id" 
         type="select"
-        options={materialOptions}
-        required={true}
-      />
-    </div>
-    
-    <div class="form-column">
-      <FormField 
-        label="Largo (mm)" 
-        name="largo" 
-        type="number"
-        placeholder="6000"
-        required={true}
-      />
-      
-      <FormField 
-        label="Ancho (mm)" 
-        name="ancho" 
-        type="number"
-        placeholder="300"
-        required={true}
-      />
-      
-      <FormField 
-        label="Alto (mm)" 
-        name="alto" 
-        type="number"
-        placeholder="200"
-        required={true}
-      />
-      
-      <FormField 
-        label="Peso (kg)" 
-        name="peso" 
-        type="number"
-        placeholder="150.5"
-        required={true}
+        options={chapaOptions}
       />
     </div>
   </div>
-  
-  <div class="form-grid">
-    <div class="form-column">
-      <FormField 
-        label="Estado" 
-        name="estado" 
-        type="select"
-        options={estadoOptions}
-        required={true}
-      />
-      
-      <FormField 
-        label="Ubicación" 
-        name="ubicacion" 
-        placeholder="Ej: Taller A - Zona 2"
-        required={true}
-      />
-    </div>
-    
-    <div class="form-column">
-      <FormField 
-        label="Fecha de Entrega" 
-        name="fecha_entrega" 
-        type="date"
-        required={true}
-      />
-      
-      <FormField 
-        label="Prioridad" 
-        name="prioridad" 
-        type="select"
-        options={[
-          { value: 'baja', label: 'Baja' },
-          { value: 'media', label: 'Media' },
-          { value: 'alta', label: 'Alta' },
-          { value: 'urgente', label: 'Urgente' }
-        ]}
-        required={true}
-      />
-    </div>
-  </div>
-  
-  <FormField 
-    label="Notas" 
-    name="notas" 
-    type="textarea"
-    rows={3}
-    placeholder="Notas adicionales sobre la pieza..."
-  />
   
   <div class="form-actions">
     <button type="button" class="btn-cancel" data-close-modal="modal-nueva-pieza">
@@ -237,3 +158,85 @@ const estadoOptions = [
     }
   }
 </style>
+
+<script type="module">
+  document.getElementById('piezas-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const form = e.target;
+    const formData = new FormData(form);
+    const submitButton = form.querySelector('.btn-submit');
+    
+    // Prevenir múltiples envíos
+    if (submitButton.disabled) {
+      return;
+    }
+    
+    // Deshabilitar botón durante el envío
+    submitButton.disabled = true;
+    const originalText = submitButton.innerHTML;
+    submitButton.innerHTML = `
+      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="animate-spin">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+      </svg>
+      Creando...
+    `;
+
+    const body = {
+      codigo: formData.get('codigo'),
+      tipo_material: formData.get('tipo_material'),
+      colada: formData.get('colada'),
+      fase: formData.get('fase'),
+      conjunto_id: formData.get('conjunto_id'),
+      chapa_id: formData.get('chapa_id'),
+    };
+
+    try {
+      const res = await fetch('/api/piezas/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+      });
+
+      const json = await res.json();
+      
+      if (json.success) {
+        // Mostrar éxito
+        submitButton.innerHTML = `
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          ¡Pieza creada!
+        `;
+        submitButton.style.background = '#10b981';
+        
+        // Recargar la página después de un breve delay
+        setTimeout(() => {
+          location.reload();
+        }, 1500);
+      } else {
+        throw new Error(json.error || 'Error al crear la pieza');
+      }
+    } catch (error) {
+      console.error('Error al crear pieza:', error);
+      
+      // Mostrar error
+      submitButton.innerHTML = `
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+        Error al crear
+      `;
+      submitButton.style.background = '#ef4444';
+      
+      // Restaurar botón después de un delay
+      setTimeout(() => {
+        submitButton.innerHTML = originalText;
+        submitButton.style.background = '';
+        submitButton.disabled = false;
+      }, 2000);
+    }
+  });
+</script>

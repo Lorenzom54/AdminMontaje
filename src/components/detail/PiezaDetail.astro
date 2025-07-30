@@ -1,107 +1,84 @@
 ---
+---
+import { FASES } from '../../lib/pieza_api';
+
 interface Props {
   pieza: {
-    id: string;
-    nombre: string;
-    tipo: string;
-    conjunto: string;
-    material: string;
-    largo: number;
-    ancho: number;
-    alto: number;
-    peso: number;
-    estado: string;
-    ubicacion: string;
-    fechaEntrega: string;
-    prioridad: string;
-    notas: string;
-    progreso: number;
+    id: number;
+    codigo: string;
+    tipo_material: string;
+    colada: string;
+    fase: number;
+    conjunto_id: number;
+    chapa_id: number;
+    created_at: string;
+    conjuntos?: { nombre: string };
+    chapas?: { codigo: number };
   };
 }
 
 const { pieza } = Astro.props;
+
+// Función para formatear fechas
+function formatDate(dateString) {
+  if (!dateString) return '-';
+  return new Date(dateString).toLocaleDateString('es-ES', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+}
 ---
 
 <div slot="general" class="detail-content">
   <div class="detail-grid">
     <div class="detail-section">
-      <h3 class="section-title">Información Básica</h3>
+      <h3 class="section-title">Información de la Pieza</h3>
       <div class="info-grid">
         <div class="info-item">
-          <label class="info-label">Nombre de la Pieza</label>
-          <div class="info-value editable" data-field="nombre">{pieza.nombre}</div>
+          <label class="info-label">Código</label>
+          <div class="info-value editable" data-field="codigo">{pieza.codigo}</div>
         </div>
         <div class="info-item">
-          <label class="info-label">Tipo</label>
-          <div class="info-value editable" data-field="tipo">{pieza.tipo}</div>
+          <label class="info-label">ID del Sistema</label>
+          <div class="info-value">{pieza.id}</div>
         </div>
         <div class="info-item">
-          <label class="info-label">Conjunto</label>
-          <div class="info-value editable" data-field="conjunto">{pieza.conjunto}</div>
+          <label class="info-label">Tipo de Material</label>
+          <div class="info-value editable" data-field="tipo_material">{pieza.tipo_material}</div>
         </div>
         <div class="info-item">
-          <label class="info-label">Material</label>
-          <div class="info-value editable" data-field="material">{pieza.material}</div>
+          <label class="info-label">Fecha de Creación</label>
+          <div class="info-value">{formatDate(pieza.created_at)}</div>
         </div>
       </div>
     </div>
 
     <div class="detail-section">
-      <h3 class="section-title">Dimensiones y Peso</h3>
+      <h3 class="section-title">Estado y Relaciones</h3>
       <div class="info-grid">
         <div class="info-item">
-          <label class="info-label">Largo (mm)</label>
-          <div class="info-value editable" data-field="largo">{pieza.largo}</div>
-        </div>
-        <div class="info-item">
-          <label class="info-label">Ancho (mm)</label>
-          <div class="info-value editable" data-field="ancho">{pieza.ancho}</div>
-        </div>
-        <div class="info-item">
-          <label class="info-label">Alto (mm)</label>
-          <div class="info-value editable" data-field="alto">{pieza.alto}</div>
-        </div>
-        <div class="info-item">
-          <label class="info-label">Peso (kg)</label>
-          <div class="info-value editable" data-field="peso">{pieza.peso}</div>
-        </div>
-      </div>
-    </div>
-
-    <div class="detail-section full-width">
-      <h3 class="section-title">Estado y Ubicación</h3>
-      <div class="info-grid">
-        <div class="info-item">
-          <label class="info-label">Estado</label>
+          <label class="info-label">Fase</label>
           <div class="info-value">
-            <span class={`status-badge ${pieza.estado.toLowerCase().replace(' ', '-')}`}>
-              {pieza.estado}
+            <span class={`fase-badge fase-${pieza.fase}`}>
+              {FASES[pieza.fase] || 'Desconocida'}
             </span>
           </div>
         </div>
         <div class="info-item">
-          <label class="info-label">Ubicación</label>
-          <div class="info-value editable" data-field="ubicacion">{pieza.ubicacion}</div>
+          <label class="info-label">Colada</label>
+          <div class="info-value editable" data-field="colada">{pieza.colada || '-'}</div>
         </div>
         <div class="info-item">
-          <label class="info-label">Fecha de Entrega</label>
-          <div class="info-value editable" data-field="fechaEntrega">{pieza.fechaEntrega}</div>
+          <label class="info-label">Conjunto</label>
+          <div class="info-value">{pieza.conjuntos?.nombre || '-'}</div>
         </div>
         <div class="info-item">
-          <label class="info-label">Prioridad</label>
-          <div class="info-value">
-            <span class={`priority-badge ${pieza.prioridad.toLowerCase()}`}>
-              {pieza.prioridad}
-            </span>
-          </div>
+          <label class="info-label">Chapa</label>
+          <div class="info-value">{pieza.chapas?.codigo ? `#${pieza.chapas.codigo}` : '-'}</div>
         </div>
-      </div>
-    </div>
-
-    <div class="detail-section full-width">
-      <h3 class="section-title">Notas</h3>
-      <div class="info-item">
-        <div class="info-value editable" data-field="notas">{pieza.notas}</div>
       </div>
     </div>
   </div>
@@ -109,80 +86,54 @@ const { pieza } = Astro.props;
 
 <div slot="progress" class="detail-content">
   <div class="progress-section">
-    <h3 class="section-title">Estado de Fabricación</h3>
+    <h3 class="section-title">Estado de la Pieza</h3>
     
-    <div class="progress-overview">
-      <div class="progress-card">
-        <div class="progress-icon planning">
+    <div class="fase-overview">
+      <div class="fase-card">
+        <div class="fase-icon corte">
           <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h1m4 0h1m-6 4h8m-5-9V3m0 0L8 6m3-3l3 3" />
           </svg>
         </div>
-        <div class="progress-details">
-          <span class="progress-label">Planificación</span>
-          <span class="progress-status">Completado</span>
+        <div class="fase-details">
+          <span class="fase-label">Corte</span>
+          <span class="fase-status">{pieza.fase >= 0 ? 'Completado' : 'Pendiente'}</span>
         </div>
       </div>
       
-      <div class="progress-card">
-        <div class="progress-icon fabrication">
+      <div class="fase-card">
+        <div class="fase-icon biselado">
           <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
           </svg>
         </div>
-        <div class="progress-details">
-          <span class="progress-label">Fabricación</span>
-          <span class="progress-status">En Proceso</span>
+        <div class="fase-details">
+          <span class="fase-label">Biselado</span>
+          <span class="fase-status">{pieza.fase >= 1 ? 'Completado' : 'Pendiente'}</span>
         </div>
       </div>
       
-      <div class="progress-card">
-        <div class="progress-icon quality">
+      <div class="fase-card">
+        <div class="fase-icon montaje">
           <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
           </svg>
         </div>
-        <div class="progress-details">
-          <span class="progress-label">Control Calidad</span>
-          <span class="progress-status">Pendiente</span>
+        <div class="fase-details">
+          <span class="fase-label">Montaje</span>
+          <span class="fase-status">{pieza.fase >= 2 ? 'Completado' : 'Pendiente'}</span>
         </div>
       </div>
-    </div>
-
-    <div class="timeline">
-      <h4 class="timeline-title">Proceso de Fabricación</h4>
-      <div class="timeline-items">
-        <div class="timeline-item completed">
-          <div class="timeline-marker"></div>
-          <div class="timeline-content">
-            <h5>Corte de Material</h5>
-            <p>14/02/2024 - 09:30</p>
-            <span class="timeline-status">Completado</span>
-          </div>
+      
+      <div class="fase-card">
+        <div class="fase-icon soldadura">
+          <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
         </div>
-        <div class="timeline-item active">
-          <div class="timeline-marker"></div>
-          <div class="timeline-content">
-            <h5>Soldadura</h5>
-            <p>15/02/2024 - 08:00</p>
-            <span class="timeline-status">En Progreso</span>
-          </div>
-        </div>
-        <div class="timeline-item">
-          <div class="timeline-marker"></div>
-          <div class="timeline-content">
-            <h5>Acabado</h5>
-            <p>16/02/2024 - 10:00</p>
-            <span class="timeline-status">Pendiente</span>
-          </div>
-        </div>
-        <div class="timeline-item">
-          <div class="timeline-marker"></div>
-          <div class="timeline-content">
-            <h5>Control de Calidad</h5>
-            <p>16/02/2024 - 15:00</p>
-            <span class="timeline-status">Pendiente</span>
-          </div>
+        <div class="fase-details">
+          <span class="fase-label">Soldadura</span>
+          <span class="fase-status">{pieza.fase >= 3 ? 'Completado' : 'Pendiente'}</span>
         </div>
       </div>
     </div>
@@ -191,42 +142,18 @@ const { pieza } = Astro.props;
 
 <div slot="history" class="detail-content">
   <div class="history-section">
-    <h3 class="section-title">Historial de Movimientos</h3>
+    <h3 class="section-title">Historial de la Pieza</h3>
     
     <div class="history-items">
       <div class="history-item">
-        <div class="history-avatar">JM</div>
+        <div class="history-avatar">SYS</div>
         <div class="history-content">
           <div class="history-header">
-            <strong>José Martínez</strong>
-            <span class="history-action">inició soldadura</span>
-            <span class="history-time">hace 1 hora</span>
+            <strong>Sistema</strong>
+            <span class="history-action">registró pieza</span>
+            <span class="history-time">{formatDate(pieza.created_at)}</span>
           </div>
-          <p class="history-description">Comenzó el proceso de soldadura de la viga principal</p>
-        </div>
-      </div>
-      
-      <div class="history-item">
-        <div class="history-avatar">AL</div>
-        <div class="history-content">
-          <div class="history-header">
-            <strong>Ana López</strong>
-            <span class="history-action">completó corte</span>
-            <span class="history-time">ayer</span>
-          </div>
-          <p class="history-description">Finalizó el corte del material según especificaciones</p>
-        </div>
-      </div>
-      
-      <div class="history-item">
-        <div class="history-avatar">MR</div>
-        <div class="history-content">
-          <div class="history-header">
-            <strong>María Rodríguez</strong>
-            <span class="history-action">movió pieza</span>
-            <span class="history-time">hace 2 días</span>
-          </div>
-          <p class="history-description">Trasladó la pieza de Almacén A a Taller A - Zona 2</p>
+          <p class="history-description">Pieza {pieza.codigo} registrada en el sistema</p>
         </div>
       </div>
     </div>
@@ -235,7 +162,7 @@ const { pieza } = Astro.props;
 
 <div slot="files" class="detail-content">
   <div class="files-section">
-    <h3 class="section-title">Planos y Documentos</h3>
+    <h3 class="section-title">Documentos de la Pieza</h3>
     
     <div class="files-upload">
       <button class="btn-upload">
@@ -246,36 +173,20 @@ const { pieza } = Astro.props;
       </button>
     </div>
 
-    <div class="files-list">
-      <div class="file-item">
-        <div class="file-icon pdf">
-          <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-          </svg>
-        </div>
-        <div class="file-details">
-          <span class="file-name">Plano_Viga_VP-001.pdf</span>
-          <span class="file-meta">1.2 MB • Subido hace 3 días</span>
-        </div>
-        <div class="file-actions">
-          <button class="btn-file-action" title="Descargar">
-            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-          </button>
-          <button class="btn-file-action" title="Eliminar">
-            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-            </svg>
-          </button>
-        </div>
+    <div class="files-placeholder">
+      <div class="placeholder-icon">
+        <svg width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
       </div>
+      <p>No hay documentos adjuntos</p>
+      <span>Sube planos, especificaciones o documentos relacionados con la pieza</span>
     </div>
   </div>
 </div>
 
 <style>
-  .priority-badge {
+  .fase-badge {
     padding: 4px 12px;
     border-radius: 20px;
     font-size: 12px;
@@ -284,33 +195,95 @@ const { pieza } = Astro.props;
     letter-spacing: 0.05em;
   }
 
-  .priority-badge.alta {
+  .fase-badge.fase-0 {
     background: #fee2e2;
     color: #991b1b;
   }
 
-  .priority-badge.media {
+  .fase-badge.fase-1 {
     background: #fef3c7;
     color: #92400e;
   }
 
-  .priority-badge.baja {
+  .fase-badge.fase-2 {
+    background: #dbeafe;
+    color: #1d4ed8;
+  }
+
+  .fase-badge.fase-3 {
     background: #d1fae5;
     color: #065f46;
   }
 
-  .priority-badge.urgente {
-    background: #fecaca;
-    color: #7f1d1d;
-    animation: pulse 2s infinite;
+  .fase-overview {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
   }
 
-  @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.7; }
+  .fase-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
   }
 
-  .progress-icon.planning { background: linear-gradient(135deg, #6b7280, #4b5563); }
-  .progress-icon.fabrication { background: linear-gradient(135deg, #f59e0b, #d97706); }
-  .progress-icon.quality { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+  .fase-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+  }
+
+  .fase-icon.corte { background: linear-gradient(135deg, #ef4444, #dc2626); }
+  .fase-icon.biselado { background: linear-gradient(135deg, #f59e0b, #d97706); }
+  .fase-icon.montaje { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+  .fase-icon.soldadura { background: linear-gradient(135deg, #10b981, #059669); }
+
+  .fase-details {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .fase-label {
+    font-size: 12px;
+    color: #6b7280;
+    font-weight: 500;
+  }
+
+  .fase-status {
+    font-size: 14px;
+    font-weight: 600;
+    color: #111827;
+  }
+
+  .files-placeholder {
+    text-align: center;
+    padding: 48px 24px;
+    color: #6b7280;
+  }
+
+  .placeholder-icon {
+    margin: 0 auto 16px;
+    opacity: 0.5;
+  }
+
+  .files-placeholder p {
+    font-size: 16px;
+    font-weight: 500;
+    margin-bottom: 8px;
+    color: #374151;
+  }
+
+  .files-placeholder span {
+    font-size: 14px;
+    color: #6b7280;
+  }
 </style>
