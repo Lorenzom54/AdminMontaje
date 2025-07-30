@@ -24,7 +24,7 @@ export async function fetchPiezas() {
     .from('piezas')
     .select(`
       *,
-      conjuntos:conjunto_id(nombre),
+      conjuntos:conjunto_id(codigo),
       chapas:chapa_id(codigo)
     `)
     .order('created_at', { ascending: false })
@@ -42,7 +42,7 @@ export async function fetchPiezaById(id) {
     .from('piezas')
     .select(`
       *,
-      conjuntos:conjunto_id(nombre),
+      conjuntos:conjunto_id(codigo),
       chapas:chapa_id(codigo)
     `)
     .eq('id', id)
@@ -112,7 +112,7 @@ export async function deletePieza(id) {
 export async function searchPiezas(filters = {}) {
   let query = supabase.from('piezas').select(`
     *,
-    conjuntos:conjunto_id(nombre),
+    conjuntos:conjunto_id(codigo),
     chapas:chapa_id(codigo)
   `);
 
@@ -146,8 +146,8 @@ export async function searchPiezas(filters = {}) {
 export async function fetchConjuntosForSelect() {
   let { data: conjuntos, error } = await supabase
     .from('conjuntos')
-    .select('id, nombre')
-    .order('nombre', { ascending: true })
+    .select('id, codigo')
+    .order('codigo', { ascending: true })
     
   if (error) {
     console.error('Error al obtener conjuntos:', error.message);

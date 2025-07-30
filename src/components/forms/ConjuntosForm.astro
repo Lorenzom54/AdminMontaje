@@ -4,7 +4,6 @@ import { fetchObrasForSelect } from '../../lib/conjunto_api';
 
 // Obtener obras para el select
 const obras = await fetchObrasForSelect();
-const obraOptions = obras.map(o => ({ value: o.id.toString(), label: o.nombre }));
 ---
 
 <form class="conjuntos-form" id="conjuntos-form">

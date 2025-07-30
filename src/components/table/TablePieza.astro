@@ -11,7 +11,7 @@ interface Props {
     conjunto_id: number;
     chapa_id: number;
     created_at: string;
-    conjuntos?: { nombre: string };
+    conjuntos?: { codigo: string };
     chapas?: { codigo: number };
   }>;
 }
@@ -60,7 +60,7 @@ function formatDate(dateString) {
           </td>
           <td>
             <div class="conjunto-info">
-              <span>{pieza.conjuntos?.nombre || '-'}</span>
+              <span>{pieza.conjuntos?.codigo || '-'}</span>
             </div>
           </td>
           <td>
