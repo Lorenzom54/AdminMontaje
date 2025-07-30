@@ -1,0 +1,264 @@
+---
+import PageHeader from '../PageHeader.astro';
+import Modal from '../Modal.astro';
+import ChapasForm from '../forms/ChapasForm.astro';
+import DetailModal from '../DetailModal.astro';
+import TableChapa from '../table/TableChapa.astro';
+import ChapaDetail from '../detail/ChapaDetail.astro';
+import { fetchChapas } from '../../lib/chapa_api';
+
+const chapas = await fetchChapas();
+
+// Calcular estadísticas dinámicas
+const totalChapas = chapas.length;
+const tiposUnicos = [...new Set(chapas.map(c => c.tipo_acero).filter(Boolean))].length;
+const chapasPorTipo = chapas.reduce((acc, chapa) => {
+  if (chapa.tipo_acero) {
+    acc[chapa.tipo_acero] = (acc[chapa.tipo_acero] || 0) + 1;
+  }
+  return acc;
+}, {});
+---
+
+<PageHeader 
+  title="Chapas y Perfiles" 
+  subtitle="Gestión de materiales base: chapas y perfiles metálicos"
+  actionButton={{ text: "Nueva Chapa", onClick: "openModal('modal-nueva-chapa')" }}
+/>
+
+<div class="chapas-section">
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-icon stock">
+        <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+        </svg>
+      </div>
+      <div class="stat-content">
+        <div class="stat-number">{totalChapas}</div>
+        <div class="stat-label">Total Chapas</div>
+      </div>
+    </div>
+    
+    <div class="stat-card">
+      <div class="stat-icon types">
+        <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+        </svg>
+      </div>
+      <div class="stat-content">
+        <div class="stat-number">{tiposUnicos}</div>
+        <div class="stat-label">Tipos de Acero</div>
+      </div>
+    </div>
+    
+    <div class="stat-card">
+      <div class="stat-icon s275">
+        <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+        </svg>
+      </div>
+      <div class="stat-content">
+        <div class="stat-number">{chapasPorTipo['S275JR'] || 0}</div>
+        <div class="stat-label">S275JR</div>
+      </div>
+    </div>
+    
+    <div class="stat-card">
+      <div class="stat-icon s355">
+        <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+        </svg>
+      </div>
+      <div class="stat-content">
+        <div class="stat-number">{chapasPorTipo['S355JR'] || 0}</div>
+        <div class="stat-label">S355JR</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="chapas-table">
+    <div class="table-header">
+      <h3>Inventario de Chapas</h3>
+      <div class="table-filters">
+        <select class="filter-select" id="tipo-filter">
+          <option value="">Todos los tipos</option>
+          <option value="S235">S235</option>
+          <option value="S275">S275</option>
+          <option value="S355">S355</option>
+          <option value="S460">S460</option>
+          <option value="S690">S690</option>
+        </select>
+        <input 
+          type="text" 
+          class="filter-input" 
+          id="search-input"
+          placeholder="Buscar por código o colada..."
+        />
+      </div>
+    </div>
+    
+    <TableChapa chapas={chapas} />
+  </div>
+</div>
+
+<!-- Modal para Nueva Chapa -->
+<Modal id="modal-nueva-chapa" title="Nueva Chapa" size="lg">
+  <ChapasForm />
+</Modal>
+
+<!-- Modales de Detalles dinámicos -->
+{chapas.map((chapa) => (
+  <DetailModal id={`detail-chapa-${chapa.id}`} title={`Chapa #${chapa.codigo}`} type="chapa">
+    <ChapaDetail chapa={chapa} />
+  </DetailModal>
+))}
+
+<style>
+  .chapas-section {
+    space-y: 32px;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 24px;
+    margin-bottom: 32px;
+  }
+
+  .stat-card {
+    background: white;
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+  }
+
+  .stat-icon.stock { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+  .stat-icon.types { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+  .stat-icon.s275 { background: linear-gradient(135deg, #10b981, #059669); }
+  .stat-icon.s355 { background: linear-gradient(135deg, #f59e0b, #d97706); }
+
+  .stat-content {
+    flex: 1;
+  }
+
+  .stat-number {
+    font-size: 24px;
+    font-weight: 700;
+    color: #111827;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .stat-label {
+    font-size: 14px;
+    color: #6b7280;
+    font-weight: 500;
+  }
+
+  .chapas-table {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e7eb;
+  }
+
+  .table-header {
+    padding: 24px;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .table-header h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #111827;
+    margin: 0;
+  }
+
+  .table-filters {
+    display: flex;
+    gap: 12px;
+  }
+
+  .filter-select, .filter-input {
+    padding: 8px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+    background: white;
+    color: #374151;
+  }
+
+  .filter-input {
+    min-width: 200px;
+  }
+
+  @media (max-width: 768px) {
+    .stats-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .table-header {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 12px;
+    }
+
+    .table-filters {
+      flex-direction: column;
+    }
+  }
+</style>
+
+<script type="module">
+  // Filtros en tiempo real
+  document.addEventListener('DOMContentLoaded', function() {
+    const tipoFilter = document.getElementById('tipo-filter');
+    const searchInput = document.getElementById('search-input');
+    const tableRows = document.querySelectorAll('.data-table tbody tr');
+
+    function filterTable() {
+      const tipoValue = tipoFilter.value.toLowerCase();
+      const searchValue = searchInput.value.toLowerCase();
+
+      tableRows.forEach(row => {
+        const tipo = row.querySelector('.tipo-badge').textContent.toLowerCase();
+        const codigo = row.cells[0].textContent.toLowerCase();
+        const colada = row.cells[4].textContent.toLowerCase();
+
+        const matchesTipo = !tipoValue || tipo.includes(tipoValue);
+        const matchesSearch = !searchValue || 
+          codigo.includes(searchValue) || 
+          colada.includes(searchValue);
+
+        if (matchesTipo && matchesSearch) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    }
+
+    tipoFilter.addEventListener('change', filterTable);
+    searchInput.addEventListener('input', filterTable);
+  });
+</script>

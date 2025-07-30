@@ -1,0 +1,217 @@
+---
+import FormField from './FormField.astro';
+
+// Opciones más básicas para tipo de acero
+const tipoAceroOptions = [
+  { value: 'S235', label: 'S235' },
+  { value: 'S275', label: 'S275' },
+  { value: 'S355', label: 'S355' },
+  { value: 'S460', label: 'S460' },
+  { value: 'S690', label: 'S690' }
+];
+---
+
+<form class="chapas-form" id="chapas-form">
+  <div class="form-grid">
+    <div class="form-column">
+      <FormField 
+        label="Código de la Chapa" 
+        name="codigo" 
+        type="number"
+        required={true}
+        placeholder="Ej: 1001"
+      />
+      
+      <FormField 
+        label="Colada" 
+        name="colada" 
+        placeholder="Ej: COL2024001"
+      />
+      
+      <FormField 
+        label="Espesor" 
+        name="espesor" 
+        placeholder="Ej: 10"
+      />
+    </div>
+    
+    <div class="form-column">
+      <FormField 
+        label="Dimensiones" 
+        name="dimensiones" 
+        placeholder="Ej: 6000x2000"
+      />
+      
+      <FormField 
+        label="Tipo de Acero" 
+        name="tipo_acero" 
+        type="select"
+        options={tipoAceroOptions}
+        required={true}
+      />
+    </div>
+  </div>
+  
+  <div class="form-actions">
+    <button type="button" class="btn-cancel" data-close-modal="modal-nueva-chapa">
+      Cancelar
+    </button>
+    <button type="submit" class="btn-submit">
+      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+      </svg>
+      Crear Chapa
+    </button>
+  </div>
+</form>
+
+<style>
+  .chapas-form {
+    max-width: none;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+    margin-bottom: 20px;
+  }
+
+  .form-column {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .form-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    padding-top: 20px;
+    border-top: 1px solid #e5e7eb;
+  }
+
+  .btn-cancel {
+    padding: 10px 20px;
+    border: 1px solid #d1d5db;
+    background: white;
+    color: #374151;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btn-cancel:hover {
+    background: #f9fafb;
+    border-color: #9ca3af;
+  }
+
+  .btn-submit {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btn-submit:hover {
+    background: #2563eb;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  }
+
+  @media (max-width: 768px) {
+    .form-grid {
+      grid-template-columns: 1fr;
+      gap: 0;
+    }
+
+    .form-actions {
+      flex-direction: column;
+    }
+  }
+</style>
+
+<script type="module">
+  document.getElementById('chapas-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const form = e.target;
+    const formData = new FormData(form);
+    const submitButton = form.querySelector('.btn-submit');
+    
+    // Deshabilitar botón durante el envío
+    submitButton.disabled = true;
+    const originalText = submitButton.innerHTML;
+    submitButton.innerHTML = `
+      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="animate-spin">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+      </svg>
+      Creando...
+    `;
+
+    const body = {
+      codigo: formData.get('codigo'),
+      colada: formData.get('colada'),
+      espesor: formData.get('espesor'),
+      dimensiones: formData.get('dimensiones'),
+      tipo_acero: formData.get('tipo_acero'),
+    };
+
+    try {
+      const res = await fetch('/api/chapas/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+      });
+
+      const json = await res.json();
+      
+      if (json.success) {
+        // Mostrar éxito
+        submitButton.innerHTML = `
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          ¡Chapa creada!
+        `;
+        submitButton.style.background = '#10b981';
+        
+        // Recargar la página después de un breve delay
+        setTimeout(() => {
+          location.reload();
+        }, 1500);
+      } else {
+        throw new Error(json.error || 'Error al crear la chapa');
+      }
+    } catch (error) {
+      console.error('Error al crear chapa:', error);
+      
+      // Mostrar error
+      submitButton.innerHTML = `
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+        Error al crear
+      `;
+      submitButton.style.background = '#ef4444';
+      
+      // Restaurar botón después de un delay
+      setTimeout(() => {
+        submitButton.innerHTML = originalText;
+        submitButton.style.background = '';
+        submitButton.disabled = false;
+      }, 2000);
+    }
+  });
+</script>
