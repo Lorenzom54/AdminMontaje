@@ -1,6 +1,6 @@
 import { fetchPiezaById, updatePieza, deletePieza } from '../../../lib/pieza_api';
 
-export const prerender = true;
+export const prerender = false;
 
 // GET - Obtener pieza por ID
 export async function GET({ params }) {

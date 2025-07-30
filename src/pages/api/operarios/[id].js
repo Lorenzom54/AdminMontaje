@@ -1,6 +1,6 @@
 import { fetchOperarioById, updateOperario, deleteOperario } from '../../../lib/operario_api';
 
-export const prerender = true;
+export const prerender = false;
 
 // GET - Obtener operario por ID
 export async function GET({ params }) {

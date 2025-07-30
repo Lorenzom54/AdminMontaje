@@ -1,6 +1,6 @@
 import { fetchPiezas } from '../../../lib/pieza_api';
 
-export const prerender = true;
+export const prerender = false;
 
 export async function GET() {
   try {
