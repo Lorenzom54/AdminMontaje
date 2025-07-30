@@ -82,11 +82,11 @@ const rolesPorTipo = operarios.reduce((acc, operario) => {
       <h3>Operarios Registrados</h3>
       <div class="table-filters">
         <select class="filter-select" id="rol-filter">
-          <option>Todos los roles</option>
-          <option>Administrador</option>
-          <option>Supervisor</option>
-          <option>Operario</option>
-          <option>Consulta</option>
+          <option value="">Todos los roles</option>
+          <option value="administrador">Administrador</option>
+          <option value="supervisor">Supervisor</option>
+          <option value="operario">Operario</option>
+          <option value="consulta">Consulta</option>
         </select>
         <input 
           type="text" 
@@ -236,24 +236,16 @@ const rolesPorTipo = operarios.reduce((acc, operario) => {
     const tableRows = document.querySelectorAll('.data-table tbody tr');
 
     function filterTable() {
-      const rolValue = rolFilter ? rolFilter.value.toLowerCase() : '';
-      const searchValue = searchInput ? searchInput.value.toLowerCase().trim() : '';
-
-      console.log('Filtros aplicados:', { rolValue, searchValue }); // Debug
+      const rolValue = rolFilter.value.toLowerCase();
+      const searchValue = searchInput.value.toLowerCase();
 
       tableRows.forEach(row => {
-        const rolBadge = row.querySelector('.rol-badge');
-        const nombreCell = row.cells[0];
-        const emailCell = row.cells[3];
-        
-        if (!rolBadge || !nombreCell || !emailCell) return;
-        
-        const rol = rolBadge.textContent.toLowerCase().trim();
-        const nombre = nombreCell.textContent.toLowerCase().trim();
-        const email = emailCell.textContent.toLowerCase().trim();
+        const rol = row.querySelector('.rol-badge').textContent.toLowerCase();
+        const nombre = row.cells[0].textContent.toLowerCase();
+        const email = row.cells[3].textContent.toLowerCase();
 
-        const matchesRol = rolValue === '' || rol.includes(rolValue);
-        const matchesSearch = searchValue === '' || 
+        const matchesRol = !rolValue || rol.includes(rolValue);
+        const matchesSearch = !searchValue || 
           nombre.includes(searchValue) || 
           email.includes(searchValue);
 
@@ -265,9 +257,7 @@ const rolesPorTipo = operarios.reduce((acc, operario) => {
       });
     }
 
-    if (rolFilter) rolFilter.addEventListener('change', filterTable);
-    if (searchInput) {
-      searchInput.addEventListener('input', filterTable);
-    }
+    rolFilter.addEventListener('change', filterTable);
+    searchInput.addEventListener('input', filterTable);
   });
 </script>
