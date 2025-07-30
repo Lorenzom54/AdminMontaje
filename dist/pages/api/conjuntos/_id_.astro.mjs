@@ -3,6 +3,11 @@ export { renderers } from '../../../renderers.mjs';
 
 const prerender = true;
 
+async function getStaticPaths() {
+  // Return empty array since these are API endpoints that should be generated on-demand
+  return [];
+}
+
 // GET - Obtener conjunto por ID
 async function GET({ params }) {
   try {
@@ -96,6 +101,7 @@ const _page = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
   DELETE,
   GET,
   PUT,
+  getStaticPaths,
   prerender
 }, Symbol.toStringTag, { value: 'Module' }));
 
