@@ -307,14 +307,23 @@ function getDaysRemaining(fechaFin) {
   document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('obras-form');
     if (form) {
-      form.addEventListener('submit', async function(e) {
+      // Remover event listeners existentes para evitar duplicados
+      const newForm = form.cloneNode(true);
+      form.parentNode.replaceChild(newForm, form);
+      
+      newForm.addEventListener('submit', async function(e) {
         e.preventDefault();
         
-        const editId = form.getAttribute('data-edit-id');
+        const editId = newForm.getAttribute('data-edit-id');
         const isEditing = !!editId;
         
-        const formData = new FormData(form);
-        const submitButton = form.querySelector('.btn-submit');
+        const formData = new FormData(newForm);
+        const submitButton = newForm.querySelector('.btn-submit');
+        
+        // Prevenir múltiples envíos
+        if (submitButton.disabled) {
+          return;
+        }
         
         // Deshabilitar botón durante el envío
         submitButton.disabled = true;

@@ -163,6 +163,11 @@ const estadoOptions = [
     const formData = new FormData(form);
     const submitButton = form.querySelector('.btn-submit');
     
+    // Prevenir múltiples envíos
+    if (submitButton.disabled) {
+      return;
+    }
+    
     // Deshabilitar botón durante el envío
     submitButton.disabled = true;
     const originalText = submitButton.innerHTML;
