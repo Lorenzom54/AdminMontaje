@@ -5,40 +5,15 @@ import ConjuntosForm from '../forms/ConjuntosForm.astro';
 import DetailModal from '../DetailModal.astro';
 import TableConjunto from '../table/TableConjunto.astro';
 import ConjuntoDetail from '../detail/ConjuntoDetail.astro';
+import { fetchConjuntos } from '../../lib/conjunto_api';
 
-// Datos de ejemplo - en una aplicación real vendrían de una API
-const conjuntos = [
-  {
-    id: "001",
-    nombre: "Estructura Principal Bloque A",
-    codigo: "CNJ-2024-001",
-    obra: "Centro Comercial Plaza Norte",
-    numPiezas: 24,
-    estado: "En Producción",
-    progreso: 65,
-    fechaEntrega: "28/02/2024"
-  },
-  {
-    id: "002",
-    nombre: "Vigas Secundarias Nivel 2",
-    codigo: "CNJ-2024-002",
-    obra: "Edificio Residencial Torres",
-    numPiezas: 18,
-    estado: "Completado",
-    progreso: 100,
-    fechaEntrega: "15/02/2024"
-  },
-  {
-    id: "003",
-    nombre: "Columnas Perimetrales",
-    codigo: "CNJ-2024-003",
-    obra: "Hospital Central",
-    numPiezas: 12,
-    estado: "Pendiente",
-    progreso: 15,
-    fechaEntrega: "10/03/2024"
-  }
-];
+const conjuntos = await fetchConjuntos();
+
+// Calcular estadísticas dinámicas
+const totalConjuntos = conjuntos.length;
+const conjuntosCompletados = conjuntos.filter(c => c.is_completed).length;
+const conjuntosEnProgreso = conjuntos.filter(c => !c.is_completed).length;
+const obrasPorConjunto = [...new Set(conjuntos.map(c => c.obra_id).filter(Boolean))].length;
 ---
 
 <PageHeader 
@@ -56,8 +31,8 @@ const conjuntos = [
         </svg>
       </div>
       <div class="stat-content">
-        <div class="stat-number">89</div>
-        <div class="stat-label">Conjuntos Activos</div>
+        <div class="stat-number">{totalConjuntos}</div>
+        <div class="stat-label">Total Conjuntos</div>
       </div>
     </div>
     
@@ -68,8 +43,8 @@ const conjuntos = [
         </svg>
       </div>
       <div class="stat-content">
-        <div class="stat-number">34</div>
-        <div class="stat-label">En Producción</div>
+        <div class="stat-number">{conjuntosEnProgreso}</div>
+        <div class="stat-label">En Progreso</div>
       </div>
     </div>
     
@@ -80,7 +55,7 @@ const conjuntos = [
         </svg>
       </div>
       <div class="stat-content">
-        <div class="stat-number">245</div>
+        <div class="stat-number">{conjuntosCompletados}</div>
         <div class="stat-label">Completados</div>
       </div>
     </div>
@@ -92,28 +67,27 @@ const conjuntos = [
         </svg>
       </div>
       <div class="stat-content">
-        <div class="stat-number">92%</div>
-        <div class="stat-label">Eficiencia</div>
+        <div class="stat-number">{obrasPorConjunto}</div>
+        <div class="stat-label">Obras Activas</div>
       </div>
     </div>
   </div>
 
   <div class="conjuntos-table">
     <div class="table-header">
-      <h3>Conjuntos Recientes</h3>
+      <h3>Conjuntos Registrados</h3>
       <div class="table-filters">
-        <select class="filter-select">
-          <option>Todos los conjuntos</option>
-          <option>En producción</option>
-          <option>Completados</option>
-          <option>Pendientes</option>
+        <select class="filter-select" id="estado-filter">
+          <option value="">Todos los estados</option>
+          <option value="true">Completados</option>
+          <option value="false">En progreso</option>
         </select>
-        <select class="filter-select">
-          <option>Todas las obras</option>
-          <option>Centro Comercial Plaza Norte</option>
-          <option>Edificio Residencial Torres</option>
-          <option>Hospital Central</option>
-        </select>
+        <input 
+          type="text" 
+          class="filter-input" 
+          id="search-input"
+          placeholder="Buscar por código o descripción..."
+        />
       </div>
     </div>
     
@@ -126,69 +100,12 @@ const conjuntos = [
   <ConjuntosForm />
 </Modal>
 
-<!-- Modales de Detalles -->
-<DetailModal id="detail-conjunto-001" title="Estructura Principal Bloque A" type="conjunto">
-  <ConjuntoDetail conjunto={{
-    id: "CNJ-2024-001",
-    nombre: "Estructura Principal Bloque A",
-    obra: "Centro Comercial Plaza Norte",
-    estado: "En Producción",
-    prioridad: "Alta",
-    numPiezas: 24,
-    fechaInicio: "15/01/2024",
-    fechaEntrega: "28/02/2024",
-    pesoTotal: 15000,
-    responsable: "José Martínez García",
-    supervisorCalidad: "María Rodríguez López",
-    costo: 25000,
-    horasTrabajo: 120,
-    descripcion: "Estructura principal del bloque A del centro comercial, incluyendo vigas maestras y columnas de soporte.",
-    especificaciones: "Acero S275JR, soldadura según norma EN 1090, acabado con imprimación anticorrosiva.",
-    progreso: 65
-  }} />
-</DetailModal>
-
-<DetailModal id="detail-conjunto-002" title="Vigas Secundarias Nivel 2" type="conjunto">
-  <ConjuntoDetail conjunto={{
-    id: "CNJ-2024-002",
-    nombre: "Vigas Secundarias Nivel 2",
-    obra: "Edificio Residencial Torres",
-    estado: "Completado",
-    prioridad: "Media",
-    numPiezas: 18,
-    fechaInicio: "01/02/2024",
-    fechaEntrega: "15/02/2024",
-    pesoTotal: 8500,
-    responsable: "Ana López Fernández",
-    supervisorCalidad: "Carlos García Ruiz",
-    costo: 18000,
-    horasTrabajo: 85,
-    descripcion: "Vigas secundarias para el segundo nivel del edificio residencial.",
-    especificaciones: "Acero S355JR, conexiones atornilladas, tratamiento galvanizado.",
-    progreso: 100
-  }} />
-</DetailModal>
-
-<DetailModal id="detail-conjunto-003" title="Columnas Perimetrales" type="conjunto">
-  <ConjuntoDetail conjunto={{
-    id: "CNJ-2024-003",
-    nombre: "Columnas Perimetrales",
-    obra: "Hospital Central",
-    estado: "Pendiente",
-    prioridad: "Urgente",
-    numPiezas: 12,
-    fechaInicio: "20/02/2024",
-    fechaEntrega: "10/03/2024",
-    pesoTotal: 22000,
-    responsable: "Luis Hernández Vega",
-    supervisorCalidad: "Elena Morales Castro",
-    costo: 35000,
-    horasTrabajo: 150,
-    descripcion: "Columnas perimetrales para la ampliación del hospital central.",
-    especificaciones: "Acero S460JR, soldadura certificada, resistencia sísmica según normativa.",
-    progreso: 15
-  }} />
-</DetailModal>
+<!-- Modales de Detalles dinámicos -->
+{conjuntos.map((conjunto) => (
+  <DetailModal id={`detail-conjunto-${conjunto.id}`} title={`Conjunto ${conjunto.codigo}`} type="conjunto">
+    <ConjuntoDetail conjunto={conjunto} />
+  </DetailModal>
+))}
 
 <style>
   .conjuntos-section {
@@ -275,13 +192,17 @@ const conjuntos = [
     gap: 12px;
   }
 
-  .filter-select {
+  .filter-select, .filter-input {
     padding: 8px 12px;
     border: 1px solid #d1d5db;
     border-radius: 6px;
     font-size: 14px;
     background: white;
     color: #374151;
+  }
+
+  .filter-input {
+    min-width: 200px;
   }
 
   @media (max-width: 768px) {
@@ -300,3 +221,39 @@ const conjuntos = [
     }
   }
 </style>
+
+<script type="module">
+  // Filtros en tiempo real
+  document.addEventListener('DOMContentLoaded', function() {
+    const estadoFilter = document.getElementById('estado-filter');
+    const searchInput = document.getElementById('search-input');
+    const tableRows = document.querySelectorAll('.data-table tbody tr');
+
+    function filterTable() {
+      const estadoValue = estadoFilter.value;
+      const searchValue = searchInput.value.toLowerCase();
+
+      tableRows.forEach(row => {
+        const estado = row.querySelector('.status-badge').classList.contains('completed');
+        const codigo = row.cells[0].textContent.toLowerCase();
+        const descripcion = row.cells[1].textContent.toLowerCase();
+
+        const matchesEstado = !estadoValue || 
+          (estadoValue === 'true' && estado) || 
+          (estadoValue === 'false' && !estado);
+        const matchesSearch = !searchValue || 
+          codigo.includes(searchValue) || 
+          descripcion.includes(searchValue);
+
+        if (matchesEstado && matchesSearch) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    }
+
+    estadoFilter.addEventListener('change', filterTable);
+    searchInput.addEventListener('input', filterTable);
+  });
+</script>

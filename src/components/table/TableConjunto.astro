@@ -1,30 +1,34 @@
 ---
 interface Props {
   conjuntos: Array<{
-    id: string;
-    nombre: string;
+    id: number;
     codigo: string;
-    obra: string;
-    numPiezas: number;
-    estado: string;
-    progreso: number;
-    fechaEntrega: string;
+    descripcion: string;
+    obra_id: number;
+    is_completed: boolean;
+    created_at: string;
+    obras?: { nombre: string };
   }>;
 }
 
 const { conjuntos } = Astro.props;
+
+// Función para formatear fechas
+function formatDate(dateString) {
+  if (!dateString) return '-';
+  return new Date(dateString).toLocaleDateString('es-ES');
+}
 ---
 
 <div class="table-container">
   <table class="data-table">
     <thead>
       <tr>
-        <th>Conjunto</th>
+        <th>Código</th>
+        <th>Descripción</th>
         <th>Obra</th>
-        <th>Piezas</th>
         <th>Estado</th>
-        <th>Progreso</th>
-        <th>Fecha Entrega</th>
+        <th>Fecha Creación</th>
         <th>Acciones</th>
       </tr>
     </thead>
@@ -33,31 +37,26 @@ const { conjuntos } = Astro.props;
         <tr>
           <td>
             <div class="conjunto-info">
-              <strong>{conjunto.nombre}</strong>
-              <span class="conjunto-code">{conjunto.codigo}</span>
-            </div>
-          </td>
-          <td>{conjunto.obra}</td>
-          <td>
-            <div class="piezas-count">
-              <span class="count-number">{conjunto.numPiezas}</span>
-              <span class="count-label">piezas</span>
+              <strong>{conjunto.codigo}</strong>
+              <span class="conjunto-id">ID: {conjunto.id}</span>
             </div>
           </td>
           <td>
-            <span class={`status-badge ${conjunto.estado.toLowerCase().replace(' ', '-')}`}>
-              {conjunto.estado}
+            <div class="descripcion-info">
+              <span>{conjunto.descripcion || '-'}</span>
+            </div>
+          </td>
+          <td>
+            <div class="obra-info">
+              <span>{conjunto.obras?.nombre || '-'}</span>
+            </div>
+          </td>
+          <td>
+            <span class={`status-badge ${conjunto.is_completed ? 'completed' : 'pending'}`}>
+              {conjunto.is_completed ? 'Completado' : 'En Progreso'}
             </span>
           </td>
-          <td>
-            <div class="progress-container">
-              <div class="progress-bar">
-                <div class="progress-fill" style={`width: ${conjunto.progreso}%`}></div>
-              </div>
-              <span class="progress-text">{conjunto.progreso}%</span>
-            </div>
-          </td>
-          <td>{conjunto.fechaEntrega}</td>
+          <td>{formatDate(conjunto.created_at)}</td>
           <td>
             <div class="action-buttons">
               <button class="btn-icon" title="Ver detalles" onclick={`openModal('detail-conjunto-${conjunto.id}')`}>
@@ -66,9 +65,14 @@ const { conjuntos } = Astro.props;
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                 </svg>
               </button>
-              <button class="btn-icon" title="Editar">
+              <button class="btn-icon" title="Editar" onclick={`editConjunto('${conjunto.id}')`}>
                 <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+              </button>
+              <button class="btn-icon btn-delete" title="Eliminar" onclick={`deleteConjunto('${conjunto.id}', '${conjunto.codigo}')`}>
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
               </button>
             </div>
@@ -117,62 +121,16 @@ const { conjuntos } = Astro.props;
     gap: 4px;
   }
 
-  .conjunto-code {
+  .conjunto-id {
     font-size: 12px;
     color: #6b7280;
     font-family: 'Monaco', 'Menlo', monospace;
   }
 
-  .piezas-count {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-  }
-
-  .count-number {
-    font-weight: 600;
-    color: #111827;
-  }
-
-  .count-label {
-    font-size: 12px;
+  .descripcion-info,
+  .obra-info {
+    font-size: 14px;
     color: #6b7280;
-  }
-
-  .progress-container {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .progress-bar {
-    flex: 1;
-    height: 6px;
-    background: #e5e7eb;
-    border-radius: 3px;
-    overflow: hidden;
-  }
-
-  .progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, #3b82f6, #1d4ed8);
-    border-radius: 3px;
-    transition: width 0.3s ease;
-  }
-
-  .progress-fill.completed {
-    background: linear-gradient(90deg, #10b981, #059669);
-  }
-
-  .progress-fill.pending {
-    background: linear-gradient(90deg, #f59e0b, #d97706);
-  }
-
-  .progress-text {
-    font-size: 12px;
-    font-weight: 600;
-    color: #374151;
-    min-width: 32px;
   }
 
   .status-badge {
@@ -184,19 +142,14 @@ const { conjuntos } = Astro.props;
     letter-spacing: 0.05em;
   }
 
-  .status-badge.en-produccion {
-    background: #fef3c7;
-    color: #92400e;
-  }
-
-  .status-badge.completado {
+  .status-badge.completed {
     background: #d1fae5;
     color: #065f46;
   }
 
-  .status-badge.pendiente {
-    background: #fee2e2;
-    color: #991b1b;
+  .status-badge.pending {
+    background: #fef3c7;
+    color: #92400e;
   }
 
   .action-buttons {
@@ -223,6 +176,11 @@ const { conjuntos } = Astro.props;
     color: #374151;
   }
 
+  .btn-delete:hover {
+    background: #fee2e2;
+    color: #dc2626;
+  }
+
   @media (max-width: 768px) {
     .data-table {
       font-size: 14px;
@@ -234,3 +192,188 @@ const { conjuntos } = Astro.props;
     }
   }
 </style>
+
+<script type="module">
+  // Función para editar conjunto
+  window.editConjunto = async function(conjuntoId) {
+    try {
+      const response = await fetch(`/api/conjuntos/${conjuntoId}`);
+      const result = await response.json();
+      
+      if (result.success) {
+        const conjunto = result.data;
+        
+        // Llenar el formulario con los datos existentes
+        const form = document.getElementById('conjuntos-form');
+        if (form) {
+          form.querySelector('[name="codigo"]').value = conjunto.codigo || '';
+          form.querySelector('[name="descripcion"]').value = conjunto.descripcion || '';
+          form.querySelector('[name="obra_id"]').value = conjunto.obra_id?.toString() || '';
+          form.querySelector('[name="is_completed"]').checked = conjunto.is_completed || false;
+          
+          // Cambiar el comportamiento del formulario para actualizar
+          form.setAttribute('data-edit-id', conjuntoId);
+          form.querySelector('.btn-submit').innerHTML = `
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            Actualizar Conjunto
+          `;
+          
+          // Cambiar el título del modal
+          const modal = document.getElementById('modal-nuevo-conjunto');
+          const title = modal.querySelector('.modal-title');
+          if (title) {
+            title.textContent = 'Editar Conjunto';
+          }
+          
+          // Abrir el modal
+          openModal('modal-nuevo-conjunto');
+        }
+      }
+    } catch (error) {
+      console.error('Error al cargar conjunto para editar:', error);
+      alert('Error al cargar los datos del conjunto');
+    }
+  };
+
+  // Función para eliminar conjunto
+  window.deleteConjunto = async function(conjuntoId, conjuntoCodigo) {
+    if (confirm(`¿Estás seguro de que quieres eliminar el conjunto "${conjuntoCodigo}"? Esta acción no se puede deshacer.`)) {
+      try {
+        const response = await fetch(`/api/conjuntos/${conjuntoId}`, {
+          method: 'DELETE'
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          alert('Conjunto eliminado correctamente');
+          location.reload();
+        } else {
+          throw new Error(result.error || 'Error al eliminar el conjunto');
+        }
+      } catch (error) {
+        console.error('Error al eliminar conjunto:', error);
+        alert('Error al eliminar el conjunto: ' + error.message);
+      }
+    }
+  };
+
+  // Modificar el comportamiento del formulario para manejar edición
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('conjuntos-form');
+    if (form) {
+      // Remover event listeners existentes para evitar duplicados
+      const newForm = form.cloneNode(true);
+      form.parentNode.replaceChild(newForm, form);
+      
+      newForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const editId = newForm.getAttribute('data-edit-id');
+        const isEditing = !!editId;
+        
+        const formData = new FormData(newForm);
+        const submitButton = newForm.querySelector('.btn-submit');
+        
+        // Prevenir múltiples envíos
+        if (submitButton.disabled) {
+          return;
+        }
+        
+        // Deshabilitar botón durante el envío
+        submitButton.disabled = true;
+        const originalText = submitButton.innerHTML;
+        submitButton.innerHTML = `
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="animate-spin">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          ${isEditing ? 'Actualizando...' : 'Creando...'}
+        `;
+
+        const body = {
+          codigo: formData.get('codigo'),
+          descripcion: formData.get('descripcion'),
+          obra_id: formData.get('obra_id'),
+          is_completed: formData.get('is_completed') === 'true',
+        };
+
+        try {
+          const url = isEditing ? `/api/conjuntos/${editId}` : '/api/conjuntos/create';
+          const method = isEditing ? 'PUT' : 'POST';
+          
+          const res = await fetch(url, {
+            method: method,
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(body)
+          });
+
+          const json = await res.json();
+          
+          if (json.success) {
+            // Mostrar éxito
+            submitButton.innerHTML = `
+              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+              ${isEditing ? '¡Conjunto actualizado!' : '¡Conjunto creado!'}
+            `;
+            submitButton.style.background = '#10b981';
+            
+            // Recargar la página después de un breve delay
+            setTimeout(() => {
+              location.reload();
+            }, 1500);
+          } else {
+            throw new Error(json.error || `Error al ${isEditing ? 'actualizar' : 'crear'} el conjunto`);
+          }
+        } catch (error) {
+          console.error(`Error al ${isEditing ? 'actualizar' : 'crear'} conjunto:`, error);
+          
+          // Mostrar error
+          submitButton.innerHTML = `
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+            Error al ${isEditing ? 'actualizar' : 'crear'}
+          `;
+          submitButton.style.background = '#ef4444';
+          
+          // Restaurar botón después de un delay
+          setTimeout(() => {
+            submitButton.innerHTML = originalText;
+            submitButton.style.background = '';
+            submitButton.disabled = false;
+          }, 2000);
+        }
+      });
+    }
+  });
+
+  // Limpiar formulario cuando se cierra el modal
+  document.addEventListener('click', function(e) {
+    if (e.target.matches('[data-close-modal="modal-nuevo-conjunto"]')) {
+      const form = document.getElementById('conjuntos-form');
+      if (form) {
+        form.reset();
+        form.removeAttribute('data-edit-id');
+        form.querySelector('.btn-submit').innerHTML = `
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          Crear Conjunto
+        `;
+        
+        // Restaurar título del modal
+        const modal = document.getElementById('modal-nuevo-conjunto');
+        const title = modal.querySelector('.modal-title');
+        if (title) {
+          title.textContent = 'Nuevo Conjunto';
+        }
+      }
+    }
+  });
+</script>

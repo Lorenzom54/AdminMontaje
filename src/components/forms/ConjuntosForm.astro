@@ -1,143 +1,48 @@
 ---
 import FormField from './FormField.astro';
+import { fetchObrasForSelect } from '../../lib/conjunto_api';
 
-const obraOptions = [
-  { value: 'centro-comercial-plaza-norte', label: 'Centro Comercial Plaza Norte' },
-  { value: 'edificio-residencial-torres', label: 'Edificio Residencial Torres' },
-  { value: 'hospital-central', label: 'Hospital Central' },
-  { value: 'ampliacion-fabrica', label: 'Ampliación Fábrica' }
-];
-
-const estadoOptions = [
-  { value: 'planificado', label: 'Planificado' },
-  { value: 'en-produccion', label: 'En Producción' },
-  { value: 'completado', label: 'Completado' },
-  { value: 'entregado', label: 'Entregado' }
-];
-
-const prioridadOptions = [
-  { value: 'baja', label: 'Baja' },
-  { value: 'media', label: 'Media' },
-  { value: 'alta', label: 'Alta' },
-  { value: 'urgente', label: 'Urgente' }
-];
+// Obtener obras para el select
+const obras = await fetchObrasForSelect();
+const obraOptions = obras.map(o => ({ value: o.id.toString(), label: o.nombre }));
 ---
 
 <form class="conjuntos-form" id="conjuntos-form">
   <div class="form-grid">
     <div class="form-column">
       <FormField 
-        label="Nombre del Conjunto" 
-        name="nombre" 
+        label="Código del Conjunto" 
+        name="codigo" 
         required={true}
-        placeholder="Ej: Estructura Principal Bloque A"
+        placeholder="Ej: CNJ-001"
       />
       
       <FormField 
         label="Obra" 
-        name="obra" 
+        name="obra_id" 
         type="select"
         options={obraOptions}
         required={true}
       />
-      
-      <FormField 
-        label="Estado" 
-        name="estado" 
-        type="select"
-        options={estadoOptions}
-        required={true}
-      />
-      
-      <FormField 
-        label="Prioridad" 
-        name="prioridad" 
-        type="select"
-        options={prioridadOptions}
-        required={true}
-      />
     </div>
     
     <div class="form-column">
       <FormField 
-        label="Número de Piezas Estimadas" 
-        name="num_piezas" 
-        type="number"
-        placeholder="24"
-        required={true}
+        label="Descripción" 
+        name="descripcion" 
+        type="textarea"
+        rows={3}
+        placeholder="Descripción del conjunto..."
       />
       
-      <FormField 
-        label="Fecha de Inicio" 
-        name="fecha_inicio" 
-        type="date"
-        required={true}
-      />
-      
-      <FormField 
-        label="Fecha de Entrega" 
-        name="fecha_entrega" 
-        type="date"
-        required={true}
-      />
-      
-      <FormField 
-        label="Peso Total Estimado (kg)" 
-        name="peso_total" 
-        type="number"
-        placeholder="15000"
-      />
+      <div class="form-field">
+        <label class="form-label">
+          <input type="checkbox" name="is_completed" value="true" />
+          Conjunto completado
+        </label>
+      </div>
     </div>
   </div>
-  
-  <div class="form-grid">
-    <div class="form-column">
-      <FormField 
-        label="Responsable de Producción" 
-        name="responsable" 
-        placeholder="Nombre del responsable"
-        required={true}
-      />
-      
-      <FormField 
-        label="Supervisor de Calidad" 
-        name="supervisor_calidad" 
-        placeholder="Nombre del supervisor"
-      />
-    </div>
-    
-    <div class="form-column">
-      <FormField 
-        label="Costo Estimado (€)" 
-        name="costo" 
-        type="number"
-        placeholder="25000.00"
-      />
-      
-      <FormField 
-        label="Horas de Trabajo Estimadas" 
-        name="horas_trabajo" 
-        type="number"
-        placeholder="120"
-      />
-    </div>
-  </div>
-  
-  <FormField 
-    label="Descripción" 
-    name="descripcion" 
-    type="textarea"
-    rows={4}
-    placeholder="Descripción detallada del conjunto..."
-  />
-  
-  <FormField 
-    label="Especificaciones Técnicas" 
-    name="especificaciones" 
-    type="textarea"
-    rows={3}
-    placeholder="Especificaciones técnicas y requisitos especiales..."
-  />
   
   <div class="form-actions">
     <button type="button" class="btn-cancel" data-close-modal="modal-nuevo-conjunto">
@@ -167,6 +72,25 @@ const prioridadOptions = [
   .form-column {
     display: flex;
     flex-direction: column;
+  }
+
+  .form-field {
+    margin-bottom: 20px;
+  }
+
+  .form-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+    cursor: pointer;
+  }
+
+  .form-label input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
   }
 
   .form-actions {
@@ -226,3 +150,83 @@ const prioridadOptions = [
     }
   }
 </style>
+
+<script type="module">
+  document.getElementById('conjuntos-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const form = e.target;
+    const formData = new FormData(form);
+    const submitButton = form.querySelector('.btn-submit');
+    
+    // Prevenir múltiples envíos
+    if (submitButton.disabled) {
+      return;
+    }
+    
+    // Deshabilitar botón durante el envío
+    submitButton.disabled = true;
+    const originalText = submitButton.innerHTML;
+    submitButton.innerHTML = `
+      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="animate-spin">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+      </svg>
+      Creando...
+    `;
+
+    const body = {
+      codigo: formData.get('codigo'),
+      descripcion: formData.get('descripcion'),
+      obra_id: formData.get('obra_id'),
+      is_completed: formData.get('is_completed') === 'true',
+    };
+
+    try {
+      const res = await fetch('/api/conjuntos/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+      });
+
+      const json = await res.json();
+      
+      if (json.success) {
+        // Mostrar éxito
+        submitButton.innerHTML = `
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          ¡Conjunto creado!
+        `;
+        submitButton.style.background = '#10b981';
+        
+        // Recargar la página después de un breve delay
+        setTimeout(() => {
+          location.reload();
+        }, 1500);
+      } else {
+        throw new Error(json.error || 'Error al crear el conjunto');
+      }
+    } catch (error) {
+      console.error('Error al crear conjunto:', error);
+      
+      // Mostrar error
+      submitButton.innerHTML = `
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+        Error al crear
+      `;
+      submitButton.style.background = '#ef4444';
+      
+      // Restaurar botón después de un delay
+      setTimeout(() => {
+        submitButton.innerHTML = originalText;
+        submitButton.style.background = '';
+        submitButton.disabled = false;
+      }, 2000);
+    }
+  });
+</script>
