@@ -1,25 +1,11 @@
 ---
 import FormField from './FormField.astro';
 
-const especialidadOptions = [
-  { value: 'soldador', label: 'Soldador' },
-  { value: 'cortador', label: 'Cortador' },
-  { value: 'montador', label: 'Montador' },
-  { value: 'operador', label: 'Operador' },
-  { value: 'supervisor', label: 'Supervisor' }
-];
-
-const turnoOptions = [
-  { value: 'mañana', label: 'Mañana (06:00 - 14:00)' },
-  { value: 'tarde', label: 'Tarde (14:00 - 22:00)' },
-  { value: 'noche', label: 'Noche (22:00 - 06:00)' }
-];
-
-const estadoOptions = [
-  { value: 'activo', label: 'Activo' },
-  { value: 'inactivo', label: 'Inactivo' },
-  { value: 'vacaciones', label: 'Vacaciones' },
-  { value: 'baja', label: 'Baja Médica' }
+const rolOptions = [
+  { value: 'administrador', label: 'Administrador' },
+  { value: 'supervisor', label: 'Supervisor' },
+  { value: 'operario', label: 'Operario' },
+  { value: 'consulta', label: 'Consulta' }
 ];
 ---
 
@@ -27,111 +13,37 @@ const estadoOptions = [
   <div class="form-grid">
     <div class="form-column">
       <FormField 
-        label="Nombre Completo" 
+        label="Nombre" 
         name="nombre" 
         required={true}
-        placeholder="Ej: José Martínez García"
+        placeholder="Ej: José Martínez"
       />
       
       <FormField 
-        label="DNI/NIE" 
-        name="dni" 
+        label="Rol" 
+        name="rol" 
+        type="select"
+        options={rolOptions}
         required={true}
-        placeholder="12345678A"
       />
-      
+    </div>
+    
+    <div class="form-column">
       <FormField 
         label="Email" 
         name="email" 
         type="email"
-        placeholder="jose.martinez@empresa.com"
+        placeholder="operario@empresa.com"
         required={true}
       />
       
       <FormField 
-        label="Teléfono" 
-        name="telefono" 
-        type="tel"
-        placeholder="+34 600 123 456"
-        required={true}
-      />
-    </div>
-    
-    <div class="form-column">
-      <FormField 
-        label="Especialidad" 
-        name="especialidad" 
-        type="select"
-        options={especialidadOptions}
-        required={true}
-      />
-      
-      <FormField 
-        label="Turno Preferido" 
-        name="turno" 
-        type="select"
-        options={turnoOptions}
-        required={true}
-      />
-      
-      <FormField 
-        label="Fecha de Ingreso" 
-        name="fecha_ingreso" 
-        type="date"
-        required={true}
-      />
-      
-      <FormField 
-        label="Estado" 
-        name="estado" 
-        type="select"
-        options={estadoOptions}
-        required={true}
+        label="Usuario" 
+        name="usuario" 
+        placeholder="nombre_usuario (opcional)"
       />
     </div>
   </div>
-  
-  <div class="form-grid">
-    <div class="form-column">
-      <FormField 
-        label="Salario Base (€/mes)" 
-        name="salario" 
-        type="number"
-        placeholder="2500.00"
-        required={true}
-      />
-      
-      <FormField 
-        label="Años de Experiencia" 
-        name="experiencia" 
-        type="number"
-        placeholder="5"
-        required={true}
-      />
-    </div>
-    
-    <div class="form-column">
-      <FormField 
-        label="Certificaciones" 
-        name="certificaciones" 
-        placeholder="Ej: Soldadura TIG, Grúa Torre..."
-      />
-      
-      <FormField 
-        label="Supervisor Directo" 
-        name="supervisor" 
-        placeholder="Nombre del supervisor"
-      />
-    </div>
-  </div>
-  
-  <FormField 
-    label="Observaciones" 
-    name="observaciones" 
-    type="textarea"
-    rows={3}
-    placeholder="Observaciones adicionales sobre el operario..."
-  />
   
   <div class="form-actions">
     <button type="button" class="btn-cancel" data-close-modal="modal-nuevo-operario">
@@ -220,3 +132,83 @@ const estadoOptions = [
     }
   }
 </style>
+
+<script type="module">
+  document.getElementById('operarios-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const form = e.target;
+    const formData = new FormData(form);
+    const submitButton = form.querySelector('.btn-submit');
+    
+    // Prevenir múltiples envíos
+    if (submitButton.disabled) {
+      return;
+    }
+    
+    // Deshabilitar botón durante el envío
+    submitButton.disabled = true;
+    const originalText = submitButton.innerHTML;
+    submitButton.innerHTML = `
+      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="animate-spin">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+      </svg>
+      Creando...
+    `;
+
+    const body = {
+      nombre: formData.get('nombre'),
+      rol: formData.get('rol'),
+      usuario: formData.get('usuario'),
+      email: formData.get('email'),
+    };
+
+    try {
+      const res = await fetch('/api/operarios/create', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(body)
+      });
+
+      const json = await res.json();
+      
+      if (json.success) {
+        // Mostrar éxito
+        submitButton.innerHTML = `
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          ¡Operario creado!
+        `;
+        submitButton.style.background = '#10b981';
+        
+        // Recargar la página después de un breve delay
+        setTimeout(() => {
+          location.reload();
+        }, 1500);
+      } else {
+        throw new Error(json.error || 'Error al crear el operario');
+      }
+    } catch (error) {
+      console.error('Error al crear operario:', error);
+      
+      // Mostrar error
+      submitButton.innerHTML = `
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+        </svg>
+        Error al crear
+      `;
+      submitButton.style.background = '#ef4444';
+      
+      // Restaurar botón después de un delay
+      setTimeout(() => {
+        submitButton.innerHTML = originalText;
+        submitButton.style.background = '';
+        submitButton.disabled = false;
+      }, 2000);
+    }
+  });
+</script>

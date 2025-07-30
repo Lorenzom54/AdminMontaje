@@ -1,0 +1,417 @@
+---
+interface Props {
+  operarios: Array<{
+    id: number;
+    nombre: string;
+    rol: string;
+    usuario: string;
+    email: string;
+    created_at: string;
+  }>;
+}
+
+const { operarios } = Astro.props;
+
+// Función para formatear fechas
+function formatDate(dateString) {
+  if (!dateString) return '-';
+  return new Date(dateString).toLocaleDateString('es-ES');
+}
+---
+
+<div class="table-container">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Operario</th>
+        <th>Rol</th>
+        <th>Usuario</th>
+        <th>Email</th>
+        <th>Fecha Creación</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {operarios.map((operario) => (
+        <tr>
+          <td>
+            <div class="operario-info">
+              <div class="operario-avatar">
+                <span>{operario.nombre.split(' ').map(n => n[0]).join('').toUpperCase()}</span>
+              </div>
+              <div class="operario-details">
+                <strong>{operario.nombre}</strong>
+                <span class="operario-id">ID: {operario.id}</span>
+              </div>
+            </div>
+          </td>
+          <td>
+            <span class={`rol-badge ${operario.rol?.toLowerCase()}`}>
+              {operario.rol || '-'}
+            </span>
+          </td>
+          <td>
+            <div class="usuario-info">
+              <span>{operario.usuario || '-'}</span>
+            </div>
+          </td>
+          <td>
+            <div class="email-info">
+              <span>{operario.email}</span>
+            </div>
+          </td>
+          <td>{formatDate(operario.created_at)}</td>
+          <td>
+            <div class="action-buttons">
+              <button class="btn-icon" title="Ver detalles" onclick={`openModal('detail-operario-${operario.id}')`}>
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+              </button>
+              <button class="btn-icon" title="Editar" onclick={`editOperario('${operario.id}')`}>
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+              </button>
+              <button class="btn-icon btn-delete" title="Eliminar" onclick={`deleteOperario('${operario.id}', '${operario.nombre}')`}>
+                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </button>
+            </div>
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
+
+<style>
+  .table-container {
+    overflow-x: auto;
+  }
+
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .data-table th {
+    padding: 16px;
+    text-align: left;
+    font-size: 12px;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .data-table td {
+    padding: 16px;
+    border-bottom: 1px solid #f3f4f6;
+    vertical-align: middle;
+  }
+
+  .data-table tr:hover {
+    background: #f9fafb;
+  }
+
+  .operario-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .operario-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: 600;
+    font-size: 14px;
+  }
+
+  .operario-details {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .operario-id {
+    font-size: 12px;
+    color: #6b7280;
+    font-family: 'Monaco', 'Menlo', monospace;
+  }
+
+  .rol-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .rol-badge.administrador {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  .rol-badge.supervisor {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  .rol-badge.operario {
+    background: #dbeafe;
+    color: #1d4ed8;
+  }
+
+  .rol-badge.consulta {
+    background: #e5e7eb;
+    color: #374151;
+  }
+
+  .usuario-info {
+    font-size: 12px;
+    color: #6b7280;
+    font-family: 'Monaco', 'Menlo', monospace;
+  }
+
+  .email-info {
+    font-size: 12px;
+    color: #6b7280;
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 8px;
+  }
+
+  .btn-icon {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: #f3f4f6;
+    color: #6b7280;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btn-icon:hover {
+    background: #e5e7eb;
+    color: #374151;
+  }
+
+  .btn-delete:hover {
+    background: #fee2e2;
+    color: #dc2626;
+  }
+
+  @media (max-width: 768px) {
+    .data-table {
+      font-size: 14px;
+    }
+
+    .data-table th,
+    .data-table td {
+      padding: 12px 8px;
+    }
+  }
+</style>
+
+<script type="module">
+  // Función para editar operario
+  window.editOperario = async function(operarioId) {
+    try {
+      const response = await fetch(`/api/operarios/${operarioId}`);
+      const result = await response.json();
+      
+      if (result.success) {
+        const operario = result.data;
+        
+        // Llenar el formulario con los datos existentes
+        const form = document.getElementById('operarios-form');
+        if (form) {
+          form.querySelector('[name="nombre"]').value = operario.nombre || '';
+          form.querySelector('[name="rol"]').value = operario.rol || '';
+          form.querySelector('[name="usuario"]').value = operario.usuario || '';
+          form.querySelector('[name="email"]').value = operario.email || '';
+          
+          // Cambiar el comportamiento del formulario para actualizar
+          form.setAttribute('data-edit-id', operarioId);
+          form.querySelector('.btn-submit').innerHTML = `
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            Actualizar Operario
+          `;
+          
+          // Cambiar el título del modal
+          const modal = document.getElementById('modal-nuevo-operario');
+          const title = modal.querySelector('.modal-title');
+          if (title) {
+            title.textContent = 'Editar Operario';
+          }
+          
+          // Abrir el modal
+          openModal('modal-nuevo-operario');
+        }
+      }
+    } catch (error) {
+      console.error('Error al cargar operario para editar:', error);
+      alert('Error al cargar los datos del operario');
+    }
+  };
+
+  // Función para eliminar operario
+  window.deleteOperario = async function(operarioId, operarioNombre) {
+    if (confirm(`¿Estás seguro de que quieres eliminar al operario "${operarioNombre}"? Esta acción no se puede deshacer.`)) {
+      try {
+        const response = await fetch(`/api/operarios/${operarioId}`, {
+          method: 'DELETE'
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          alert('Operario eliminado correctamente');
+          location.reload();
+        } else {
+          throw new Error(result.error || 'Error al eliminar el operario');
+        }
+      } catch (error) {
+        console.error('Error al eliminar operario:', error);
+        alert('Error al eliminar el operario: ' + error.message);
+      }
+    }
+  };
+
+  // Modificar el comportamiento del formulario para manejar edición
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('operarios-form');
+    if (form) {
+      // Remover event listeners existentes para evitar duplicados
+      const newForm = form.cloneNode(true);
+      form.parentNode.replaceChild(newForm, form);
+      
+      newForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        
+        const editId = newForm.getAttribute('data-edit-id');
+        const isEditing = !!editId;
+        
+        const formData = new FormData(newForm);
+        const submitButton = newForm.querySelector('.btn-submit');
+        
+        // Prevenir múltiples envíos
+        if (submitButton.disabled) {
+          return;
+        }
+        
+        // Deshabilitar botón durante el envío
+        submitButton.disabled = true;
+        const originalText = submitButton.innerHTML;
+        submitButton.innerHTML = `
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="animate-spin">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          ${isEditing ? 'Actualizando...' : 'Creando...'}
+        `;
+
+        const body = {
+          nombre: formData.get('nombre'),
+          rol: formData.get('rol'),
+          usuario: formData.get('usuario'),
+          email: formData.get('email'),
+        };
+
+        try {
+          const url = isEditing ? `/api/operarios/${editId}` : '/api/operarios/create';
+          const method = isEditing ? 'PUT' : 'POST';
+          
+          const res = await fetch(url, {
+            method: method,
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(body)
+          });
+
+          const json = await res.json();
+          
+          if (json.success) {
+            // Mostrar éxito
+            submitButton.innerHTML = `
+              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+              ${isEditing ? '¡Operario actualizado!' : '¡Operario creado!'}
+            `;
+            submitButton.style.background = '#10b981';
+            
+            // Recargar la página después de un breve delay
+            setTimeout(() => {
+              location.reload();
+            }, 1500);
+          } else {
+            throw new Error(json.error || `Error al ${isEditing ? 'actualizar' : 'crear'} el operario`);
+          }
+        } catch (error) {
+          console.error(`Error al ${isEditing ? 'actualizar' : 'crear'} operario:`, error);
+          
+          // Mostrar error
+          submitButton.innerHTML = `
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+            Error al ${isEditing ? 'actualizar' : 'crear'}
+          `;
+          submitButton.style.background = '#ef4444';
+          
+          // Restaurar botón después de un delay
+          setTimeout(() => {
+            submitButton.innerHTML = originalText;
+            submitButton.style.background = '';
+            submitButton.disabled = false;
+          }, 2000);
+        }
+      });
+    }
+  });
+
+  // Limpiar formulario cuando se cierra el modal
+  document.addEventListener('click', function(e) {
+    if (e.target.matches('[data-close-modal="modal-nuevo-operario"]')) {
+      const form = document.getElementById('operarios-form');
+      if (form) {
+        form.reset();
+        form.removeAttribute('data-edit-id');
+        form.querySelector('.btn-submit').innerHTML = `
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+          Crear Operario
+        `;
+        
+        // Restaurar título del modal
+        const modal = document.getElementById('modal-nuevo-operario');
+        const title = modal.querySelector('.modal-title');
+        if (title) {
+          title.textContent = 'Nuevo Operario';
+        }
+      }
+    }
+  });
+</script>
