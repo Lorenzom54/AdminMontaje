@@ -1,6 +1,6 @@
 import { fetchChapas } from '../../../lib/chapa_api';
 
-export const prerender = false;
+export const prerender = true;
 
 export async function GET() {
   try {

@@ -1,6 +1,6 @@
 import { addObra } from '../../../lib/obra_api';
 
-export const prerender = false;
+export const prerender = true;
 
 export async function POST({ request }) {
   try {
