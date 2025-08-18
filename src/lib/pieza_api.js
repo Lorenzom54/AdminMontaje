@@ -24,7 +24,7 @@ export async function fetchPiezas() {
     .from('piezas')
     .select(`
       *,
-      conjuntos:conjunto_id(codigo),
+      conjuntos:conjunto_id(codigo, obras:obra_id(nombre)),
       chapas:chapa_id(codigo)
     `)
     .order('created_at', { ascending: false })
@@ -42,7 +42,7 @@ export async function fetchPiezaById(id) {
     .from('piezas')
     .select(`
       *,
-      conjuntos:conjunto_id(codigo),
+      conjuntos:conjunto_id(codigo, obras:obra_id(nombre)),
       chapas:chapa_id(codigo)
     `)
     .eq('id', id)
@@ -112,7 +112,7 @@ export async function deletePieza(id) {
 export async function searchPiezas(filters = {}) {
   let query = supabase.from('piezas').select(`
     *,
-    conjuntos:conjunto_id(codigo),
+    conjuntos:conjunto_id(codigo, obras:obra_id(nombre)),
     chapas:chapa_id(codigo)
   `);
 
@@ -130,6 +130,10 @@ export async function searchPiezas(filters = {}) {
 
   if (filters.fase !== undefined && filters.fase !== '') {
     query = query.eq('fase', filters.fase);
+  }
+
+  if (filters.obra_id) {
+    query = query.eq('conjuntos.obra_id', filters.obra_id);
   }
 
   const { data, error } = await query.order('created_at', { ascending: false });

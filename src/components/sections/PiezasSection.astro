@@ -6,8 +6,10 @@ import DetailModal from '../DetailModal.astro';
 import TablePieza from '../table/TablePieza.astro';
 import PiezaDetail from '../detail/PiezaDetail.astro';
 import { fetchPiezas, FASES } from '../../lib/pieza_api';
+import { fetchObrasForSelect } from '../../lib/conjunto_api';
 
 const piezas = await fetchPiezas();
+const obras = await fetchObrasForSelect();
 
 // Calcular estadísticas dinámicas
 const totalPiezas = piezas.length;
@@ -85,6 +87,12 @@ const piezasPorFase = piezas.reduce((acc, pieza) => {
           <option value="1">Biselado</option>
           <option value="2">Montaje</option>
           <option value="3">Soldadura</option>
+        </select>
+        <select class="filter-select" id="obra-filter">
+          <option value="">Todas las obras</option>
+          {obras.map(obra => (
+            <option value={obra.nombre}>{obra.nombre}</option>
+          ))}
         </select>
         <input 
           type="text" 
@@ -491,24 +499,28 @@ const piezasPorFase = piezas.reduce((acc, pieza) => {
   // Filtros en tiempo real
   document.addEventListener('DOMContentLoaded', function() {
     const faseFilter = document.getElementById('fase-filter');
+    const obraFilter = document.getElementById('obra-filter');
     const searchInput = document.getElementById('search-input');
     const tableRows = document.querySelectorAll('.data-table tbody tr');
 
     function filterTable() {
       const faseValue = faseFilter.value;
+      const obraValue = obraFilter.value.toLowerCase();
       const searchValue = searchInput.value.toLowerCase();
 
       tableRows.forEach(row => {
         const fase = row.querySelector('.fase-badge').className;
         const codigo = row.cells[0].textContent.toLowerCase();
-        const colada = row.cells[5].textContent.toLowerCase();
+        const obra = row.cells[4].textContent.toLowerCase(); // Columna de obra
+        const colada = row.cells[6].textContent.toLowerCase(); // Ajustar índice por nueva columna
 
         const matchesFase = !faseValue || fase.includes(`fase-${faseValue}`);
+        const matchesObra = !obraValue || obra.includes(obraValue);
         const matchesSearch = !searchValue || 
           codigo.includes(searchValue) || 
           colada.includes(searchValue);
 
-        if (matchesFase && matchesSearch) {
+        if (matchesFase && matchesObra && matchesSearch) {
           row.style.display = '';
         } else {
           row.style.display = 'none';
@@ -517,6 +529,7 @@ const piezasPorFase = piezas.reduce((acc, pieza) => {
     }
 
     faseFilter.addEventListener('change', filterTable);
+    obraFilter.addEventListener('change', filterTable);
     searchInput.addEventListener('input', filterTable);
 
     // Funcionalidad de importación CSV
