@@ -1,6 +1,7 @@
 ---
 import PageHeader from '../PageHeader.astro';
 import Modal from '../Modal.astro';
+import FormField from '../forms/FormField.astro';
 import PiezasForm from '../forms/PiezasForm.astro';
 import DetailModal from '../DetailModal.astro';
 import TablePieza from '../table/TablePieza.astro';
@@ -10,6 +11,12 @@ import { fetchObrasForSelect } from '../../lib/conjunto_api';
 
 const piezas = await fetchPiezas();
 const obras = await fetchObrasForSelect();
+
+// Mapear obras al formato esperado por FormField
+const obraOptions = obras.map(obra => ({
+  value: obra.id.toString(),
+  label: obra.nombre
+}));
 
 // Calcular estadísticas dinámicas
 const totalPiezas = piezas.length;
@@ -121,17 +128,28 @@ const piezasPorFase = piezas.reduce((acc, pieza) => {
 <!-- Modal para Importar CSV -->
 <Modal id="modal-import-csv" title="Importar Piezas desde CSV" size="lg">
   <div class="import-csv-form">
+    <div class="obra-selection">
+      <FormField 
+        label="Obra de Destino" 
+        name="obra_id" 
+        type="select"
+        options={obraOptions}
+        required={true}
+      />
+    </div>
+    
     <div class="csv-instructions">
       <h4>Formato del archivo CSV</h4>
       <p>El archivo debe contener las siguientes columnas:</p>
       <ul>
-        <li><strong>codigo</strong> - Código único de la pieza (obligatorio)</li>
-        <li><strong>tipo_material</strong> - Tipo de material (opcional, por defecto: "chapas y perfiles")</li>
-        <li><strong>colada</strong> - Código de colada (opcional)</li>
-        <li><strong>fase</strong> - Fase: 0=Corte, 1=Biselado, 2=Montaje, 3=Soldadura (opcional, por defecto: 0)</li>
-        <li><strong>conjunto_id</strong> - ID del conjunto (opcional)</li>
-        <li><strong>chapa_id</strong> - ID de la chapa (opcional)</li>
+        <li><strong>Conjunto</strong> - Código del conjunto (se creará si no existe)</li>
+        <li><strong>Parte</strong> - Código único de la pieza</li>
+        <li><strong>Apodo</strong> - Campo adicional (opcional)</li>
+        <li><strong>Perfil</strong> - Tipo de material/perfil</li>
+        <li><strong>Longitud(mm)</strong> - Longitud en milímetros</li>
+        <li><strong>Peso</strong> - Peso de la pieza</li>
       </ul>
+      <p><strong>Nota:</strong> El archivo debe usar punto y coma (;) como separador.</p>
     </div>
     
     <div class="csv-upload">
@@ -293,6 +311,14 @@ const piezasPorFase = piezas.reduce((acc, pieza) => {
   /* Estilos para el modal de importación CSV */
   .import-csv-form {
     max-width: none;
+  }
+
+  .obra-selection {
+    background: #f0f9ff;
+    border: 1px solid #0ea5e9;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 24px;
   }
 
   .csv-instructions {
@@ -590,9 +616,9 @@ const piezasPorFase = piezas.reduce((acc, pieza) => {
         return;
       }
 
-      const headers = lines[0].split(',').map(h => h.trim());
+      const headers = lines[0].split(';').map(h => h.trim());
       const rows = lines.slice(1).map(line => {
-        const values = line.split(',').map(v => v.trim());
+        const values = line.split(';').map(v => v.trim());
         const row = {};
         headers.forEach((header, index) => {
           row[header] = values[index] || '';
@@ -633,6 +659,13 @@ const piezasPorFase = piezas.reduce((acc, pieza) => {
     importBtn.addEventListener('click', async () => {
       if (!csvData) return;
 
+      const obraSelect = document.querySelector('[name="obra_id"]');
+      const selectedObraId = obraSelect.value;
+      
+      if (!selectedObraId) {
+        alert('Por favor selecciona una obra de destino');
+        return;
+      }
       importBtn.disabled = true;
       const originalText = importBtn.innerHTML;
       importBtn.innerHTML = `
@@ -648,12 +681,18 @@ const piezasPorFase = piezas.reduce((acc, pieza) => {
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({ csvData })
+          body: JSON.stringify({ 
+            csvData: csvData,
+            selectedObraId: selectedObraId 
+          })
         });
 
         const result = await response.json();
 
         if (result.success) {
+          // Guardar la obra seleccionada en localStorage
+          localStorage.setItem('lastSelectedObra', selectedObraId);
+          
           importBtn.innerHTML = `
             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
@@ -678,5 +717,14 @@ const piezasPorFase = piezas.reduce((acc, pieza) => {
         importBtn.disabled = false;
       }
     });
+    
+    // Restaurar la última obra seleccionada
+    const lastSelectedObra = localStorage.getItem('lastSelectedObra');
+    if (lastSelectedObra) {
+      const obraSelect = document.querySelector('[name="obra_id"]');
+      if (obraSelect) {
+        obraSelect.value = lastSelectedObra;
+      }
+    }
   });
 </script>

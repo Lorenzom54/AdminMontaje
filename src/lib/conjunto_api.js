@@ -124,6 +124,25 @@ export async function searchConjuntos(filters = {}) {
   return data;
 }
 
+// Obtener conjunto por código
+export async function fetchConjuntoByCodigo(codigo) {
+  let { data: conjunto, error } = await supabase
+    .from('conjuntos')
+    .select('*')
+    .eq('codigo', codigo)
+    .single()
+    
+  if (error) {
+    if (error.code === 'PGRST116') {
+      // No se encontró el conjunto
+      return null;
+    }
+    console.error('Error al obtener conjunto por código:', error.message);
+    return null;
+  }
+  return conjunto;
+}
+
 // Obtener obras para el formulario
 export async function fetchObrasForSelect() {
   let { data: obras, error } = await supabase
