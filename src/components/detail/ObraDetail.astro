@@ -50,7 +50,7 @@ const daysRemaining = getDaysRemaining(obra.fecha_fin);
           <label class="info-label">Estado</label>
           <div class="info-value">
             <span class={`status-badge ${obra.estado.toLowerCase().replace('_', '-')}`}>
-              {obra.estado === 'en_progreso' ? 'En Progreso' : 
+              {obra.estado === 'enprogreso' ? 'En Progreso' : 
                obra.estado === 'planificacion' ? 'Planificación' :
                obra.estado === 'pausada' ? 'Pausada' :
                obra.estado === 'completada' ? 'Completada' : obra.estado}
