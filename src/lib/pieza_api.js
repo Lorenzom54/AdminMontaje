@@ -19,7 +19,9 @@ export const FASES_REVERSE = {
 };
 
 // Obtener todas las piezas
-export async function fetchPiezas() {
+export async function fetchPiezas(page = 1, pageSize = 20) {
+  const offset = (page - 1) * pageSize;
+  
   let { data: piezas, error } = await supabase
     .from('piezas')
     .select(`
@@ -28,12 +30,26 @@ export async function fetchPiezas() {
       chapas:chapa_id(codigo)
     `)
     .order('created_at', { ascending: false })
+    .range(offset, offset + pageSize - 1)
     
   if (error) {
     console.error('Error al obtener piezas:', error.message);
     return [];
   }
   return piezas;
+}
+
+// Obtener el total de piezas para paginación
+export async function fetchPiezasCount() {
+  let { count, error } = await supabase
+    .from('piezas')
+    .select('*', { count: 'exact', head: true })
+    
+  if (error) {
+    console.error('Error al obtener conteo de piezas:', error.message);
+    return 0;
+  }
+  return count;
 }
 
 // Obtener una pieza por ID
@@ -109,7 +125,9 @@ export async function deletePieza(id) {
 }
 
 // Buscar piezas por filtros
-export async function searchPiezas(filters = {}) {
+export async function searchPiezas(filters = {}, page = 1, pageSize = 20) {
+  const offset = (page - 1) * pageSize;
+  
   let query = supabase.from('piezas').select(`
     *,
     conjuntos:conjunto_id(codigo, obras:obra_id(nombre)),
@@ -136,7 +154,9 @@ export async function searchPiezas(filters = {}) {
     query = query.eq('conjuntos.obra_id', filters.obra_id);
   }
 
-  const { data, error } = await query.order('created_at', { ascending: false });
+  const { data, error } = await query
+    .order('created_at', { ascending: false })
+    .range(offset, offset + pageSize - 1);
 
   if (error) {
     console.error('Error al buscar piezas:', error.message);
@@ -144,6 +164,40 @@ export async function searchPiezas(filters = {}) {
   }
 
   return data;
+}
+
+// Obtener el total de piezas filtradas para paginación
+export async function searchPiezasCount(filters = {}) {
+  let query = supabase.from('piezas').select('*', { count: 'exact', head: true });
+
+  if (filters.tipo_material) {
+    query = query.ilike('tipo_material', `%${filters.tipo_material}%`);
+  }
+
+  if (filters.codigo) {
+    query = query.ilike('codigo', `%${filters.codigo}%`);
+  }
+
+  if (filters.colada) {
+    query = query.ilike('colada', `%${filters.colada}%`);
+  }
+
+  if (filters.fase !== undefined && filters.fase !== '') {
+    query = query.eq('fase', filters.fase);
+  }
+
+  if (filters.obra_id) {
+    query = query.eq('conjuntos.obra_id', filters.obra_id);
+  }
+
+  const { count, error } = await query;
+
+  if (error) {
+    console.error('Error al obtener conteo de piezas filtradas:', error.message);
+    return 0;
+  }
+
+  return count;
 }
 
 // Obtener conjuntos para el formulario

@@ -1,12 +1,26 @@
-import { fetchPiezas } from '../../../lib/pieza_api';
+import { fetchPiezas, fetchPiezasCount } from '../../../lib/pieza_api';
 
 export const prerender = false;
 
-export async function GET() {
+export async function GET({ url }) {
   try {
-    const piezas = await fetchPiezas();
+    const searchParams = new URL(url).searchParams;
+    const page = parseInt(searchParams.get('page') || '1');
+    const pageSize = parseInt(searchParams.get('pageSize') || '20');
     
-    return new Response(JSON.stringify({ success: true, data: piezas }), {
+    const piezas = await fetchPiezas(page, pageSize);
+    const totalCount = await fetchPiezasCount();
+    
+    return new Response(JSON.stringify({ 
+      success: true, 
+      data: piezas,
+      pagination: {
+        page,
+        pageSize,
+        totalCount,
+        totalPages: Math.ceil(totalCount / pageSize)
+      }
+    }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });

@@ -1,10 +1,12 @@
-import { searchPiezas } from '../../../lib/pieza_api';
+import { searchPiezas, searchPiezasCount } from '../../../lib/pieza_api';
 
 export const prerender = false;
 
 export async function GET({ url }) {
   try {
     const searchParams = new URL(url).searchParams;
+    const page = parseInt(searchParams.get('page') || '1');
+    const pageSize = parseInt(searchParams.get('pageSize') || '20');
     
     const filters = {
       tipo_material: searchParams.get('tipo_material'),
@@ -20,9 +22,19 @@ export async function GET({ url }) {
       }
     });
 
-    const piezas = await searchPiezas(filters);
+    const piezas = await searchPiezas(filters, page, pageSize);
+    const totalCount = await searchPiezasCount(filters);
 
-    return new Response(JSON.stringify({ success: true, data: piezas }), {
+    return new Response(JSON.stringify({ 
+      success: true, 
+      data: piezas,
+      pagination: {
+        page,
+        pageSize,
+        totalCount,
+        totalPages: Math.ceil(totalCount / pageSize)
+      }
+    }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
