@@ -1,34 +1,27 @@
 ---
 import PageHeader from '../PageHeader.astro';
 import Modal from '../Modal.astro';
+import FormField from '../forms/FormField.astro';
 import PiezasForm from '../forms/PiezasForm.astro';
 import DetailModal from '../DetailModal.astro';
 import TablePieza from '../table/TablePieza.astro';
 import PiezaDetail from '../detail/PiezaDetail.astro';
-import { fetchPiezasPaginated, getTotalPiezasCount } from '../../lib/pieza_api';
+import { fetchPiezas, FASES } from '../../lib/pieza_api';
 import { fetchObrasForSelect } from '../../lib/conjunto_api';
 
-// Obtener parámetros de URL
-const url = Astro.url;
-const currentPage = parseInt(url.searchParams.get('page') || '1');
-const selectedObraId = url.searchParams.get('obra_id') || null;
-
-// Configuración de paginación
-const itemsPerPage = 10;
-const startIndex = (currentPage - 1) * itemsPerPage;
-const endIndex = startIndex + itemsPerPage - 1;
-
-// Obtener datos paginados
-const { piezas, totalCount } = await fetchPiezasPaginated(startIndex, endIndex, selectedObraId);
-const totalPages = Math.ceil(totalCount / itemsPerPage);
-
-// Obtener obras para el filtro
+const piezas = await fetchPiezas();
 const obras = await fetchObrasForSelect();
 
+// Mapear obras al formato esperado por FormField
+const obraOptions = obras.map(obra => ({
+  value: obra.id.toString(),
+  label: obra.nombre
+}));
+
 // Calcular estadísticas dinámicas
-const totalPiezas = totalCount;
+const totalPiezas = piezas.length;
 const piezasPorFase = piezas.reduce((acc, pieza) => {
-  const fase = pieza.fase || 0;
+  const fase = FASES[pieza.fase] || 'Desconocida';
   acc[fase] = (acc[fase] || 0) + 1;
   return acc;
 }, {});
@@ -41,31 +34,6 @@ const piezasPorFase = piezas.reduce((acc, pieza) => {
 />
 
 <div class="piezas-section">
-  <!-- Filtro de Obra Activa -->
-  <div class="project-filter-bar">
-    <div class="filter-container">
-      <div class="filter-group">
-        <label class="filter-label">Proyecto Activo:</label>
-        <select class="filter-select" id="obra-filter">
-          <option value="">Todas las obras</option>
-          {obras.map((obra) => (
-            <option value={obra.id} selected={selectedObraId === obra.id.toString()}>
-              {obra.nombre}
-            </option>
-          ))}
-        </select>
-        {selectedObraId && (
-          <button class="clear-filter-btn" onclick="clearProjectFilter()">
-            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-            Limpiar filtro
-          </button>
-        )}
-      </div>
-    </div>
-  </div>
-
   <div class="stats-grid">
     <div class="stat-card">
       <div class="stat-icon inventory">
@@ -86,7 +54,7 @@ const piezasPorFase = piezas.reduce((acc, pieza) => {
         </svg>
       </div>
       <div class="stat-content">
-        <div class="stat-number">{piezasPorFase[0] || 0}</div>
+        <div class="stat-number">{piezasPorFase['Corte'] || 0}</div>
         <div class="stat-label">En Corte</div>
       </div>
     </div>
@@ -98,8 +66,8 @@ const piezasPorFase = piezas.reduce((acc, pieza) => {
         </svg>
       </div>
       <div class="stat-content">
-        <div class="stat-number">{piezasPorFase[3] || 0}</div>
-        <div class="stat-label">Soldadura</div>
+        <div class="stat-number">{piezasPorFase['Soldadura'] || 0}</div>
+        <div class="stat-label">En Soldadura</div>
       </div>
     </div>
     
@@ -110,15 +78,15 @@ const piezasPorFase = piezas.reduce((acc, pieza) => {
         </svg>
       </div>
       <div class="stat-content">
-        <div class="stat-number">{Math.round((piezasPorFase[3] || 0) / Math.max(totalPiezas, 1) * 100)}%</div>
-        <div class="stat-label">Completadas</div>
+        <div class="stat-number">{piezasPorFase['Montaje'] || 0}</div>
+        <div class="stat-label">En Montaje</div>
       </div>
     </div>
   </div>
 
   <div class="piezas-table">
     <div class="table-header">
-      <h3>Inventario de Piezas</h3>
+      <h3>Piezas Registradas</h3>
       <div class="table-filters">
         <select class="filter-select" id="fase-filter">
           <option value="">Todas las fases</option>
@@ -127,11 +95,17 @@ const piezasPorFase = piezas.reduce((acc, pieza) => {
           <option value="2">Montaje</option>
           <option value="3">Soldadura</option>
         </select>
+        <select class="filter-select" id="obra-filter">
+          <option value="">Todas las obras</option>
+          {obras.map(obra => (
+            <option value={obra.nombre}>{obra.nombre}</option>
+          ))}
+        </select>
         <input 
           type="text" 
           class="filter-input" 
           id="search-input"
-          placeholder="Buscar por código o material..."
+          placeholder="Buscar por código o colada..."
         />
         <button class="btn-import" onclick="openModal('modal-import-csv')">
           <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -143,66 +117,6 @@ const piezasPorFase = piezas.reduce((acc, pieza) => {
     </div>
     
     <TablePieza piezas={piezas} />
-    
-    <!-- Información de paginación -->
-    <div class="pagination-info">
-      <span class="pagination-text">
-        Mostrando {startIndex + 1}-{Math.min(endIndex + 1, totalCount)} de {totalCount} piezas
-      </span>
-    </div>
-    
-    <!-- Barra de paginación -->
-    {totalPages > 1 && (
-      <div class="pagination-bar">
-        <button 
-          class={`pagination-btn ${currentPage === 1 ? 'disabled' : ''}`}
-          onclick={currentPage > 1 ? `navigateToPage(${currentPage - 1})` : ''}
-          disabled={currentPage === 1}
-        >
-          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-          </svg>
-          Anterior
-        </button>
-        
-        <div class="pagination-numbers">
-          {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-            let pageNum;
-            if (totalPages <= 5) {
-              pageNum = i + 1;
-            } else if (currentPage <= 3) {
-              pageNum = i + 1;
-            } else if (currentPage >= totalPages - 2) {
-              pageNum = totalPages - 4 + i;
-            } else {
-              pageNum = currentPage - 2 + i;
-            }
-            
-            return (
-              <Fragment>
-                <button 
-                  class={`pagination-number ${currentPage === pageNum ? 'active' : ''}`}
-                  onclick={`navigateToPage(${pageNum})`}
-                >
-                  {pageNum}
-                </button>
-              </Fragment>
-            );
-          })}
-        </div>
-        
-        <button 
-          class={`pagination-btn ${currentPage === totalPages ? 'disabled' : ''}`}
-          onclick={currentPage < totalPages ? `navigateToPage(${currentPage + 1})` : ''}
-          disabled={currentPage === totalPages}
-        >
-          Siguiente
-          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
-      </div>
-    )}
   </div>
 </div>
 
@@ -212,141 +126,71 @@ const piezasPorFase = piezas.reduce((acc, pieza) => {
 </Modal>
 
 <!-- Modal para Importar CSV -->
-<Modal id="modal-import-csv" title="Importar Piezas desde CSV" size="xl">
-  <form class="import-csv-form" id="import-csv-form">
+<Modal id="modal-import-csv" title="Importar Piezas desde CSV" size="lg">
+  <div class="import-csv-form">
     <div class="obra-selection">
-      <h4>Seleccionar Obra de Destino</h4>
-      <select name="obra_id" required class="form-input">
-        <option value="">Seleccionar obra...</option>
-        {obras.map((obra) => (
-          <option value={obra.id}>{obra.nombre}</option>
-        ))}
-      </select>
+      <FormField 
+        label="Obra de Destino" 
+        name="obra_id" 
+        type="select"
+        options={obraOptions}
+        required={true}
+      />
     </div>
-
+    
     <div class="csv-instructions">
       <h4>Formato del archivo CSV</h4>
       <p>El archivo debe contener las siguientes columnas:</p>
       <ul>
-        <li><strong>Conjunto:</strong> Código del conjunto (obligatorio)</li>
-        <li><strong>Parte:</strong> Código de la pieza (obligatorio)</li>
-        <li><strong>Perfil:</strong> Tipo de material (opcional, por defecto: "chapas y perfiles")</li>
-        <li><strong>Apodo:</strong> Colada (opcional)</li>
+        <li><strong>Conjunto</strong> - Código del conjunto (se creará si no existe)</li>
+        <li><strong>Parte</strong> - Código único de la pieza</li>
+        <li><strong>Apodo</strong> - Campo adicional (opcional)</li>
+        <li><strong>Perfil</strong> - Tipo de material/perfil</li>
+        <li><strong>Longitud(mm)</strong> - Longitud en milímetros</li>
+        <li><strong>Peso</strong> - Peso de la pieza</li>
       </ul>
+      <p><strong>Nota:</strong> El archivo debe usar punto y coma (;) como separador.</p>
     </div>
-
+    
     <div class="csv-upload">
-      <input type="file" id="csv-file" accept=".csv" style="display: none;" />
-      <div class="upload-area" onclick="document.getElementById('csv-file').click()">
+      <input type="file" id="csv-file" accept=".csv" />
+      <div class="upload-area" id="upload-area">
         <svg width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
         </svg>
-        <h4>Seleccionar archivo CSV</h4>
-        <p>Haz clic aquí o arrastra tu archivo CSV</p>
+        <p>Arrastra tu archivo CSV aquí o haz clic para seleccionar</p>
       </div>
     </div>
-
+    
     <div class="csv-preview" id="csv-preview" style="display: none;">
-      <h4>Vista previa de datos</h4>
-      <div class="preview-table">
-        <table class="preview-data-table" id="preview-table">
-          <!-- Se llenará dinámicamente -->
-        </table>
-      </div>
+      <h4>Vista previa del archivo</h4>
+      <div class="preview-table" id="preview-table"></div>
     </div>
-
+    
     <div class="form-actions">
       <button type="button" class="btn-cancel" data-close-modal="modal-import-csv">
         Cancelar
       </button>
-      <button type="submit" class="btn-submit" disabled>
+      <button type="button" class="btn-submit" id="import-btn" disabled>
         <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
         </svg>
         Importar Piezas
       </button>
     </div>
-  </form>
+  </div>
 </Modal>
 
 <!-- Modales de Detalles dinámicos -->
 {piezas.map((pieza) => (
-  <Fragment>
-    <DetailModal id={`detail-pieza-${pieza.id}`} title={`Pieza ${pieza.codigo}`} type="pieza">
-      <PiezaDetail pieza={pieza} />
-    </DetailModal>
-  </Fragment>
+  <DetailModal id={`detail-pieza-${pieza.id}`} title={`Pieza ${pieza.codigo}`} type="pieza">
+    <PiezaDetail pieza={pieza} />
+  </DetailModal>
 ))}
 
 <style>
   .piezas-section {
     space-y: 32px;
-  }
-
-  .project-filter-bar {
-    background: white;
-    border: 1px solid #e5e7eb;
-    border-radius: 12px;
-    padding: 20px 24px;
-    margin-bottom: 24px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  }
-
-  .filter-container {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-  }
-
-  .filter-group {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-  }
-
-  .filter-label {
-    font-size: 14px;
-    font-weight: 600;
-    color: #374151;
-    white-space: nowrap;
-  }
-
-  .filter-select {
-    min-width: 250px;
-    padding: 8px 12px;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    font-size: 14px;
-    background: white;
-    color: #374151;
-    cursor: pointer;
-  }
-
-  .filter-select:focus {
-    outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-  }
-
-  .clear-filter-btn {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    background: #fee2e2;
-    color: #dc2626;
-    border: 1px solid #fecaca;
-    border-radius: 6px;
-    font-size: 12px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-
-  .clear-filter-btn:hover {
-    background: #fecaca;
-    border-color: #f87171;
   }
 
   .stats-grid {
@@ -464,94 +308,19 @@ const piezasPorFase = piezas.reduce((acc, pieza) => {
     box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
   }
 
-  .pagination-info {
-    padding: 16px 24px;
-    border-top: 1px solid #e5e7eb;
-    background: #f9fafb;
-    display: flex;
-    justify-content: center;
-  }
-
-  .pagination-text {
-    font-size: 14px;
-    color: #6b7280;
-    font-weight: 500;
-  }
-
-  .pagination-bar {
-    padding: 16px 24px;
-    border-top: 1px solid #e5e7eb;
-    background: #f9fafb;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-  }
-
-  .pagination-btn {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 12px;
-    background: white;
-    color: #374151;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-
-  .pagination-btn:hover:not(.disabled) {
-    background: #f3f4f6;
-    border-color: #9ca3af;
-  }
-
-  .pagination-btn.disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  .pagination-numbers {
-    display: flex;
-    gap: 4px;
-    margin: 0 12px;
-  }
-
-  .pagination-number {
-    width: 36px;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: white;
-    color: #374151;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    font-size: 14px;
-    font-weight: 500;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-
-  .pagination-number:hover {
-    background: #f3f4f6;
-    border-color: #9ca3af;
-  }
-
-  .pagination-number.active {
-    background: #3b82f6;
-    color: white;
-    border-color: #3b82f6;
-  }
-
   /* Estilos para el modal de importación CSV */
   .import-csv-form {
     max-width: none;
   }
 
-  .obra-selection,
+  .obra-selection {
+    background: #f0f9ff;
+    border: 1px solid #0ea5e9;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 24px;
+  }
+
   .csv-instructions {
     background: #f0f9ff;
     border: 1px solid #0ea5e9;
@@ -741,31 +510,6 @@ const piezasPorFase = piezas.reduce((acc, pieza) => {
       flex-direction: column;
     }
 
-    .filter-container {
-      flex-direction: column;
-      align-items: stretch;
-      gap: 12px;
-    }
-
-    .filter-group {
-      flex-direction: column;
-      align-items: stretch;
-      gap: 8px;
-    }
-
-    .filter-select {
-      min-width: auto;
-    }
-
-    .pagination-bar {
-      flex-wrap: wrap;
-      gap: 4px;
-    }
-
-    .pagination-numbers {
-      margin: 0 8px;
-    }
-
     .data-table {
       font-size: 14px;
     }
@@ -778,78 +522,31 @@ const piezasPorFase = piezas.reduce((acc, pieza) => {
 </style>
 
 <script type="module">
-  // Variables globales para CSV
-  let csvData = [];
-
-  // Función para navegar a una página específica
-  window.navigateToPage = function(page) {
-    const url = new URL(window.location);
-    url.searchParams.set('page', page.toString());
-    window.location.href = url.toString();
-  };
-
-  // Función para limpiar el filtro de proyecto
-  window.clearProjectFilter = function() {
-    const url = new URL(window.location);
-    url.searchParams.delete('obra_id');
-    url.searchParams.delete('page'); // Reset to first page
-    localStorage.removeItem('selectedObraId');
-    window.location.href = url.toString();
-  };
-
-  // Manejar cambio de filtro de obra
+  // Filtros en tiempo real
   document.addEventListener('DOMContentLoaded', function() {
-    const obraFilter = document.getElementById('obra-filter');
     const faseFilter = document.getElementById('fase-filter');
+    const obraFilter = document.getElementById('obra-filter');
     const searchInput = document.getElementById('search-input');
-    
-    // Restaurar filtro desde localStorage si no hay parámetro en URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const currentObraId = urlParams.get('obra_id');
-    
-    if (!currentObraId) {
-      const savedObraId = localStorage.getItem('selectedObraId');
-      if (savedObraId && obraFilter) {
-        obraFilter.value = savedObraId;
-      }
-    }
+    const tableRows = document.querySelectorAll('.data-table tbody tr');
 
-    // Manejar cambio de obra
-    if (obraFilter) {
-      obraFilter.addEventListener('change', function() {
-        const selectedObraId = this.value;
-        const url = new URL(window.location);
-        
-        if (selectedObraId) {
-          url.searchParams.set('obra_id', selectedObraId);
-          localStorage.setItem('selectedObraId', selectedObraId);
-        } else {
-          url.searchParams.delete('obra_id');
-          localStorage.removeItem('selectedObraId');
-        }
-        
-        url.searchParams.delete('page'); // Reset to first page
-        window.location.href = url.toString();
-      });
-    }
-
-    // Filtros en tiempo real para la tabla actual
     function filterTable() {
-      const faseValue = faseFilter?.value || '';
-      const searchValue = searchInput?.value.toLowerCase() || '';
-      const tableRows = document.querySelectorAll('.data-table tbody tr');
+      const faseValue = faseFilter.value;
+      const obraValue = obraFilter.value.toLowerCase();
+      const searchValue = searchInput.value.toLowerCase();
 
       tableRows.forEach(row => {
-        const fase = row.querySelector('.fase-badge')?.textContent.toLowerCase() || '';
-        const codigo = row.cells[0]?.textContent.toLowerCase() || '';
-        const material = row.cells[1]?.textContent.toLowerCase() || '';
+        const fase = row.querySelector('.fase-badge').className;
+        const codigo = row.cells[0].textContent.toLowerCase();
+        const obra = row.cells[4].textContent.toLowerCase(); // Columna de obra
+        const colada = row.cells[6].textContent.toLowerCase(); // Ajustar índice por nueva columna
 
-        const matchesFase = !faseValue || fase.includes(['corte', 'biselado', 'montaje', 'soldadura'][parseInt(faseValue)]);
+        const matchesFase = !faseValue || fase.includes(`fase-${faseValue}`);
+        const matchesObra = !obraValue || obra.includes(obraValue);
         const matchesSearch = !searchValue || 
           codigo.includes(searchValue) || 
-          material.includes(searchValue);
+          colada.includes(searchValue);
 
-        if (matchesFase && matchesSearch) {
+        if (matchesFase && matchesObra && matchesSearch) {
           row.style.display = '';
         } else {
           row.style.display = 'none';
@@ -857,45 +554,46 @@ const piezasPorFase = piezas.reduce((acc, pieza) => {
       });
     }
 
-    if (faseFilter) faseFilter.addEventListener('change', filterTable);
-    if (searchInput) searchInput.addEventListener('input', filterTable);
-  });
+    faseFilter.addEventListener('change', filterTable);
+    obraFilter.addEventListener('change', filterTable);
+    searchInput.addEventListener('input', filterTable);
 
-  // Manejar importación CSV
-  document.addEventListener('DOMContentLoaded', function() {
-    const csvFileInput = document.getElementById('csv-file');
-    const uploadArea = document.querySelector('.upload-area');
+    // Funcionalidad de importación CSV
+    const csvFile = document.getElementById('csv-file');
+    const uploadArea = document.getElementById('upload-area');
     const csvPreview = document.getElementById('csv-preview');
     const previewTable = document.getElementById('preview-table');
-    const submitButton = document.querySelector('#import-csv-form .btn-submit');
+    const importBtn = document.getElementById('import-btn');
+    let csvData = null;
 
-    if (csvFileInput && uploadArea) {
-      // Drag and drop
-      uploadArea.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        uploadArea.classList.add('dragover');
-      });
+    // Click en área de upload
+    uploadArea.addEventListener('click', () => csvFile.click());
 
-      uploadArea.addEventListener('dragleave', () => {
-        uploadArea.classList.remove('dragover');
-      });
+    // Drag and drop
+    uploadArea.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadArea.classList.add('dragover');
+    });
 
-      uploadArea.addEventListener('drop', (e) => {
-        e.preventDefault();
-        uploadArea.classList.remove('dragover');
-        const files = e.dataTransfer.files;
-        if (files.length > 0) {
-          handleFile(files[0]);
-        }
-      });
+    uploadArea.addEventListener('dragleave', () => {
+      uploadArea.classList.remove('dragover');
+    });
 
-      // File input change
-      csvFileInput.addEventListener('change', (e) => {
-        if (e.target.files.length > 0) {
-          handleFile(e.target.files[0]);
-        }
-      });
-    }
+    uploadArea.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadArea.classList.remove('dragover');
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        handleFile(files[0]);
+      }
+    });
+
+    // Selección de archivo
+    csvFile.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) {
+        handleFile(e.target.files[0]);
+      }
+    });
 
     function handleFile(file) {
       if (!file.name.endsWith('.csv')) {
@@ -904,7 +602,7 @@ const piezasPorFase = piezas.reduce((acc, pieza) => {
       }
 
       const reader = new FileReader();
-      reader.onload = function(e) {
+      reader.onload = (e) => {
         const csv = e.target.result;
         parseCSV(csv);
       };
@@ -918,127 +616,115 @@ const piezasPorFase = piezas.reduce((acc, pieza) => {
         return;
       }
 
-      const headers = lines[0].split(',').map(h => h.trim());
-      csvData = [];
-
-      for (let i = 1; i < lines.length; i++) {
-        const values = lines[i].split(',').map(v => v.trim());
+      const headers = lines[0].split(';').map(h => h.trim());
+      const rows = lines.slice(1).map(line => {
+        const values = line.split(';').map(v => v.trim());
         const row = {};
         headers.forEach((header, index) => {
           row[header] = values[index] || '';
         });
-        csvData.push(row);
-      }
+        return row;
+      });
 
-      showPreview(headers, csvData.slice(0, 5)); // Mostrar solo las primeras 5 filas
-      if (submitButton) {
-        submitButton.disabled = false;
-      }
+      csvData = rows;
+      showPreview(headers, rows);
+      importBtn.disabled = false;
     }
 
-    function showPreview(headers, data) {
-      if (!previewTable || !csvPreview) return;
-
-      let tableHTML = '<thead><tr>';
+    function showPreview(headers, rows) {
+      let html = '<table class="preview-data-table"><thead><tr>';
       headers.forEach(header => {
-        tableHTML += `<th>${header}</th>`;
+        html += `<th>${header}</th>`;
       });
-      tableHTML += '</tr></thead><tbody>';
+      html += '</tr></thead><tbody>';
 
-      data.forEach(row => {
-        tableHTML += '<tr>';
+      rows.slice(0, 5).forEach(row => {
+        html += '<tr>';
         headers.forEach(header => {
-          tableHTML += `<td>${row[header] || '-'}</td>`;
+          html += `<td>${row[header] || '-'}</td>`;
         });
-        tableHTML += '</tr>';
+        html += '</tr>';
       });
-      tableHTML += '</tbody>';
 
-      previewTable.innerHTML = tableHTML;
+      if (rows.length > 5) {
+        html += `<tr><td colspan="${headers.length}" style="text-align: center; font-style: italic;">... y ${rows.length - 5} filas más</td></tr>`;
+      }
+
+      html += '</tbody></table>';
+      previewTable.innerHTML = html;
       csvPreview.style.display = 'block';
     }
 
-    // Manejar envío del formulario de importación
-    const importForm = document.getElementById('import-csv-form');
-    if (importForm) {
-      importForm.addEventListener('submit', async function(e) {
-        e.preventDefault();
+    // Importar CSV
+    importBtn.addEventListener('click', async () => {
+      if (!csvData) return;
 
-        const formData = new FormData(this);
-        const selectedObraId = formData.get('obra_id');
+      const obraSelect = document.querySelector('[name="obra_id"]');
+      const selectedObraId = obraSelect.value;
+      
+      if (!selectedObraId) {
+        alert('Por favor selecciona una obra de destino');
+        return;
+      }
+      importBtn.disabled = true;
+      const originalText = importBtn.innerHTML;
+      importBtn.innerHTML = `
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="animate-spin">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+        Importando...
+      `;
 
-        if (!selectedObraId) {
-          alert('Por favor selecciona una obra de destino');
-          return;
-        }
+      try {
+        const response = await fetch('/api/piezas/import-csv', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ 
+            csvData: csvData,
+            selectedObraId: selectedObraId 
+          })
+        });
 
-        if (csvData.length === 0) {
-          alert('Por favor selecciona un archivo CSV válido');
-          return;
-        }
+        const result = await response.json();
 
-        const submitButton = this.querySelector('.btn-submit');
-        const originalText = submitButton.innerHTML;
-
-        try {
-          submitButton.disabled = true;
-          submitButton.innerHTML = `
-            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="animate-spin">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-            </svg>
-            Importando...
-          `;
-
-          const response = await fetch('/api/piezas/import-csv', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-              csvData: csvData,
-              selectedObraId: selectedObraId
-            })
-          });
-
-          const result = await response.json();
-
-          if (result.success) {
-            submitButton.innerHTML = `
-              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-              </svg>
-              ¡Importación completada!
-            `;
-            submitButton.style.background = '#10b981';
-
-            alert(result.message);
-
-            setTimeout(() => {
-              location.reload();
-            }, 1500);
-          } else {
-            throw new Error(result.error || 'Error al importar CSV');
-          }
-        } catch (error) {
-          console.error('Error al importar CSV:', error);
+        if (result.success) {
+          // Guardar la obra seleccionada en localStorage
+          localStorage.setItem('lastSelectedObra', selectedObraId);
           
-          submitButton.innerHTML = `
+          importBtn.innerHTML = `
             <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
             </svg>
-            Error al importar
+            ¡Importado!
           `;
-          submitButton.style.background = '#ef4444';
+          importBtn.style.background = '#10b981';
           
-          alert('Error al importar CSV: ' + error.message);
+          alert(result.message);
           
           setTimeout(() => {
-            submitButton.innerHTML = originalText;
-            submitButton.style.background = '';
-            submitButton.disabled = false;
-          }, 2000);
+            location.reload();
+          }, 1500);
+        } else {
+          throw new Error(result.error || 'Error al importar CSV');
         }
-      });
+      } catch (error) {
+        console.error('Error al importar CSV:', error);
+        alert('Error al importar CSV: ' + error.message);
+        
+        importBtn.innerHTML = originalText;
+        importBtn.disabled = false;
+      }
+    });
+    
+    // Restaurar la última obra seleccionada
+    const lastSelectedObra = localStorage.getItem('lastSelectedObra');
+    if (lastSelectedObra) {
+      const obraSelect = document.querySelector('[name="obra_id"]');
+      if (obraSelect) {
+        obraSelect.value = lastSelectedObra;
+      }
     }
   });
 </script>
