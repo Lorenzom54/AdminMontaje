@@ -553,7 +553,13 @@ const chapasPorTipo = chapas.reduce((acc, chapa) => {
 
         // Extraer código de la chapa (primera fila)
         const firstLine = lines[0].split(';');
-        const chapaCodigo = firstLine.find(cell => cell && cell.trim() && !cell.includes('2025-211-5 001'))?.trim();
+        const chapaCodigo = firstLine.find(cell => {
+          const trimmed = cell?.trim();
+          return trimmed && 
+                 trimmed.length > 0 && 
+                 !trimmed.includes('001') && 
+                 /^\d{4}-\d{3}-\d+$/.test(trimmed);
+        })?.trim();
         
         if (!chapaCodigo) {
           alert('No se pudo encontrar el código de la chapa en la primera fila');
@@ -566,18 +572,16 @@ const chapasPorTipo = chapas.reduce((acc, chapa) => {
         let espesor = null;
 
         for (const line of lines) {
-          const cells = line.split(';');
-          
-          // Buscar dimensiones (línea que contiene "Dimensiones" y formato "x.xxx,xx x x.xxx,xx x xx,xx mm")
+          // Buscar dimensiones (línea que contiene "Dimensiones" y formato con "x" y "mm")
           if (line.includes('Dimensiones') && line.includes(' x ') && line.includes(' mm')) {
-            const dimensionMatch = line.match(/(\d{1,2}\.\d{3},\d{2} x \d{1,2}\.\d{3},\d{2} x \d{1,2},\d{2} mm)/);
+            const dimensionMatch = line.match(/(\d{1,2}\.\d{3},\d{2}\s*x\s*\d{1,2}\.\d{3},\d{2}\s*x\s*\d{1,2},\d{2}\s*mm)/);
             if (dimensionMatch) {
               dimensiones = dimensionMatch[1];
             }
           }
           
           // Buscar calidad (línea que contiene tipo de acero y espesor)
-          if (line.includes('Calidad') && (line.includes('S275') || line.includes('S355') || line.includes('S235') || line.includes('S460') || line.includes('S690'))) {
+          if (line.includes('Calidad') && /S\d{3}/.test(line)) {
             const calidadMatch = line.match(/(S\d{3}[A-Z]*)\s+(\d{1,2},\d{2})\s*mm/);
             if (calidadMatch) {
               tipoAcero = calidadMatch[1];
@@ -586,42 +590,66 @@ const chapasPorTipo = chapas.reduce((acc, chapa) => {
           }
         }
 
-        // Buscar lista de piezas
+        // Buscar lista de piezas con mejor lógica
         const piezas = [];
-        let inPiezasList = false;
+        let headerRowIndex = -1;
+        let cantidadColumnIndex = -1;
+        let piezaColumnIndex = -1;
         
-        for (const line of lines) {
-          if (line.includes('Lista de piezas')) {
-            inPiezasList = true;
-            continue;
-          }
-          
-          if (inPiezasList && line.includes('ago.')) {
-            break; // Fin del archivo
-          }
-          
-          if (inPiezasList) {
-            const cells = line.split(';');
+        // Encontrar la fila de encabezados de la lista de piezas
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i];
+          if (line.includes('Lista de piezas') && line.includes('Cantidad') && line.includes('Pieza')) {
+            headerRowIndex = i;
+            const headerCells = line.split(';');
             
-            // Buscar patrones de piezas en las celdas
-            for (let i = 0; i < cells.length - 2; i++) {
-              const cell1 = cells[i]?.trim();
-              const cell2 = cells[i + 1]?.trim();
-              const cell3 = cells[i + 2]?.trim();
-              
-              // Patrón: número, cantidad, código de pieza
-              if (cell1 && /^\d+$/.test(cell1) && cell2 && /^\d+$/.test(cell2) && cell3 && /^P\d+$/.test(cell3)) {
-                piezas.push({
-                  codigo: cell3,
-                  cantidad: parseInt(cell2)
-                });
+            // Encontrar los índices de las columnas importantes
+            for (let j = 0; j < headerCells.length; j++) {
+              const cell = headerCells[j]?.trim().toLowerCase();
+              if (cell === 'cantidad') {
+                cantidadColumnIndex = j;
+              } else if (cell === 'pieza') {
+                piezaColumnIndex = j;
               }
             }
+            break;
           }
         }
-
+        
+        if (headerRowIndex === -1 || cantidadColumnIndex === -1 || piezaColumnIndex === -1) {
+          alert('No se pudo encontrar la estructura de la lista de piezas en el CSV');
+          return;
+        }
+        
+        // Procesar las filas de datos después del encabezado
+        for (let i = headerRowIndex + 1; i < lines.length; i++) {
+          const line = lines[i];
+          
+          // Parar si llegamos al final del archivo
+          if (line.includes('ago.') || line.trim() === '') {
+            break;
+          }
+          
+          const cells = line.split(';');
+          
+          // Extraer cantidad y código de pieza usando los índices encontrados
+          const cantidadValue = cells[cantidadColumnIndex]?.trim();
+          const piezaValue = cells[piezaColumnIndex]?.trim();
+          
+          // Validar que tenemos datos válidos
+          if (cantidadValue && /^\d+$/.test(cantidadValue) && 
+              piezaValue && /^P\d+$/.test(piezaValue)) {
+            piezas.push({
+              codigo: piezaValue,
+              cantidad: parseInt(cantidadValue)
+            });
+          }
+        }
+        
+        console.log('Piezas extraídas:', piezas); // Para debug
+        
         if (piezas.length === 0) {
-          alert('No se encontraron piezas válidas en el archivo CSV');
+          alert('No se encontraron piezas válidas en el archivo CSV. Verifique que el formato sea correcto.');
           return;
         }
 
@@ -635,6 +663,8 @@ const chapasPorTipo = chapas.reduce((acc, chapa) => {
           },
           piezas: piezas
         };
+        
+        console.log('Datos parseados:', parsedChapaData); // Para debug
 
         showPreviewChapas(parsedChapaData);
         importBtnChapas.disabled = false;
