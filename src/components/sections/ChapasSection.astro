@@ -554,8 +554,8 @@ const chapasPorTipo = chapas.reduce((acc, chapa) => {
     function parseCSVChapas(csv, chapaCodigo) {
       try {
         const lines = csv.split('\n').filter(line => line.trim());
-        if (lines.length < 10) {
-          alert('El archivo CSV no tiene el formato esperado');
+        if (lines.length < 2) {
+          alert('El archivo CSV debe contener al menos una línea de encabezados y datos');
           return;
         }
 
