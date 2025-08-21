@@ -150,8 +150,11 @@ export async function searchPiezas(filters = {}, page = 1, pageSize = 20) {
     query = query.eq('fase', filters.fase);
   }
 
-  if (filters.obra_id) {
-    query = query.eq('conjuntos.obra_id', filters.obra_id);
+  if (filters.obra_id && filters.obra_id !== '') {
+    // Filtrar por obra_id a través de la relación con conjuntos
+    query = query.not('conjunto_id', 'is', null);
+    // Necesitamos hacer un join más específico para filtrar por obra
+    query = query.eq('conjuntos.obra_id', parseInt(filters.obra_id));
   }
 
   const { data, error } = await query
@@ -186,8 +189,41 @@ export async function searchPiezasCount(filters = {}) {
     query = query.eq('fase', filters.fase);
   }
 
-  if (filters.obra_id) {
-    query = query.eq('conjuntos.obra_id', filters.obra_id);
+  if (filters.obra_id && filters.obra_id !== '') {
+    // Para el conteo, necesitamos hacer una consulta más específica
+    const { data: piezasWithObra } = await supabase
+      .from('piezas')
+      .select('id, conjuntos!inner(obra_id)')
+      .eq('conjuntos.obra_id', parseInt(filters.obra_id));
+    
+    if (piezasWithObra) {
+      // Aplicar otros filtros sobre estos resultados
+      let filteredIds = piezasWithObra.map(p => p.id);
+      
+      if (filters.tipo_material || filters.codigo || filters.colada || (filters.fase !== undefined && filters.fase !== '')) {
+        let countQuery = supabase.from('piezas').select('*', { count: 'exact', head: true });
+        countQuery = countQuery.in('id', filteredIds);
+        
+        if (filters.tipo_material) {
+          countQuery = countQuery.ilike('tipo_material', `%${filters.tipo_material}%`);
+        }
+        if (filters.codigo) {
+          countQuery = countQuery.ilike('codigo', `%${filters.codigo}%`);
+        }
+        if (filters.colada) {
+          countQuery = countQuery.ilike('colada', `%${filters.colada}%`);
+        }
+        if (filters.fase !== undefined && filters.fase !== '') {
+          countQuery = countQuery.eq('fase', filters.fase);
+        }
+        
+        const { count } = await countQuery;
+        return count || 0;
+      }
+      
+      return filteredIds.length;
+    }
+    return 0;
   }
 
   const { count, error } = await query;

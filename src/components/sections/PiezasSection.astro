@@ -18,15 +18,16 @@ const pageSize = parseInt(url.searchParams.get('pageSize') || '20');
 // Obtener filtros de la URL
 const filters = {
   fase: url.searchParams.get('fase'),
-  obra: url.searchParams.get('obra'),
+  obra_id: url.searchParams.get('obra_id'),
   search: url.searchParams.get('search')
 };
 
 // Aplicar filtros si existen
 let piezas, totalPiezas;
-if (filters.fase || filters.obra || filters.search) {
+if (filters.fase || filters.obra_id || filters.search) {
   const searchFilters = {};
   if (filters.fase) searchFilters.fase = filters.fase;
+  if (filters.obra_id) searchFilters.obra_id = filters.obra_id;
   if (filters.search) {
     searchFilters.codigo = filters.search;
     searchFilters.colada = filters.search;
@@ -65,6 +66,27 @@ const endItem = Math.min(currentPage * pageSize, totalPiezas);
   subtitle="Control de inventario y seguimiento de piezas individuales"
   actionButton={{ text: "Nueva Pieza", onClick: "openModal('modal-nueva-pieza')" }}
 />
+
+<!-- Barra de filtro de proyecto persistente -->
+<div class="project-filter-bar">
+  <div class="filter-container">
+    <div class="filter-label">
+      <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+      </svg>
+      <span>Proyecto Activo:</span>
+    </div>
+    <select class="project-filter-select" id="active-project-filter">
+      <option value="">Todos los proyectos</option>
+      {obras.map(obra => (
+        <option value={obra.id.toString()} selected={filters.obra_id === obra.id.toString()}>{obra.nombre}</option>
+      ))}
+    </select>
+    <div class="filter-info">
+      <span class="text-sm text-gray-500">Esta selección se mantendrá activa en futuras visitas</span>
+    </div>
+  </div>
+</div>
 
 <div class="piezas-section">
   <div class="stats-grid">
@@ -127,12 +149,6 @@ const endItem = Math.min(currentPage * pageSize, totalPiezas);
           <option value="1" selected={filters.fase === '1'}>Biselado</option>
           <option value="2" selected={filters.fase === '2'}>Montaje</option>
           <option value="3" selected={filters.fase === '3'}>Soldadura</option>
-        </select>
-        <select class="filter-select" id="obra-filter">
-          <option value="">Todas las obras</option>
-          {obras.map(obra => (
-            <option value={obra.nombre} selected={filters.obra === obra.nombre}>{obra.nombre}</option>
-          ))}
         </select>
         <input 
           type="text" 
@@ -350,6 +366,66 @@ const endItem = Math.min(currentPage * pageSize, totalPiezas);
     background: #059669;
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  }
+
+  /* Estilos para la barra de filtro de proyecto */
+  .project-filter-bar {
+    background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 32px;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.2);
+  }
+
+  .filter-container {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .filter-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: white;
+    font-weight: 600;
+    font-size: 16px;
+  }
+
+  .project-filter-select {
+    min-width: 250px;
+    padding: 10px 16px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    background: rgba(255, 255, 255, 0.95);
+    color: #374151;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .project-filter-select:focus {
+    outline: none;
+    border-color: rgba(255, 255, 255, 0.8);
+    background: white;
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.2);
+  }
+
+  .project-filter-select:hover {
+    background: white;
+    border-color: rgba(255, 255, 255, 0.6);
+  }
+
+  .filter-info {
+    margin-left: auto;
+  }
+
+  .filter-info span {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 13px;
+    font-style: italic;
   }
 
   /* Estilos para el modal de importación CSV */
@@ -577,14 +653,31 @@ const endItem = Math.min(currentPage * pageSize, totalPiezas);
     let currentPageSize = parseInt(new URLSearchParams(window.location.search).get('pageSize') || '20');
     let currentFilters = {
       fase: new URLSearchParams(window.location.search).get('fase') || '',
-      obra: new URLSearchParams(window.location.search).get('obra') || '',
+      obra_id: new URLSearchParams(window.location.search).get('obra_id') || '',
       search: new URLSearchParams(window.location.search).get('search') || ''
     };
     
     // Aplicar filtros iniciales
     if (currentFilters.fase) faseFilter.value = currentFilters.fase;
-    if (currentFilters.obra) obraFilter.value = currentFilters.obra;
     if (currentFilters.search) searchInput.value = currentFilters.search;
+
+    // Manejar filtro de proyecto persistente
+    const activeProjectFilter = document.getElementById('active-project-filter');
+    
+    // Restaurar proyecto activo desde localStorage o URL
+    const savedProjectId = localStorage.getItem('activeProjectId');
+    const urlProjectId = currentFilters.obra_id;
+    
+    if (urlProjectId) {
+      // Si hay proyecto en URL, usarlo y guardarlo
+      activeProjectFilter.value = urlProjectId;
+      localStorage.setItem('activeProjectId', urlProjectId);
+      currentFilters.obra_id = urlProjectId;
+    } else if (savedProjectId) {
+      // Si no hay en URL pero sí en localStorage, aplicarlo
+      activeProjectFilter.value = savedProjectId;
+      currentFilters.obra_id = savedProjectId;
+    }
 
     function updateURL() {
       const params = new URLSearchParams();
@@ -592,7 +685,7 @@ const endItem = Math.min(currentPage * pageSize, totalPiezas);
       params.set('pageSize', currentPageSize.toString());
       
       if (currentFilters.fase) params.set('fase', currentFilters.fase);
-      if (currentFilters.obra) params.set('obra', currentFilters.obra);
+      if (currentFilters.obra_id) params.set('obra_id', currentFilters.obra_id);
       if (currentFilters.search) params.set('search', currentFilters.search);
       
       const newURL = `${window.location.pathname}?${params.toString()}`;
@@ -604,7 +697,6 @@ const endItem = Math.min(currentPage * pageSize, totalPiezas);
 
     function applyFilters() {
       currentFilters.fase = faseFilter.value;
-      currentFilters.obra = obraFilter.value;
       currentFilters.search = searchInput.value;
       currentPage = 1; // Resetear a la primera página cuando se aplican filtros
       updateURL();
@@ -612,7 +704,23 @@ const endItem = Math.min(currentPage * pageSize, totalPiezas);
 
     // Event listeners para filtros
     faseFilter.addEventListener('change', applyFilters);
-    obraFilter.addEventListener('change', applyFilters);
+    
+    // Event listener para filtro de proyecto persistente
+    activeProjectFilter.addEventListener('change', function() {
+      const selectedProjectId = this.value;
+      
+      // Guardar en localStorage
+      if (selectedProjectId) {
+        localStorage.setItem('activeProjectId', selectedProjectId);
+      } else {
+        localStorage.removeItem('activeProjectId');
+      }
+      
+      // Actualizar filtros y recargar
+      currentFilters.obra_id = selectedProjectId;
+      currentPage = 1;
+      updateURL();
+    });
     
     // Debounce para el input de búsqueda
     let searchTimeout;
