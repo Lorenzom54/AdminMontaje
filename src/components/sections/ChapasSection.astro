@@ -560,62 +560,51 @@ const chapasPorTipo = chapas.reduce((acc, chapa) => {
         }
 
 
-        // Buscar dimensiones
+        // Buscar encabezados y extraer información de piezas
+        const piezas = [];
         let dimensiones = null;
         let tipoAcero = null;
         let espesor = null;
-
-        for (const line of lines) {
-          // Buscar dimensiones (línea que contiene "Dimensiones" y formato con "x" y "mm")
-          if (line.includes('Dimensiones') && line.includes(' x ') && line.includes(' mm')) {
-            const dimensionMatch = line.match(/(\d{1,2}\.\d{3},\d{2}\s*x\s*\d{1,2}\.\d{3},\d{2}\s*x\s*\d{1,2},\d{2}\s*mm)/);
-            if (dimensionMatch) {
-              dimensiones = dimensionMatch[1];
-            }
-          }
-          
-          // Buscar calidad (línea que contiene tipo de acero y espesor)
-          if (line.includes('Calidad') && /S\d{3}/.test(line)) {
-            const calidadMatch = line.match(/(S\d{3}[A-Z]*)\s+(\d{1,2},\d{2})\s*mm/);
-            if (calidadMatch) {
-              tipoAcero = calidadMatch[1];
-              espesor = calidadMatch[2];
-            }
-          }
-        }
-
-        // Buscar lista de piezas
-        const piezas = [];
-        let headerRowIndex = -1;
-        let cantidadColumnIndex = -1;
-        let piezaColumnIndex = -1;
         
-        // Encontrar la fila que contiene "Cantidad" y "Pieza"
+        // Buscar la línea de encabezados que contiene "Cantidad" y "Pieza"
+        let headerLine = null;
+        let headerRowIndex = -1;
+        
         for (let i = 0; i < lines.length; i++) {
           const line = lines[i];
           if (line.includes('Cantidad') && line.includes('Pieza')) {
+            headerLine = line;
             headerRowIndex = i;
-            const headerCells = line.split(';');
-            
-            // Encontrar los índices exactos de las columnas
-            for (let j = 0; j < headerCells.length; j++) {
-              const cell = headerCells[j]?.trim().toLowerCase();
-              if (cell === 'cantidad') {
-                cantidadColumnIndex = j;
-              } else if (cell === 'pieza') {
-                piezaColumnIndex = j;
-              }
-            }
             break;
           }
         }
         
-        if (headerRowIndex === -1 || cantidadColumnIndex === -1 || piezaColumnIndex === -1) {
-          console.log('Líneas del CSV:', lines);
-          console.log('Header row index:', headerRowIndex);
-          console.log('Cantidad column index:', cantidadColumnIndex);
-          console.log('Pieza column index:', piezaColumnIndex);
+        if (headerRowIndex === -1 || !headerLine) {
           alert('No se pudo encontrar las columnas "Cantidad" y "Pieza" en el CSV');
+          return;
+        }
+        
+        // Analizar el encabezado para encontrar todas las posiciones de "Cantidad" y "Pieza"
+        const headerCells = headerLine.split(';');
+        const cantidadIndices = [];
+        const piezaIndices = [];
+        const dimensionesIndices = [];
+        
+        for (let j = 0; j < headerCells.length; j++) {
+          const cell = headerCells[j]?.trim().toLowerCase();
+          if (cell === 'cantidad') {
+            cantidadIndices.push(j);
+          } else if (cell === 'pieza') {
+            piezaIndices.push(j);
+          } else if (cell === 'dimensiones') {
+            dimensionesIndices.push(j);
+          }
+        }
+        
+        console.log('Índices encontrados:', { cantidadIndices, piezaIndices, dimensionesIndices });
+        
+        if (cantidadIndices.length === 0 || piezaIndices.length === 0) {
+          alert('No se encontraron las columnas "Cantidad" y "Pieza" en el encabezado');
           return;
         }
         
@@ -623,56 +612,69 @@ const chapasPorTipo = chapas.reduce((acc, chapa) => {
         for (let i = headerRowIndex + 1; i < lines.length; i++) {
           const line = lines[i];
           
-          // Parar si llegamos al final del archivo o línea vacía
-          if (line.includes('ago.') || line.trim() === '' || line.split(';').every(cell => !cell?.trim())) {
+          // Parar si llegamos al final del archivo, línea vacía o línea de fecha
+          if (line.includes('ago.') || line.includes('202') || line.trim() === '' || line.split(';').every(cell => !cell?.trim())) {
             break;
           }
           
           const cells = line.split(';');
           
-          // Extraer datos usando los índices de columna identificados
-          const cantidadValue = cells[cantidadColumnIndex]?.trim();
-          const piezaValue = cells[piezaColumnIndex]?.trim();
-          
-          // Validar y procesar los datos
-          if (cantidadValue && piezaValue) {
-            // Validar que cantidad es un número
-            const cantidad = parseInt(cantidadValue);
-            if (isNaN(cantidad) || cantidad <= 0) {
-              console.log(`Fila ${i + 1}: Cantidad inválida "${cantidadValue}"`);
-              continue;
+          // Extraer dimensiones de la primera pieza si no las tenemos aún
+          if (!dimensiones && dimensionesIndices.length > 0) {
+            const dimensionValue = cells[dimensionesIndices[0]]?.trim();
+            if (dimensionValue && dimensionValue.includes('mm')) {
+              dimensiones = dimensionValue;
             }
+          }
+          
+          // Procesar cada par de columnas Cantidad/Pieza encontrado
+          for (let pairIndex = 0; pairIndex < Math.min(cantidadIndices.length, piezaIndices.length); pairIndex++) {
+            const cantidadIndex = cantidadIndices[pairIndex];
+            const piezaIndex = piezaIndices[pairIndex];
             
-            piezas.push({
-              codigo: piezaValue,
-              cantidad: cantidad
-            });
+            const cantidadValue = cells[cantidadIndex]?.trim();
+            const piezaValue = cells[piezaIndex]?.trim();
+            
+            // Validar y procesar los datos
+            if (cantidadValue && piezaValue) {
+              // Validar que cantidad es un número
+              const cantidad = parseInt(cantidadValue);
+              if (isNaN(cantidad) || cantidad <= 0) {
+                console.log(`Fila ${i + 1}, Par ${pairIndex + 1}: Cantidad inválida "${cantidadValue}"`);
+                continue;
+              }
+              
+              piezas.push({
+                codigo: piezaValue,
+                cantidad: cantidad
+              });
+              
+              console.log(`Pieza extraída: ${piezaValue} (${cantidad} unidades)`);
+            }
           }
         }
         
-        console.log('Piezas extraídas:', piezas); // Para debug
-        
         if (piezas.length === 0) {
-          alert(`No se encontraron piezas válidas en el archivo CSV. 
+          alert(`No se encontraron piezas válidas en el archivo CSV.
 Verifique que:
 - Las columnas "Cantidad" y "Pieza" estén presentes
-- Los códigos de pieza sigan el formato P + números (ej: P33)
+- Los códigos de pieza no estén vacíos
 - Las cantidades sean números válidos`);
           return;
         }
 
         parsedChapaData = {
           chapa: {
-            codigo: chapaCodigo, // Usar el nombre del archivo directamente
+            codigo: chapaCodigo,
             dimensiones: dimensiones,
             tipo_acero: tipoAcero,
             espesor: espesor,
-            colada: null // Siempre null como se especificó
+            colada: null
           },
           piezas: piezas
         };
         
-        console.log('Datos parseados:', parsedChapaData); // Para debug
+        console.log('Datos parseados:', parsedChapaData);
 
         showPreviewChapas(parsedChapaData);
         importBtnChapas.disabled = false;
