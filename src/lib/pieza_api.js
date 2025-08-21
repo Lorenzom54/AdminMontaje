@@ -128,6 +128,8 @@ export async function deletePieza(id) {
 export async function searchPiezas(filters = {}, page = 1, pageSize = 20) {
   const offset = (page - 1) * pageSize;
   
+  const offset = (page - 1) * pageSize;
+  
   let query = supabase.from('piezas').select(`
     *,
     conjuntos:conjunto_id(codigo, obras:obra_id(nombre)),
@@ -155,6 +157,8 @@ export async function searchPiezas(filters = {}, page = 1, pageSize = 20) {
   }
 
   const { data, error } = await query
+    .order('created_at', { ascending: false })
+    .range(offset, offset + pageSize - 1);
     .order('created_at', { ascending: false })
     .range(offset, offset + pageSize - 1);
 

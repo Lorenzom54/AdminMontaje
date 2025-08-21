@@ -22,8 +22,23 @@ const filters = {
   search: url.searchParams.get('search')
 };
 
-const piezas = await fetchPiezas(currentPage, pageSize);
-const totalPiezas = await fetchPiezasCount();
+// Aplicar filtros si existen
+let piezas, totalPiezas;
+if (filters.fase || filters.obra || filters.search) {
+  const searchFilters = {};
+  if (filters.fase) searchFilters.fase = filters.fase;
+  if (filters.search) {
+    searchFilters.codigo = filters.search;
+    searchFilters.colada = filters.search;
+  }
+  
+  piezas = await searchPiezas(searchFilters, currentPage, pageSize);
+  totalPiezas = await searchPiezasCount(searchFilters);
+} else {
+  piezas = await fetchPiezas(currentPage, pageSize);
+  totalPiezas = await fetchPiezasCount();
+}
+
 const obras = await fetchObrasForSelect();
 
 // Mapear obras al formato esperado por FormField
@@ -108,15 +123,15 @@ const endItem = Math.min(currentPage * pageSize, totalPiezas);
       <div class="table-filters">
         <select class="filter-select" id="fase-filter">
           <option value="">Todas las fases</option>
-          <option value="0">Corte</option>
-          <option value="1">Biselado</option>
-          <option value="2">Montaje</option>
-          <option value="3">Soldadura</option>
+          <option value="0" selected={filters.fase === '0'}>Corte</option>
+          <option value="1" selected={filters.fase === '1'}>Biselado</option>
+          <option value="2" selected={filters.fase === '2'}>Montaje</option>
+          <option value="3" selected={filters.fase === '3'}>Soldadura</option>
         </select>
         <select class="filter-select" id="obra-filter">
           <option value="">Todas las obras</option>
           {obras.map(obra => (
-            <option value={obra.nombre}>{obra.nombre}</option>
+            <option value={obra.nombre} selected={filters.obra === obra.nombre}>{obra.nombre}</option>
           ))}
         </select>
         <input 
@@ -124,6 +139,7 @@ const endItem = Math.min(currentPage * pageSize, totalPiezas);
           class="filter-input" 
           id="search-input"
           placeholder="Buscar por código o colada..."
+          value={filters.search || ''}
         />
         <button class="btn-import" onclick="openModal('modal-import-csv')">
           <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
