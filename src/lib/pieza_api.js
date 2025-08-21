@@ -36,6 +36,54 @@ export async function fetchPiezas() {
   return piezas;
 }
 
+// Obtener piezas con paginación
+export async function fetchPiezasPaginated(startIndex, endIndex, obraId = null) {
+  let query = supabase
+    .from('piezas')
+    .select(`
+      *,
+      conjuntos:conjunto_id(codigo, obras:obra_id(nombre)),
+      chapas:chapa_id(codigo)
+    `, { count: 'exact' });
+
+  // Filtrar por obra si se especifica
+  if (obraId) {
+    query = query.eq('conjuntos.obra_id', parseInt(obraId));
+  }
+
+  const { data: piezas, error, count } = await query
+    .range(startIndex, endIndex)
+    .order('created_at', { ascending: false });
+    
+  if (error) {
+    console.error('Error al obtener piezas paginadas:', error.message);
+    return { piezas: [], totalCount: 0 };
+  }
+  
+  return { piezas: piezas || [], totalCount: count || 0 };
+}
+
+// Obtener el conteo total de piezas
+export async function getTotalPiezasCount(obraId = null) {
+  let query = supabase
+    .from('piezas')
+    .select('id', { count: 'exact', head: true });
+
+  // Filtrar por obra si se especifica
+  if (obraId) {
+    query = query.eq('conjuntos.obra_id', parseInt(obraId));
+  }
+
+  const { count, error } = await query;
+    
+  if (error) {
+    console.error('Error al obtener conteo de piezas:', error.message);
+    return 0;
+  }
+  
+  return count || 0;
+}
+
 // Obtener una pieza por ID
 export async function fetchPiezaById(id) {
   let { data: pieza, error } = await supabase
