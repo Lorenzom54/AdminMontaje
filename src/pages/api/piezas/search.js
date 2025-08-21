@@ -37,6 +37,9 @@ export async function GET({ url }) {
         totalCount,
         totalPages: Math.ceil(totalCount / pageSize)
       }
+    }
+    )
+    )
     return new Response(JSON.stringify({ 
       success: true, 
       data: piezas,
