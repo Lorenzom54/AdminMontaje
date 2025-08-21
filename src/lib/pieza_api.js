@@ -283,3 +283,65 @@ export async function importPiezasFromCSV(csvData) {
     return { success: false, error: err.message };
   }
 }
+
+// Actualizar piezas con chapa_id
+export async function updatePiecesWithChapaId(pieceCode, count, chapaId) {
+  try {
+    // Buscar piezas que coincidan con el código y no tengan chapa asignada
+    // Priorizar piezas que pertenezcan a un conjunto
+    const { data: availablePieces, error: searchError } = await supabase
+      .from('piezas')
+      .select('id, codigo, conjunto_id')
+      .eq('codigo', pieceCode)
+      .is('chapa_id', null)
+      .order('conjunto_id', { ascending: false, nullsLast: true }) // Priorizar piezas con conjunto
+      .limit(count);
+
+    if (searchError) {
+      console.error('Error al buscar piezas:', searchError);
+      return { success: false, error: searchError.message, updated: 0 };
+    }
+
+    if (!availablePieces || availablePieces.length === 0) {
+      return { 
+        success: true, 
+        updated: 0, 
+        message: `No se encontraron piezas disponibles con código ${pieceCode}` 
+      };
+    }
+
+    const piecesToUpdate = availablePieces.slice(0, count);
+    const pieceIds = piecesToUpdate.map(p => p.id);
+
+    // Actualizar las piezas seleccionadas
+    const { data: updatedPieces, error: updateError } = await supabase
+      .from('piezas')
+      .update({ chapa_id: chapaId })
+      .in('id', pieceIds)
+      .select();
+
+    if (updateError) {
+      console.error('Error al actualizar piezas:', updateError);
+      return { success: false, error: updateError.message, updated: 0 };
+    }
+
+    const updatedCount = updatedPieces ? updatedPieces.length : 0;
+    let message = `${updatedCount} piezas actualizadas con código ${pieceCode}`;
+    
+    if (updatedCount < count) {
+      message += ` (se solicitaron ${count}, solo se encontraron ${availablePieces.length} disponibles)`;
+    }
+
+    return { 
+      success: true, 
+      updated: updatedCount, 
+      message: message,
+      requested: count,
+      available: availablePieces.length
+    };
+
+  } catch (err) {
+    console.error('Error inesperado al actualizar piezas:', err);
+    return { success: false, error: err.message, updated: 0 };
+  }
+}

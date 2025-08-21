@@ -95,6 +95,12 @@ const chapasPorTipo = chapas.reduce((acc, chapa) => {
           id="search-input"
           placeholder="Buscar por código o colada..."
         />
+        <button class="btn-import" onclick="openModal('modal-import-csv-chapas')">
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+          </svg>
+          Importar CSV
+        </button>
       </div>
     </div>
     
@@ -105,6 +111,50 @@ const chapasPorTipo = chapas.reduce((acc, chapa) => {
 <!-- Modal para Nueva Chapa -->
 <Modal id="modal-nueva-chapa" title="Nueva Chapa" size="lg">
   <ChapasForm />
+</Modal>
+
+<!-- Modal para Importar CSV -->
+<Modal id="modal-import-csv-chapas" title="Importar Chapa desde CSV" size="lg">
+  <div class="import-csv-form">
+    <div class="csv-instructions">
+      <h4>Formato del archivo CSV</h4>
+      <p>El archivo debe contener:</p>
+      <ul>
+        <li><strong>Primera fila:</strong> Código de la chapa (ej: 2025-211-5)</li>
+        <li><strong>Dimensiones:</strong> En formato "12.000,00 x 2.500,00 x 20,00 mm"</li>
+        <li><strong>Calidad:</strong> Tipo de acero y espesor (ej: S275JR 20,00 mm)</li>
+        <li><strong>Lista de piezas:</strong> Con columnas "Pieza" y "Cantidad"</li>
+      </ul>
+      <p><strong>Nota:</strong> El sistema creará la chapa y asociará las piezas existentes automáticamente.</p>
+    </div>
+    
+    <div class="csv-upload">
+      <input type="file" id="csv-file-chapas" accept=".csv" />
+      <div class="upload-area" id="upload-area-chapas">
+        <svg width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+        </svg>
+        <p>Arrastra tu archivo CSV aquí o haz clic para seleccionar</p>
+      </div>
+    </div>
+    
+    <div class="csv-preview" id="csv-preview-chapas" style="display: none;">
+      <h4>Vista previa del archivo</h4>
+      <div class="preview-content" id="preview-content-chapas"></div>
+    </div>
+    
+    <div class="form-actions">
+      <button type="button" class="btn-cancel" data-close-modal="modal-import-csv-chapas">
+        Cancelar
+      </button>
+      <button type="button" class="btn-submit" id="import-btn-chapas" disabled>
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+        </svg>
+        Importar Chapa
+      </button>
+    </div>
+  </div>
 </Modal>
 
 <!-- Modales de Detalles dinámicos -->
@@ -212,6 +262,185 @@ const chapasPorTipo = chapas.reduce((acc, chapa) => {
     min-width: 200px;
   }
 
+  .btn-import {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: #10b981;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btn-import:hover {
+    background: #059669;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  }
+
+  /* Estilos para el modal de importación CSV */
+  .import-csv-form {
+    max-width: none;
+  }
+
+  .csv-instructions {
+    background: #f0f9ff;
+    border: 1px solid #0ea5e9;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 24px;
+  }
+
+  .csv-instructions h4 {
+    color: #0c4a6e;
+    margin-bottom: 8px;
+  }
+
+  .csv-instructions ul {
+    margin: 8px 0 0 20px;
+  }
+
+  .csv-upload {
+    margin-bottom: 24px;
+  }
+
+  #csv-file-chapas {
+    display: none;
+  }
+
+  .upload-area {
+    border: 2px dashed #d1d5db;
+    border-radius: 8px;
+    padding: 48px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .upload-area:hover {
+    border-color: #3b82f6;
+    background: #f8fafc;
+  }
+
+  .upload-area.dragover {
+    border-color: #3b82f6;
+    background: #eff6ff;
+  }
+
+  .upload-area svg {
+    margin: 0 auto 16px;
+    color: #6b7280;
+  }
+
+  .csv-preview {
+    margin-bottom: 24px;
+  }
+
+  .preview-content {
+    max-height: 300px;
+    overflow: auto;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 16px;
+    background: #f9fafb;
+  }
+
+  .preview-section {
+    margin-bottom: 16px;
+    padding: 12px;
+    background: white;
+    border-radius: 6px;
+    border: 1px solid #e5e7eb;
+  }
+
+  .preview-section h5 {
+    font-size: 14px;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 8px;
+  }
+
+  .preview-section p {
+    font-size: 12px;
+    color: #6b7280;
+    margin: 4px 0;
+  }
+
+  .pieces-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  .piece-item {
+    background: #f3f4f6;
+    padding: 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    color: #374151;
+  }
+
+  .form-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    padding-top: 20px;
+    border-top: 1px solid #e5e7eb;
+  }
+
+  .btn-cancel {
+    padding: 10px 20px;
+    border: 1px solid #d1d5db;
+    background: white;
+    color: #374151;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btn-cancel:hover {
+    background: #f9fafb;
+    border-color: #9ca3af;
+  }
+
+  .btn-submit {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btn-submit:hover {
+    background: #2563eb;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  }
+
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  .animate-spin {
+    animation: spin 1s linear infinite;
+  }
+
   @media (max-width: 768px) {
     .stats-grid {
       grid-template-columns: 1fr;
@@ -260,5 +489,232 @@ const chapasPorTipo = chapas.reduce((acc, chapa) => {
 
     tipoFilter.addEventListener('change', filterTable);
     searchInput.addEventListener('input', filterTable);
+  });
+
+  // Funcionalidad de importación CSV para chapas
+  document.addEventListener('DOMContentLoaded', function() {
+    const csvFileChapas = document.getElementById('csv-file-chapas');
+    const uploadAreaChapas = document.getElementById('upload-area-chapas');
+    const csvPreviewChapas = document.getElementById('csv-preview-chapas');
+    const previewContentChapas = document.getElementById('preview-content-chapas');
+    const importBtnChapas = document.getElementById('import-btn-chapas');
+    let parsedChapaData = null;
+
+    // Click en área de upload
+    uploadAreaChapas.addEventListener('click', () => csvFileChapas.click());
+
+    // Drag and drop
+    uploadAreaChapas.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      uploadAreaChapas.classList.add('dragover');
+    });
+
+    uploadAreaChapas.addEventListener('dragleave', () => {
+      uploadAreaChapas.classList.remove('dragover');
+    });
+
+    uploadAreaChapas.addEventListener('drop', (e) => {
+      e.preventDefault();
+      uploadAreaChapas.classList.remove('dragover');
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        handleFileChapas(files[0]);
+      }
+    });
+
+    // Selección de archivo
+    csvFileChapas.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) {
+        handleFileChapas(e.target.files[0]);
+      }
+    });
+
+    function handleFileChapas(file) {
+      if (!file.name.endsWith('.csv')) {
+        alert('Por favor selecciona un archivo CSV válido');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const csv = e.target.result;
+        parseCSVChapas(csv);
+      };
+      reader.readAsText(file);
+    }
+
+    function parseCSVChapas(csv) {
+      try {
+        const lines = csv.split('\n').filter(line => line.trim());
+        if (lines.length < 10) {
+          alert('El archivo CSV no tiene el formato esperado');
+          return;
+        }
+
+        // Extraer código de la chapa (primera fila)
+        const firstLine = lines[0].split(';');
+        const chapaCodigo = firstLine.find(cell => cell && cell.trim() && !cell.includes('2025-211-5 001'))?.trim();
+        
+        if (!chapaCodigo) {
+          alert('No se pudo encontrar el código de la chapa en la primera fila');
+          return;
+        }
+
+        // Buscar dimensiones
+        let dimensiones = null;
+        let tipoAcero = null;
+        let espesor = null;
+
+        for (const line of lines) {
+          const cells = line.split(';');
+          
+          // Buscar dimensiones (línea que contiene "Dimensiones" y formato "x.xxx,xx x x.xxx,xx x xx,xx mm")
+          if (line.includes('Dimensiones') && line.includes(' x ') && line.includes(' mm')) {
+            const dimensionMatch = line.match(/(\d{1,2}\.\d{3},\d{2} x \d{1,2}\.\d{3},\d{2} x \d{1,2},\d{2} mm)/);
+            if (dimensionMatch) {
+              dimensiones = dimensionMatch[1];
+            }
+          }
+          
+          // Buscar calidad (línea que contiene tipo de acero y espesor)
+          if (line.includes('Calidad') && (line.includes('S275') || line.includes('S355') || line.includes('S235') || line.includes('S460') || line.includes('S690'))) {
+            const calidadMatch = line.match(/(S\d{3}[A-Z]*)\s+(\d{1,2},\d{2})\s*mm/);
+            if (calidadMatch) {
+              tipoAcero = calidadMatch[1];
+              espesor = calidadMatch[2];
+            }
+          }
+        }
+
+        // Buscar lista de piezas
+        const piezas = [];
+        let inPiezasList = false;
+        
+        for (const line of lines) {
+          if (line.includes('Lista de piezas')) {
+            inPiezasList = true;
+            continue;
+          }
+          
+          if (inPiezasList && line.includes('ago.')) {
+            break; // Fin del archivo
+          }
+          
+          if (inPiezasList) {
+            const cells = line.split(';');
+            
+            // Buscar patrones de piezas en las celdas
+            for (let i = 0; i < cells.length - 2; i++) {
+              const cell1 = cells[i]?.trim();
+              const cell2 = cells[i + 1]?.trim();
+              const cell3 = cells[i + 2]?.trim();
+              
+              // Patrón: número, cantidad, código de pieza
+              if (cell1 && /^\d+$/.test(cell1) && cell2 && /^\d+$/.test(cell2) && cell3 && /^P\d+$/.test(cell3)) {
+                piezas.push({
+                  codigo: cell3,
+                  cantidad: parseInt(cell2)
+                });
+              }
+            }
+          }
+        }
+
+        if (piezas.length === 0) {
+          alert('No se encontraron piezas válidas en el archivo CSV');
+          return;
+        }
+
+        parsedChapaData = {
+          chapa: {
+            codigo: parseInt(chapaCodigo.replace(/[^\d]/g, '')), // Extraer solo números
+            dimensiones: dimensiones,
+            tipo_acero: tipoAcero,
+            espesor: espesor,
+            colada: null
+          },
+          piezas: piezas
+        };
+
+        showPreviewChapas(parsedChapaData);
+        importBtnChapas.disabled = false;
+
+      } catch (error) {
+        console.error('Error al parsear CSV:', error);
+        alert('Error al procesar el archivo CSV: ' + error.message);
+      }
+    }
+
+    function showPreviewChapas(data) {
+      let html = '<div class="preview-section">';
+      html += '<h5>Información de la Chapa</h5>';
+      html += `<p><strong>Código:</strong> ${data.chapa.codigo}</p>`;
+      if (data.chapa.dimensiones) html += `<p><strong>Dimensiones:</strong> ${data.chapa.dimensiones}</p>`;
+      if (data.chapa.tipo_acero) html += `<p><strong>Tipo de Acero:</strong> ${data.chapa.tipo_acero}</p>`;
+      if (data.chapa.espesor) html += `<p><strong>Espesor:</strong> ${data.chapa.espesor}</p>`;
+      html += '</div>';
+
+      html += '<div class="preview-section">';
+      html += '<h5>Piezas a Asociar</h5>';
+      html += `<p>Total de tipos de piezas: ${data.piezas.length}</p>`;
+      html += '<div class="pieces-list">';
+      data.piezas.forEach(pieza => {
+        html += `<div class="piece-item">${pieza.codigo} (${pieza.cantidad} unidades)</div>`;
+      });
+      html += '</div></div>';
+
+      previewContentChapas.innerHTML = html;
+      csvPreviewChapas.style.display = 'block';
+    }
+
+    // Importar CSV
+    importBtnChapas.addEventListener('click', async () => {
+      if (!parsedChapaData) return;
+
+      importBtnChapas.disabled = true;
+      const originalText = importBtnChapas.innerHTML;
+      importBtnChapas.innerHTML = `
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="animate-spin">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg>
+        Importando...
+      `;
+
+      try {
+        const response = await fetch('/api/chapas/import-csv', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(parsedChapaData)
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+          importBtnChapas.innerHTML = `
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            ¡Importado!
+          `;
+          importBtnChapas.style.background = '#10b981';
+          
+          alert(result.message);
+          
+          setTimeout(() => {
+            location.reload();
+          }, 1500);
+        } else {
+          throw new Error(result.error || 'Error al importar CSV');
+        }
+      } catch (error) {
+        console.error('Error al importar CSV:', error);
+        alert('Error al importar CSV: ' + error.message);
+        
+        importBtnChapas.innerHTML = originalText;
+        importBtnChapas.disabled = false;
+      }
+    });
   });
 </script>
