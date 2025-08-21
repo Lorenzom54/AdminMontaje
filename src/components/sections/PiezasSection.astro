@@ -16,9 +16,7 @@ const obraOptions = obras.map(obra => ({
   label: obra.nombre
 }));
 
-// Estadísticas iniciales (se actualizarán dinámicamente)
-const totalPiezas = 0;
-const piezasPorFase = { 'Corte': 0, 'Soldadura': 0, 'Montaje': 0 };
+// Las estadísticas se cargarán dinámicamente desde la API
 ---
 
 <PageHeader 
@@ -36,7 +34,7 @@ const piezasPorFase = { 'Corte': 0, 'Soldadura': 0, 'Montaje': 0 };
         </svg>
       </div>
       <div class="stat-content">
-        <div class="stat-number">0</div>
+        <div class="stat-number">-</div>
         <div class="stat-label">Total Piezas</div>
       </div>
     </div>
@@ -48,7 +46,7 @@ const piezasPorFase = { 'Corte': 0, 'Soldadura': 0, 'Montaje': 0 };
         </svg>
       </div>
       <div class="stat-content">
-        <div class="stat-number">0</div>
+        <div class="stat-number">-</div>
         <div class="stat-label">En Corte</div>
       </div>
     </div>
@@ -60,7 +58,7 @@ const piezasPorFase = { 'Corte': 0, 'Soldadura': 0, 'Montaje': 0 };
         </svg>
       </div>
       <div class="stat-content">
-        <div class="stat-number">0</div>
+        <div class="stat-number">-</div>
         <div class="stat-label">En Soldadura</div>
       </div>
     </div>
@@ -72,7 +70,7 @@ const piezasPorFase = { 'Corte': 0, 'Soldadura': 0, 'Montaje': 0 };
         </svg>
       </div>
       <div class="stat-content">
-        <div class="stat-number">0</div>
+        <div class="stat-number">-</div>
         <div class="stat-label">En Montaje</div>
       </div>
     </div>

@@ -35,7 +35,7 @@ class PiezasPagination {
         
         this.renderTable(result.data);
         this.renderPagination();
-        this.updateStats(result.data);
+        this.updateStats(result.phaseCounts, result.count);
       } else {
         console.error('Error al cargar piezas:', result.error);
         this.showError('Error al cargar las piezas');
@@ -372,20 +372,16 @@ class PiezasPagination {
         
         this.renderTable(paginatedData);
         this.renderPagination();
-        this.updateStats(result.data);
+        this.updateStats(result.phaseCounts, result.count);
       }
     } catch (error) {
       console.error('Error al aplicar filtros:', error);
     }
   }
 
-  updateStats(allPiezas) {
-    // Actualizar estadísticas basadas en todas las piezas (no solo la página actual)
-    const faseStats = allPiezas.reduce((acc, pieza) => {
-      const fase = this.getFaseName(pieza.fase);
-      acc[fase] = (acc[fase] || 0) + 1;
-      return acc;
-    }, {});
+  updateStats(phaseCounts, totalCount) {
+    // Actualizar estadísticas basadas en los conteos reales de la base de datos
+    this.totalCount = totalCount;
 
     // Actualizar los números en las tarjetas de estadísticas
     const statCards = document.querySelectorAll('.stat-card');
@@ -394,16 +390,16 @@ class PiezasPagination {
       if (numberElement) {
         switch (index) {
           case 0: // Total Piezas
-            numberElement.textContent = this.totalCount;
+            numberElement.textContent = totalCount;
             break;
           case 1: // En Corte
-            numberElement.textContent = faseStats['Corte'] || 0;
+            numberElement.textContent = phaseCounts?.corte || 0;
             break;
           case 2: // En Soldadura
-            numberElement.textContent = faseStats['Soldadura'] || 0;
+            numberElement.textContent = phaseCounts?.soldadura || 0;
             break;
           case 3: // En Montaje
-            numberElement.textContent = faseStats['Montaje'] || 0;
+            numberElement.textContent = phaseCounts?.montaje || 0;
             break;
         }
       }

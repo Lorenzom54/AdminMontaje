@@ -1,4 +1,4 @@
-import { searchPiezas } from '../../../lib/pieza_api';
+import { searchPiezas, getPhaseCounts } from '../../../lib/pieza_api';
 
 export const prerender = false;
 
@@ -38,6 +38,9 @@ export async function GET({ url }) {
 
     const piezas = await searchPiezas(filters);
     
+    // Obtener conteos por fase para las piezas filtradas
+    const phaseCounts = await getPhaseCounts(filters);
+    
     // Aplicar paginación a los resultados filtrados
     const from = (page - 1) * pageSize;
     const to = page * pageSize;
@@ -47,6 +50,7 @@ export async function GET({ url }) {
       success: true, 
       data: paginatedPiezas,
       count: piezas.length,
+      phaseCounts: phaseCounts,
       page: page,
       pageSize: pageSize,
       totalPages: Math.ceil(piezas.length / pageSize)
