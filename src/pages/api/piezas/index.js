@@ -3,10 +3,22 @@ import { fetchPiezas } from '../../../lib/pieza_api';
 export const prerender = false;
 
 export async function GET() {
+export async function GET({ url }) {
   try {
-    const piezas = await fetchPiezas();
+    const searchParams = new URL(url).searchParams;
+    const page = parseInt(searchParams.get('page')) || 1;
+    const pageSize = parseInt(searchParams.get('pageSize')) || 10;
     
-    return new Response(JSON.stringify({ success: true, data: piezas }), {
+    const result = await fetchPiezas(page, pageSize);
+    
+    return new Response(JSON.stringify({ 
+      success: true, 
+      data: result.data, 
+      count: result.count,
+      page: page,
+      pageSize: pageSize,
+      totalPages: Math.ceil(result.count / pageSize)
+    }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });

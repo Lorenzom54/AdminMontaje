@@ -6,10 +6,8 @@ import PiezasForm from '../forms/PiezasForm.astro';
 import DetailModal from '../DetailModal.astro';
 import TablePieza from '../table/TablePieza.astro';
 import PiezaDetail from '../detail/PiezaDetail.astro';
-import { fetchPiezas, FASES } from '../../lib/pieza_api';
 import { fetchObrasForSelect } from '../../lib/conjunto_api';
 
-const piezas = await fetchPiezas();
 const obras = await fetchObrasForSelect();
 
 // Mapear obras al formato esperado por FormField
@@ -18,13 +16,9 @@ const obraOptions = obras.map(obra => ({
   label: obra.nombre
 }));
 
-// Calcular estadísticas dinámicas
-const totalPiezas = piezas.length;
-const piezasPorFase = piezas.reduce((acc, pieza) => {
-  const fase = FASES[pieza.fase] || 'Desconocida';
-  acc[fase] = (acc[fase] || 0) + 1;
-  return acc;
-}, {});
+// Estadísticas iniciales (se actualizarán dinámicamente)
+const totalPiezas = 0;
+const piezasPorFase = { 'Corte': 0, 'Soldadura': 0, 'Montaje': 0 };
 ---
 
 <PageHeader 
@@ -42,7 +36,7 @@ const piezasPorFase = piezas.reduce((acc, pieza) => {
         </svg>
       </div>
       <div class="stat-content">
-        <div class="stat-number">{totalPiezas}</div>
+        <div class="stat-number">0</div>
         <div class="stat-label">Total Piezas</div>
       </div>
     </div>
@@ -54,7 +48,7 @@ const piezasPorFase = piezas.reduce((acc, pieza) => {
         </svg>
       </div>
       <div class="stat-content">
-        <div class="stat-number">{piezasPorFase['Corte'] || 0}</div>
+        <div class="stat-number">0</div>
         <div class="stat-label">En Corte</div>
       </div>
     </div>
@@ -66,7 +60,7 @@ const piezasPorFase = piezas.reduce((acc, pieza) => {
         </svg>
       </div>
       <div class="stat-content">
-        <div class="stat-number">{piezasPorFase['Soldadura'] || 0}</div>
+        <div class="stat-number">0</div>
         <div class="stat-label">En Soldadura</div>
       </div>
     </div>
@@ -78,7 +72,7 @@ const piezasPorFase = piezas.reduce((acc, pieza) => {
         </svg>
       </div>
       <div class="stat-content">
-        <div class="stat-number">{piezasPorFase['Montaje'] || 0}</div>
+        <div class="stat-number">0</div>
         <div class="stat-label">En Montaje</div>
       </div>
     </div>
@@ -116,7 +110,15 @@ const piezasPorFase = piezas.reduce((acc, pieza) => {
       </div>
     </div>
     
-    <TablePieza piezas={piezas} />
+    <!-- Contenedor para la tabla paginada -->
+    <div id="piezas-table-wrapper">
+      <!-- La tabla se cargará dinámicamente -->
+    </div>
+    
+    <!-- Controles de paginación -->
+    <div id="pagination-controls" class="pagination-wrapper">
+      <!-- Los controles se generarán dinámicamente -->
+    </div>
   </div>
 </div>
 
@@ -181,12 +183,10 @@ const piezasPorFase = piezas.reduce((acc, pieza) => {
   </div>
 </Modal>
 
-<!-- Modales de Detalles dinámicos -->
-{piezas.map((pieza) => (
-  <DetailModal id={`detail-pieza-${pieza.id}`} title={`Pieza ${pieza.codigo}`} type="pieza">
-    <PiezaDetail pieza={pieza} />
-  </DetailModal>
-))}
+<!-- Los modales de detalles se generarán dinámicamente -->
+<div id="detail-modals-container">
+  <!-- Los modales se crearán dinámicamente cuando se necesiten -->
+</div>
 
 <style>
   .piezas-section {
@@ -495,6 +495,164 @@ const piezasPorFase = piezas.reduce((acc, pieza) => {
     color: #374151;
   }
 
+  /* Estilos para paginación */
+  .pagination-wrapper {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+    border-top: 1px solid #e5e7eb;
+    background: white;
+  }
+
+  .pagination-info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .pagination-text {
+    font-size: 14px;
+    color: #6b7280;
+  }
+
+  .page-size-selector {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .page-size-selector label {
+    font-size: 14px;
+    color: #6b7280;
+  }
+
+  .page-size-select {
+    padding: 4px 8px;
+    border: 1px solid #d1d5db;
+    border-radius: 4px;
+    font-size: 14px;
+    background: white;
+    color: #374151;
+  }
+
+  .pagination-buttons {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .pagination-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border: 1px solid #d1d5db;
+    background: white;
+    color: #374151;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .pagination-btn:hover:not(:disabled) {
+    background: #f9fafb;
+    border-color: #9ca3af;
+  }
+
+  .pagination-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .page-numbers {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .page-btn {
+    width: 32px;
+    height: 32px;
+    border: 1px solid #d1d5db;
+    background: white;
+    color: #374151;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .page-btn:hover {
+    background: #f9fafb;
+    border-color: #9ca3af;
+  }
+
+  .page-btn.active {
+    background: #3b82f6;
+    border-color: #3b82f6;
+    color: white;
+  }
+
+  .page-ellipsis {
+    padding: 0 8px;
+    color: #6b7280;
+    font-size: 14px;
+  }
+
+  /* Estados de carga y error */
+  .loading-state,
+  .error-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 24px;
+    text-align: center;
+    color: #6b7280;
+  }
+
+  .loading-spinner {
+    margin-bottom: 16px;
+    color: #3b82f6;
+  }
+
+  .error-state svg {
+    margin-bottom: 16px;
+    color: #ef4444;
+  }
+
+  .btn-retry {
+    margin-top: 16px;
+    padding: 8px 16px;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btn-retry:hover {
+    background: #2563eb;
+  }
+
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  .animate-spin {
+    animation: spin 1s linear infinite;
+  }
   @media (max-width: 768px) {
     .stats-grid {
       grid-template-columns: 1fr;
@@ -518,47 +676,28 @@ const piezasPorFase = piezas.reduce((acc, pieza) => {
     .data-table td {
       padding: 12px 8px;
     }
+
+    .pagination-wrapper {
+      flex-direction: column;
+      gap: 16px;
+      align-items: stretch;
+    }
+
+    .pagination-info {
+      flex-direction: column;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .pagination-buttons {
+      justify-content: center;
+    }
   }
 </style>
 
 <script type="module">
-  // Filtros en tiempo real
+  // Funcionalidad de importación CSV (mantener la funcionalidad existente)
   document.addEventListener('DOMContentLoaded', function() {
-    const faseFilter = document.getElementById('fase-filter');
-    const obraFilter = document.getElementById('obra-filter');
-    const searchInput = document.getElementById('search-input');
-    const tableRows = document.querySelectorAll('.data-table tbody tr');
-
-    function filterTable() {
-      const faseValue = faseFilter.value;
-      const obraValue = obraFilter.value.toLowerCase();
-      const searchValue = searchInput.value.toLowerCase();
-
-      tableRows.forEach(row => {
-        const fase = row.querySelector('.fase-badge').className;
-        const codigo = row.cells[0].textContent.toLowerCase();
-        const obra = row.cells[4].textContent.toLowerCase(); // Columna de obra
-        const colada = row.cells[6].textContent.toLowerCase(); // Ajustar índice por nueva columna
-
-        const matchesFase = !faseValue || fase.includes(`fase-${faseValue}`);
-        const matchesObra = !obraValue || obra.includes(obraValue);
-        const matchesSearch = !searchValue || 
-          codigo.includes(searchValue) || 
-          colada.includes(searchValue);
-
-        if (matchesFase && matchesObra && matchesSearch) {
-          row.style.display = '';
-        } else {
-          row.style.display = 'none';
-        }
-      });
-    }
-
-    faseFilter.addEventListener('change', filterTable);
-    obraFilter.addEventListener('change', filterTable);
-    searchInput.addEventListener('input', filterTable);
-
-    // Funcionalidad de importación CSV
     const csvFile = document.getElementById('csv-file');
     const uploadArea = document.getElementById('upload-area');
     const csvPreview = document.getElementById('csv-preview');

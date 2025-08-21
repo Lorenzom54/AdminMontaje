@@ -19,21 +19,31 @@ export const FASES_REVERSE = {
 };
 
 // Obtener todas las piezas
-export async function fetchPiezas() {
+export async function fetchPiezas(page = 1, pageSize = 10) {
+  const from = (page - 1) * pageSize;
+  const to = page * pageSize - 1;
+
   let { data: piezas, error } = await supabase
     .from('piezas')
     .select(`
       *,
       conjuntos:conjunto_id(codigo, obras:obra_id(nombre)),
       chapas:chapa_id(codigo)
-    `)
+    `, { count: 'exact' })
+    .range(from, to)
     .order('created_at', { ascending: false })
     
   if (error) {
     console.error('Error al obtener piezas:', error.message);
-    return [];
+    return { data: [], count: 0 };
   }
-  return piezas;
+  
+  // Get total count
+  const { count } = await supabase
+    .from('piezas')
+    .select('*', { count: 'exact', head: true });
+    
+  return { data: piezas, count: count || 0 };
 }
 
 // Obtener una pieza por ID
