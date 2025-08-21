@@ -118,14 +118,14 @@ const chapasPorTipo = chapas.reduce((acc, chapa) => {
   <div class="import-csv-form">
     <div class="csv-instructions">
       <h4>Formato del archivo CSV</h4>
-      <p>El archivo debe contener:</p>
+      <p>Instrucciones para la importación:</p>
       <ul>
-        <li><strong>Primera fila:</strong> Código de la chapa (ej: 2025-211-5)</li>
-        <li><strong>Dimensiones:</strong> En formato "12.000,00 x 2.500,00 x 20,00 mm"</li>
-        <li><strong>Calidad:</strong> Tipo de acero y espesor (ej: S275JR 20,00 mm)</li>
-        <li><strong>Lista de piezas:</strong> Con columnas "Pieza" y "Cantidad"</li>
+        <li><strong>Nombre del archivo:</strong> Debe ser el código de la chapa (ej: 2025-211-5.csv)</li>
+        <li><strong>Separador:</strong> Usar punto y coma (;) como separador de columnas</li>
+        <li><strong>Lista de piezas:</strong> Debe contener columnas "Pieza" y "Cantidad"</li>
+        <li><strong>Datos opcionales:</strong> Dimensiones, tipo de acero y espesor (si están presentes en el CSV)</li>
       </ul>
-      <p><strong>Nota:</strong> El sistema creará la chapa y asociará las piezas existentes automáticamente.</p>
+      <p><strong>Nota:</strong> El sistema creará la chapa usando el nombre del archivo como código y asociará las piezas existentes automáticamente, priorizando completar conjuntos.</p>
     </div>
     
     <div class="csv-upload">
