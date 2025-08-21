@@ -535,15 +535,23 @@ const chapasPorTipo = chapas.reduce((acc, chapa) => {
         return;
       }
 
+      // Extraer código de la chapa del nombre del archivo
+      const fileName = file.name.replace('.csv', '');
+      const chapaCodigo = fileName.trim();
+      
+      if (!chapaCodigo) {
+        alert('El nombre del archivo no puede estar vacío');
+        return;
+      }
       const reader = new FileReader();
       reader.onload = (e) => {
         const csv = e.target.result;
-        parseCSVChapas(csv);
+        parseCSVChapas(csv, chapaCodigo);
       };
       reader.readAsText(file);
     }
 
-    function parseCSVChapas(csv) {
+    function parseCSVChapas(csv, chapaCodigo) {
       try {
         const lines = csv.split('\n').filter(line => line.trim());
         if (lines.length < 10) {
@@ -551,20 +559,6 @@ const chapasPorTipo = chapas.reduce((acc, chapa) => {
           return;
         }
 
-        // Extraer código de la chapa (primera fila)
-        const firstLine = lines[0].split(';');
-        const chapaCodigo = firstLine.find(cell => {
-          const trimmed = cell?.trim();
-          return trimmed && 
-                 trimmed.length > 0 && 
-                 !trimmed.includes('001') && 
-                 /^\d{4}-\d{3}-\d+$/.test(trimmed);
-        })?.trim();
-        
-        if (!chapaCodigo) {
-          alert('No se pudo encontrar el código de la chapa en la primera fila');
-          return;
-        }
 
         // Buscar dimensiones
         let dimensiones = null;
@@ -590,20 +584,20 @@ const chapasPorTipo = chapas.reduce((acc, chapa) => {
           }
         }
 
-        // Buscar lista de piezas con mejor lógica
+        // Buscar lista de piezas
         const piezas = [];
         let headerRowIndex = -1;
         let cantidadColumnIndex = -1;
         let piezaColumnIndex = -1;
         
-        // Encontrar la fila de encabezados de la lista de piezas
+        // Encontrar la fila que contiene "Cantidad" y "Pieza"
         for (let i = 0; i < lines.length; i++) {
           const line = lines[i];
-          if (line.includes('Lista de piezas') && line.includes('Cantidad') && line.includes('Pieza')) {
+          if (line.includes('Cantidad') && line.includes('Pieza')) {
             headerRowIndex = i;
             const headerCells = line.split(';');
             
-            // Encontrar los índices de las columnas importantes
+            // Encontrar los índices exactos de las columnas
             for (let j = 0; j < headerCells.length; j++) {
               const cell = headerCells[j]?.trim().toLowerCase();
               if (cell === 'cantidad') {
@@ -617,7 +611,11 @@ const chapasPorTipo = chapas.reduce((acc, chapa) => {
         }
         
         if (headerRowIndex === -1 || cantidadColumnIndex === -1 || piezaColumnIndex === -1) {
-          alert('No se pudo encontrar la estructura de la lista de piezas en el CSV');
+          console.log('Líneas del CSV:', lines);
+          console.log('Header row index:', headerRowIndex);
+          console.log('Cantidad column index:', cantidadColumnIndex);
+          console.log('Pieza column index:', piezaColumnIndex);
+          alert('No se pudo encontrar las columnas "Cantidad" y "Pieza" en el CSV');
           return;
         }
         
@@ -625,23 +623,35 @@ const chapasPorTipo = chapas.reduce((acc, chapa) => {
         for (let i = headerRowIndex + 1; i < lines.length; i++) {
           const line = lines[i];
           
-          // Parar si llegamos al final del archivo
-          if (line.includes('ago.') || line.trim() === '') {
+          // Parar si llegamos al final del archivo o línea vacía
+          if (line.includes('ago.') || line.trim() === '' || line.split(';').every(cell => !cell?.trim())) {
             break;
           }
           
           const cells = line.split(';');
           
-          // Extraer cantidad y código de pieza usando los índices encontrados
+          // Extraer datos usando los índices de columna identificados
           const cantidadValue = cells[cantidadColumnIndex]?.trim();
           const piezaValue = cells[piezaColumnIndex]?.trim();
           
-          // Validar que tenemos datos válidos
-          if (cantidadValue && /^\d+$/.test(cantidadValue) && 
-              piezaValue && /^P\d+$/.test(piezaValue)) {
+          // Validar y procesar los datos
+          if (cantidadValue && piezaValue) {
+            // Validar que cantidad es un número
+            const cantidad = parseInt(cantidadValue);
+            if (isNaN(cantidad) || cantidad <= 0) {
+              console.log(`Fila ${i + 1}: Cantidad inválida "${cantidadValue}"`);
+              continue;
+            }
+            
+            // Validar formato de pieza (debe empezar con P seguido de números)
+            if (!/^P\d+$/.test(piezaValue)) {
+              console.log(`Fila ${i + 1}: Código de pieza inválido "${piezaValue}"`);
+              continue;
+            }
+            
             piezas.push({
               codigo: piezaValue,
-              cantidad: parseInt(cantidadValue)
+              cantidad: cantidad
             });
           }
         }
@@ -649,17 +659,21 @@ const chapasPorTipo = chapas.reduce((acc, chapa) => {
         console.log('Piezas extraídas:', piezas); // Para debug
         
         if (piezas.length === 0) {
-          alert('No se encontraron piezas válidas en el archivo CSV. Verifique que el formato sea correcto.');
+          alert(`No se encontraron piezas válidas en el archivo CSV. 
+Verifique que:
+- Las columnas "Cantidad" y "Pieza" estén presentes
+- Los códigos de pieza sigan el formato P + números (ej: P33)
+- Las cantidades sean números válidos`);
           return;
         }
 
         parsedChapaData = {
           chapa: {
-            codigo: parseInt(chapaCodigo.replace(/[^\d]/g, '')), // Extraer solo números
+            codigo: chapaCodigo, // Usar el nombre del archivo directamente
             dimensiones: dimensiones,
             tipo_acero: tipoAcero,
             espesor: espesor,
-            colada: null
+            colada: null // Siempre null como se especificó
           },
           piezas: piezas
         };
