@@ -201,14 +201,14 @@ function getPageUrl(page, obraId = selectedObraId) {
                 pageNum = currentPage - 2 + i;
               }
               
-              return (
+              <Fragment key={pageNum}>
                 <a 
                   href={getPageUrl(pageNum)} 
                   class={`page-number ${currentPage === pageNum ? 'active' : ''}`}
                 >
                   {pageNum}
                 </a>
-              );
+              </Fragment>
             })}
           </div>
 
@@ -291,9 +291,9 @@ function getPageUrl(page, obraId = selectedObraId) {
 
 <!-- Modales de Detalles dinámicos -->
 {piezas.map((pieza) => (
-  <DetailModal id={`detail-pieza-${pieza.id}`} title={`Pieza ${pieza.codigo}`} type="pieza">
+  <Fragment key={pieza.id}>
     <PiezaDetail pieza={pieza} />
-  </DetailModal>
+  </Fragment>
 ))}
 
 <style>
