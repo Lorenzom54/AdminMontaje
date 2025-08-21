@@ -201,7 +201,885 @@ function getPageUrl(page, obraId = selectedObraId) {
                 pageNum = currentPage - 2 + i;
               }
               
-              <Fragment key={pageNum}>
+              return (
+                <Fragment key={pageNum}>
+                  <a 
+                    href={getPageUrl(pageNum)} 
+                    class={`page-number ${currentPage === pageNum ? 'active' : ''}`}
+                  >
+                    {pageNum}
+                  </a>
+                </Fragment>
+              );
+            })}
+          </div>
+
+          <a 
+            href={getPageUrl(currentPage + 1)} 
+            class={`pagination-btn ${!hasNextPage ? 'disabled' : ''}`}
+            aria-disabled={!hasNextPage}
+          >
+            Siguiente
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+            </svg>
+          </a>
+        </div>
+      </div>
+    )}
+  </div>
+</div>
+
+<!-- Modal para Nueva Pieza -->
+<Modal id="modal-nueva-pieza" title="Nueva Pieza" size="lg">
+  <PiezasForm />
+</Modal>
+
+<!-- Modal para Importar CSV -->
+<Modal id="modal-import-csv" title="Importar Piezas desde CSV" size="lg">
+  <div class="import-csv-form">
+    <div class="obra-selection">
+      <FormField 
+        label="Obra de Destino" 
+        name="obra_id" 
+        type="select"
+        options={obraOptions}
+        required={true}
+      />
+    </div>
+    
+    <div class="csv-instructions">
+      <h4>Formato del archivo CSV</h4>
+      <p>El archivo debe contener las siguientes columnas:</p>
+      <ul>
+        <li><strong>Conjunto</strong> - Código del conjunto (se creará si no existe)</li>
+        <li><strong>Parte</strong> - Código único de la pieza</li>
+        <li><strong>Apodo</strong> - Campo adicional (opcional)</li>
+        <li><strong>Perfil</strong> - Tipo de material/perfil</li>
+        <li><strong>Longitud(mm)</strong> - Longitud en milímetros</li>
+        <li><strong>Peso</strong> - Peso de la pieza</li>
+      </ul>
+      <p><strong>Nota:</strong> El archivo debe usar punto y coma (;) como separador.</p>
+    </div>
+    
+    <div class="csv-upload">
+      <input type="file" id="csv-file" accept=".csv" />
+      <div class="upload-area" id="upload-area">
+        <svg width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+        </svg>
+        <p>Arrastra tu archivo CSV aquí o haz clic para seleccionar</p>
+      </div>
+    </div>
+    
+    <div class="csv-preview" id="csv-preview" style="display: none;">
+      <h4>Vista previa del archivo</h4>
+      <div class="preview-table" id="preview-table"></div>
+    </div>
+    
+    <div class="form-actions">
+      <button type="button" class="btn-cancel" data-close-modal="modal-import-csv">
+        Cancelar
+      </button>
+      <button type="button" class="btn-submit" id="import-btn" disabled>
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+        </svg>
+        Importar Piezas
+      </button>
+    </div>
+  </div>
+</Modal>
+
+<!-- Modales de Detalles dinámicos -->
+{piezas.map((pieza) => (
+  <Fragment key={pieza.id}>
+    <PiezaDetail pieza={pieza} />
+  </Fragment>
+))}
+
+<style>
+  .piezas-section {
+    space-y: 32px;
+  }
+
+  .project-filter-bar {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+
+  .filter-container {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .filter-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #374151;
+    white-space: nowrap;
+  }
+
+  .project-select {
+    min-width: 280px;
+    padding: 10px 14px;
+    border: 2px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 500;
+    background: white;
+    color: #374151;
+    transition: all 0.2s ease;
+  }
+
+  .project-select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+  }
+
+  .clear-filter-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    background: #f3f4f6;
+    color: #6b7280;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .clear-filter-btn:hover {
+    background: #e5e7eb;
+    color: #374151;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 24px;
+    margin-bottom: 32px;
+  }
+
+  .stat-card {
+    background: white;
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  .stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+  }
+
+  .stat-icon.inventory { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+  .stat-icon.fabrication { background: linear-gradient(135deg, #f59e0b, #d97706); }
+  .stat-icon.ready { background: linear-gradient(135deg, #10b981, #059669); }
+  .stat-icon.quality { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
+
+  .stat-content {
+    flex: 1;
+  }
+
+  .stat-number {
+    font-size: 24px;
+    font-weight: 700;
+    color: #111827;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .stat-label {
+    font-size: 14px;
+    color: #6b7280;
+    font-weight: 500;
+  }
+
+  .piezas-table {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e7eb;
+  }
+
+  .table-header {
+    padding: 24px;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .table-header h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #111827;
+    margin: 0;
+  }
+
+  .table-info {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .pagination-info {
+    font-size: 14px;
+    color: #6b7280;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .table-filters {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+
+  .filter-select, .filter-input {
+    padding: 8px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+    background: white;
+    color: #374151;
+  }
+
+  .filter-input {
+    min-width: 200px;
+  }
+
+  .btn-import {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    background: #10b981;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btn-import:hover {
+    background: #059669;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  }
+
+  .pagination-bar {
+    padding: 20px 24px;
+    border-top: 1px solid #e5e7eb;
+    background: #f9fafb;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .pagination-info-mobile {
+    font-size: 14px;
+    color: #6b7280;
+    font-weight: 500;
+  }
+
+  .pagination-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .pagination-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    background: white;
+    color: #374151;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .pagination-btn:hover:not(.disabled) {
+    background: #f3f4f6;
+    border-color: #9ca3af;
+    color: #111827;
+  }
+
+  .pagination-btn.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+
+  .page-numbers {
+    display: flex;
+    gap: 4px;
+    margin: 0 8px;
+  }
+
+  .page-number {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: white;
+    color: #374151;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .page-number:hover {
+    background: #f3f4f6;
+    border-color: #9ca3af;
+    color: #111827;
+  }
+
+  .page-number.active {
+    background: #3b82f6;
+    color: white;
+    border-color: #3b82f6;
+  }
+
+  /* Estilos para el modal de importación CSV */
+  .import-csv-form {
+    max-width: none;
+  }
+
+  .obra-selection {
+    background: #f0f9ff;
+    border: 1px solid #0ea5e9;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 24px;
+  }
+
+  .csv-instructions {
+    background: #f0f9ff;
+    border: 1px solid #0ea5e9;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 24px;
+  }
+
+  .csv-instructions h4 {
+    color: #0c4a6e;
+    margin-bottom: 8px;
+  }
+
+  .csv-instructions ul {
+    margin: 8px 0 0 20px;
+  }
+
+  .csv-upload {
+    margin-bottom: 24px;
+  }
+
+  #csv-file {
+    display: none;
+  }
+
+  .upload-area {
+    border: 2px dashed #d1d5db;
+    border-radius: 8px;
+    padding: 48px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .upload-area:hover {
+    border-color: #3b82f6;
+    background: #f8fafc;
+  }
+
+  .upload-area.dragover {
+    border-color: #3b82f6;
+    background: #eff6ff;
+  }
+
+  .upload-area svg {
+    margin: 0 auto 16px;
+    color: #6b7280;
+  }
+
+  .csv-preview {
+    margin-bottom: 24px;
+  }
+
+  .preview-table {
+    max-height: 300px;
+    overflow: auto;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+  }
+
+  .form-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    padding-top: 20px;
+    border-top: 1px solid #e5e7eb;
+  }
+
+  .btn-cancel {
+    padding: 10px 20px;
+    border: 1px solid #d1d5db;
+    background: white;
+    color: #374151;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btn-cancel:hover {
+    background: #f9fafb;
+    border-color: #9ca3af;
+  }
+
+  .btn-submit {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btn-submit:hover {
+    background: #2563eb;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  }
+
+  .preview-data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12px;
+  }
+
+  .preview-data-table th,
+  .preview-data-table td {
+    padding: 8px;
+    border: 1px solid #e5e7eb;
+    text-align: left;
+  }
+
+  .preview-data-table th {
+    background: #f9fafb;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    font-size: 11px;
+  }
+
+  .preview-data-table td {
+    color: #6b7280;
+  }
+
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+
+  .animate-spin {
+    animation: spin 1s linear infinite;
+  }
+
+  .status-badge.ready {
+    background: #d1fae5;
+    color: #065f46;
+  }
+
+  .status-badge.quality {
+    background: #ede9fe;
+    color: #6b21a8;
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 8px;
+  }
+
+  .btn-icon {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: #f3f4f6;
+    color: #6b7280;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btn-icon:hover {
+    background: #e5e7eb;
+    color: #374151;
+  }
+
+  @media (max-width: 768px) {
+    .filter-container {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 12px;
+    }
+
+    .project-select {
+      min-width: auto;
+      width: 100%;
+    }
+
+    .stats-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .table-header {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 12px;
+    }
+
+    .table-info {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 12px;
+    }
+
+    .table-filters {
+      flex-direction: column;
+    }
+
+    .pagination-bar {
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .pagination-controls {
+      justify-content: center;
+    }
+
+    .page-numbers {
+      margin: 0 4px;
+    }
+
+    .data-table {
+      font-size: 14px;
+    }
+
+    .data-table th,
+    .data-table td {
+      padding: 12px 8px;
+    }
+  }
+</style>
+
+<script type="module">
+  // Project filter functionality
+  document.addEventListener('DOMContentLoaded', function() {
+    const projectSelect = document.getElementById('project-select');
+    const clearFilterBtn = document.getElementById('clear-filter');
+    
+    // Handle project selection change
+    if (projectSelect) {
+      projectSelect.addEventListener('change', function() {
+        const selectedObraId = this.value;
+        
+        // Save to localStorage for persistence
+        if (selectedObraId) {
+          localStorage.setItem('selectedObraId', selectedObraId);
+        } else {
+          localStorage.removeItem('selectedObraId');
+        }
+        
+        // Navigate to first page with new filter
+        const url = new URL(window.location);
+        url.searchParams.delete('page'); // Reset to first page
+        
+        if (selectedObraId) {
+          url.searchParams.set('obra_id', selectedObraId);
+        } else {
+          url.searchParams.delete('obra_id');
+        }
+        
+        window.location.href = url.toString();
+      });
+      
+      // Restore selection from localStorage if no URL parameter
+      const urlParams = new URLSearchParams(window.location.search);
+      if (!urlParams.has('obra_id')) {
+        const savedObraId = localStorage.getItem('selectedObraId');
+        if (savedObraId && projectSelect.querySelector(`option[value="${savedObraId}"]`)) {
+          projectSelect.value = savedObraId;
+          // Trigger change to apply filter
+          const url = new URL(window.location);
+          url.searchParams.set('obra_id', savedObraId);
+          window.location.href = url.toString();
+        }
+      }
+    }
+    
+    // Handle clear filter button
+    if (clearFilterBtn) {
+      clearFilterBtn.addEventListener('click', function() {
+        localStorage.removeItem('selectedObraId');
+        const url = new URL(window.location);
+        url.searchParams.delete('obra_id');
+        url.searchParams.delete('page');
+        window.location.href = url.toString();
+      });
+    }
+
+    // Filtros en tiempo real (solo para la página actual)
+    const faseFilter = document.getElementById('fase-filter');
+    const searchInput = document.getElementById('search-input');
+    const tableRows = document.querySelectorAll('.data-table tbody tr');
+
+    function filterTable() {
+      const faseValue = faseFilter?.value;
+      const searchValue = searchInput?.value.toLowerCase() || '';
+
+      tableRows.forEach(row => {
+        const fase = row.querySelector('.fase-badge')?.className || '';
+        const codigo = row.cells[0]?.textContent.toLowerCase() || '';
+        const colada = row.cells[6]?.textContent.toLowerCase() || '';
+
+        const matchesFase = !faseValue || fase.includes(`fase-${faseValue}`);
+        const matchesSearch = !searchValue || 
+          codigo.includes(searchValue) || 
+          colada.includes(searchValue);
+
+        if (matchesFase && matchesSearch) {
+          row.style.display = '';
+        } else {
+          row.style.display = 'none';
+        }
+      });
+    }
+
+    if (faseFilter) faseFilter.addEventListener('change', filterTable);
+    if (searchInput) searchInput.addEventListener('input', filterTable);
+
+    // Funcionalidad de importación CSV
+    const csvFile = document.getElementById('csv-file');
+    const uploadArea = document.getElementById('upload-area');
+    const csvPreview = document.getElementById('csv-preview');
+    const previewTable = document.getElementById('preview-table');
+    const importBtn = document.getElementById('import-btn');
+    let csvData = null;
+
+    // Click en área de upload
+    if (uploadArea) {
+      uploadArea.addEventListener('click', () => csvFile?.click());
+
+      // Drag and drop
+      uploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        uploadArea.classList.add('dragover');
+      });
+
+      uploadArea.addEventListener('dragleave', () => {
+        uploadArea.classList.remove('dragover');
+      });
+
+      uploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        uploadArea.classList.remove('dragover');
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+          handleFile(files[0]);
+        }
+      });
+    }
+
+    // Selección de archivo
+    if (csvFile) {
+      csvFile.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+          handleFile(e.target.files[0]);
+        }
+      });
+    }
+
+    function handleFile(file) {
+      if (!file.name.endsWith('.csv')) {
+        alert('Por favor selecciona un archivo CSV válido');
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const csv = e.target.result;
+        parseCSV(csv);
+      };
+      reader.readAsText(file);
+    }
+
+    function parseCSV(csv) {
+      const lines = csv.split('\n').filter(line => line.trim());
+      if (lines.length < 2) {
+        alert('El archivo CSV debe tener al menos una fila de encabezados y una fila de datos');
+        return;
+      }
+
+      const headers = lines[0].split(';').map(h => h.trim());
+      const rows = lines.slice(1).map(line => {
+        const values = line.split(';').map(v => v.trim());
+        const row = {};
+        headers.forEach((header, index) => {
+          row[header] = values[index] || '';
+        });
+        return row;
+      });
+
+      csvData = rows;
+      showPreview(headers, rows);
+      if (importBtn) importBtn.disabled = false;
+    }
+
+    function showPreview(headers, rows) {
+      if (!previewTable) return;
+      
+      let html = '<table class="preview-data-table"><thead><tr>';
+      headers.forEach(header => {
+        html += `<th>${header}</th>`;
+      });
+      html += '</tr></thead><tbody>';
+
+      rows.slice(0, 5).forEach(row => {
+        html += '<tr>';
+        headers.forEach(header => {
+          html += `<td>${row[header] || '-'}</td>`;
+        });
+        html += '</tr>';
+      });
+
+      if (rows.length > 5) {
+        html += `<tr><td colspan="${headers.length}" style="text-align: center; font-style: italic;">... y ${rows.length - 5} filas más</td></tr>`;
+      }
+
+      html += '</tbody></table>';
+      previewTable.innerHTML = html;
+      if (csvPreview) csvPreview.style.display = 'block';
+    }
+
+    // Importar CSV
+    if (importBtn) {
+      importBtn.addEventListener('click', async () => {
+        if (!csvData) return;
+
+        const obraSelect = document.querySelector('[name="obra_id"]');
+        const selectedObraId = obraSelect?.value;
+        
+        if (!selectedObraId) {
+          alert('Por favor selecciona una obra de destino');
+          return;
+        }
+        
+        importBtn.disabled = true;
+        const originalText = importBtn.innerHTML;
+        importBtn.innerHTML = `
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="animate-spin">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          Importando...
+        `;
+
+        try {
+          const response = await fetch('/api/piezas/import-csv', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ 
+              csvData: csvData,
+              selectedObraId: selectedObraId 
+            })
+          });
+
+          const result = await response.json();
+
+          if (result.success) {
+            // Guardar la obra seleccionada en localStorage
+            localStorage.setItem('selectedObraId', selectedObraId);
+            
+            importBtn.innerHTML = `
+              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+              ¡Importado!
+            `;
+            importBtn.style.background = '#10b981';
+            
+            alert(result.message);
+            
+            setTimeout(() => {
+              location.reload();
+            }, 1500);
+          } else {
+            throw new Error(result.error || 'Error al importar CSV');
+          }
+        } catch (error) {
+          console.error('Error al importar CSV:', error);
+          alert('Error al importar CSV: ' + error.message);
+          
+          importBtn.innerHTML = originalText;
+          importBtn.disabled = false;
+        }
+      });
+    }
+  });
+</script>
                 <a 
                   href={getPageUrl(pageNum)} 
                   class={`page-number ${currentPage === pageNum ? 'active' : ''}`}
