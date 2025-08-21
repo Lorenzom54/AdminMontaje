@@ -3,6 +3,7 @@ import { fetchPiezas } from '../../../lib/pieza_api';
 export const prerender = false;
 
 export async function GET() {
+}
 export async function GET({ url }) {
   try {
     const searchParams = new URL(url).searchParams;
