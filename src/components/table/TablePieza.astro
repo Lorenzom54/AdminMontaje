@@ -106,6 +106,138 @@ function formatDate(dateString) {
   </table>
 </div>
 
+<style>
+  .table-container {
+    overflow-x: auto;
+  }
+
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .data-table th {
+    padding: 16px;
+    text-align: left;
+    font-size: 12px;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: #f9fafb;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .data-table td {
+    padding: 16px;
+    border-bottom: 1px solid #f3f4f6;
+    vertical-align: middle;
+  }
+
+  .data-table tr:hover {
+    background: #f9fafb;
+  }
+
+  .pieza-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .pieza-id {
+    font-size: 12px;
+    color: #6b7280;
+    font-family: 'Monaco', 'Menlo', monospace;
+  }
+
+  .material-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    background: #e0e7ff;
+    color: #3730a3;
+  }
+
+  .fase-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  .fase-badge.fase-0 {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  .fase-badge.fase-1 {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  .fase-badge.fase-2 {
+    background: #dbeafe;
+    color: #1d4ed8;
+  }
+
+  .fase-badge.fase-3 {
+    background: #d1fae5;
+    color: #065f46;
+  }
+
+  .conjunto-info,
+  .chapa-info,
+  .obra-info,
+  .colada-info {
+    font-size: 12px;
+    color: #6b7280;
+    font-family: 'Monaco', 'Menlo', monospace;
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 8px;
+  }
+
+  .btn-icon {
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: #f3f4f6;
+    color: #6b7280;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btn-icon:hover {
+    background: #e5e7eb;
+    color: #374151;
+  }
+
+  .btn-delete:hover {
+    background: #fee2e2;
+    color: #dc2626;
+  }
+
+  @media (max-width: 768px) {
+    .data-table {
+      font-size: 14px;
+    }
+
+    .data-table th,
+    .data-table td {
+      padding: 12px 8px;
+    }
+  }
+</style>
+
 <script type="module">
   // Función para editar pieza
   window.editPieza = async function(piezaId) {

@@ -36,85 +36,6 @@ export async function fetchPiezas() {
   return piezas;
 }
 
-// Obtener piezas paginadas con estadísticas completas
-export async function fetchPiezasPaginated(page = 1, pageSize = 10) {
-  const from = (page - 1) * pageSize;
-  const to = page * pageSize - 1;
-
-  // Obtener piezas paginadas
-  let { data: piezas, error } = await supabase
-    .from('piezas')
-    .select(`
-      *,
-      conjuntos:conjunto_id(codigo, obras:obra_id(nombre)),
-      chapas:chapa_id(codigo)
-    `)
-    .range(from, to)
-    .order('created_at', { ascending: false })
-    
-  if (error) {
-    console.error('Error al obtener piezas paginadas:', error.message);
-    return { data: [], count: 0, phaseCounts: {} };
-  }
-
-  // Obtener conteo total
-  const { count } = await supabase
-    .from('piezas')
-    .select('*', { count: 'exact', head: true });
-
-  // Obtener conteos por fase para todas las piezas
-  const phaseCounts = await getPhaseCounts();
-    
-  return { 
-    data: piezas, 
-    count: count || 0,
-    phaseCounts
-  };
-}
-
-// Función auxiliar para obtener conteos por fase
-async function getPhaseCounts(filters = {}) {
-  let query = supabase.from('piezas').select('fase');
-
-  // Aplicar filtros si existen
-  if (filters.tipo_material) {
-    query = query.ilike('tipo_material', `%${filters.tipo_material}%`);
-  }
-
-  if (filters.codigo) {
-    query = query.ilike('codigo', `%${filters.codigo}%`);
-  }
-
-  if (filters.colada) {
-    query = query.ilike('colada', `%${filters.colada}%`);
-  }
-
-  if (filters.fase !== undefined && filters.fase !== '') {
-    query = query.eq('fase', filters.fase);
-  }
-
-  const { data, error } = await query;
-
-  if (error) {
-    console.error('Error al obtener conteos por fase:', error.message);
-    return {};
-  }
-
-  // Contar piezas por fase
-  const counts = data.reduce((acc, pieza) => {
-    const fase = pieza.fase;
-    acc[fase] = (acc[fase] || 0) + 1;
-    return acc;
-  }, {});
-
-  return {
-    corte: counts[0] || 0,
-    biselado: counts[1] || 0,
-    montaje: counts[2] || 0,
-    soldadura: counts[3] || 0
-  };
-}
-
 // Obtener una pieza por ID
 export async function fetchPiezaById(id) {
   let { data: pieza, error } = await supabase
@@ -251,49 +172,6 @@ export async function fetchChapasForSelect() {
     return [];
   }
   return chapas;
-}
-
-// Exportar función auxiliar para obtener conteos por fase
-export async function getPhaseCounts(filters = {}) {
-  let query = supabase.from('piezas').select('fase');
-
-  // Aplicar filtros si existen
-  if (filters.tipo_material) {
-    query = query.ilike('tipo_material', `%${filters.tipo_material}%`);
-  }
-
-  if (filters.codigo) {
-    query = query.ilike('codigo', `%${filters.codigo}%`);
-  }
-
-  if (filters.colada) {
-    query = query.ilike('colada', `%${filters.colada}%`);
-  }
-
-  if (filters.fase !== undefined && filters.fase !== '') {
-    query = query.eq('fase', filters.fase);
-  }
-
-  const { data, error } = await query;
-
-  if (error) {
-    console.error('Error al obtener conteos por fase:', error.message);
-    return {};
-  }
-
-  // Contar piezas por fase
-  const counts = data.reduce((acc, pieza) => {
-    const fase = pieza.fase;
-    acc[fase] = (acc[fase] || 0) + 1;
-    return acc;
-  }, {});
-
-  return {
-    corte: counts[0] || 0,
-    biselado: counts[1] || 0,
-    montaje: counts[2] || 0,
-    soldadura: counts[3] || 0
-  };
 }
 
 // Importar piezas desde CSV

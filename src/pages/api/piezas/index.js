@@ -1,24 +1,12 @@
-import { fetchPiezasPaginated } from '../../../lib/pieza_api';
+import { fetchPiezas } from '../../../lib/pieza_api';
 
 export const prerender = false;
 
-export async function GET({ url }) {
+export async function GET() {
   try {
-    const searchParams = new URL(url).searchParams;
-    const page = parseInt(searchParams.get('page')) || 1;
-    const pageSize = parseInt(searchParams.get('pageSize')) || 10;
+    const piezas = await fetchPiezas();
     
-    const result = await fetchPiezasPaginated(page, pageSize);
-    
-    return new Response(JSON.stringify({ 
-      success: true, 
-      data: result.data, 
-      count: result.count,
-      phaseCounts: result.phaseCounts,
-      page: page,
-      pageSize: pageSize,
-      totalPages: Math.ceil(result.count / pageSize)
-    }), {
+    return new Response(JSON.stringify({ success: true, data: piezas }), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
