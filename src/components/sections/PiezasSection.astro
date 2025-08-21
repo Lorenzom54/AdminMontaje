@@ -179,7 +179,7 @@ const piezasPorFase = piezas.reduce((acc, pieza) => {
             }
             
             return (
-              <Fragment key={pageNum}>
+              <Fragment>
                 <button 
                   class={`pagination-number ${currentPage === pageNum ? 'active' : ''}`}
                   onclick={`navigateToPage(${pageNum})`}
@@ -271,7 +271,7 @@ const piezasPorFase = piezas.reduce((acc, pieza) => {
 
 <!-- Modales de Detalles dinámicos -->
 {piezas.map((pieza) => (
-  <Fragment key={pieza.id}>
+  <Fragment>
     <DetailModal id={`detail-pieza-${pieza.id}`} title={`Pieza ${pieza.codigo}`} type="pieza">
       <PiezaDetail pieza={pieza} />
     </DetailModal>
