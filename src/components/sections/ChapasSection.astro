@@ -643,12 +643,6 @@ const chapasPorTipo = chapas.reduce((acc, chapa) => {
               continue;
             }
             
-            // Validar formato de pieza (debe empezar con P seguido de números)
-            if (!/^P\d+$/.test(piezaValue)) {
-              console.log(`Fila ${i + 1}: Código de pieza inválido "${piezaValue}"`);
-              continue;
-            }
-            
             piezas.push({
               codigo: piezaValue,
               cantidad: cantidad
