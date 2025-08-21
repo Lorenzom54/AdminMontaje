@@ -590,14 +590,39 @@ const chapasPorTipo = chapas.reduce((acc, chapa) => {
           }
         }
 
-        // Buscar lista de piezas - nueva lógica mejorada
+        // Buscar lista de piezas con mejor lógica
         const piezas = [];
+        let headerRowIndex = -1;
+        let cantidadColumnIndex = -1;
+        let piezaColumnIndex = -1;
         
-        // Buscar las filas que contienen datos de piezas
-        // Estas están en las últimas filas antes de "ago."
-        for (let i = lines.length - 5; i < lines.length; i++) {
-          if (i < 0 || i >= lines.length) continue;
-          
+        // Encontrar la fila de encabezados de la lista de piezas
+        for (let i = 0; i < lines.length; i++) {
+          const line = lines[i];
+          if (line.includes('Lista de piezas') && line.includes('Cantidad') && line.includes('Pieza')) {
+            headerRowIndex = i;
+            const headerCells = line.split(';');
+            
+            // Encontrar los índices de las columnas importantes
+            for (let j = 0; j < headerCells.length; j++) {
+              const cell = headerCells[j]?.trim().toLowerCase();
+              if (cell === 'cantidad') {
+                cantidadColumnIndex = j;
+              } else if (cell === 'pieza') {
+                piezaColumnIndex = j;
+              }
+            }
+            break;
+          }
+        }
+        
+        if (headerRowIndex === -1 || cantidadColumnIndex === -1 || piezaColumnIndex === -1) {
+          alert('No se pudo encontrar la estructura de la lista de piezas en el CSV');
+          return;
+        }
+        
+        // Procesar las filas de datos después del encabezado
+        for (let i = headerRowIndex + 1; i < lines.length; i++) {
           const line = lines[i];
           
           // Parar si llegamos al final del archivo
@@ -607,35 +632,24 @@ const chapasPorTipo = chapas.reduce((acc, chapa) => {
           
           const cells = line.split(';');
           
-          // Buscar patrones de datos de piezas en la línea
-          // Formato esperado: número, nombre, cantidad, código pieza
-          for (let j = 0; j < cells.length - 3; j++) {
-            const numeroCell = cells[j]?.trim();
-            const nombreCell = cells[j + 1]?.trim();
-            const cantidadCell = cells[j + 2]?.trim();
-            const piezaCell = cells[j + 3]?.trim();
-            
-            // Validar que tenemos un patrón válido de pieza
-            if (numeroCell && /^\d+$/.test(numeroCell) &&
-                nombreCell && nombreCell.startsWith('AD-') &&
-                cantidadCell && /^\d+$/.test(cantidadCell) &&
-                piezaCell && /^P\d+$/.test(piezaCell)) {
-              
-              piezas.push({
-                codigo: piezaCell,
-                cantidad: parseInt(cantidadCell)
-              });
-              
-              // Saltar las celdas procesadas para evitar duplicados
-              j += 3;
-            }
+          // Extraer cantidad y código de pieza usando los índices encontrados
+          const cantidadValue = cells[cantidadColumnIndex]?.trim();
+          const piezaValue = cells[piezaColumnIndex]?.trim();
+          
+          // Validar que tenemos datos válidos
+          if (cantidadValue && /^\d+$/.test(cantidadValue) && 
+              piezaValue && /^P\d+$/.test(piezaValue)) {
+            piezas.push({
+              codigo: piezaValue,
+              cantidad: parseInt(cantidadValue)
+            });
           }
         }
         
         console.log('Piezas extraídas:', piezas); // Para debug
         
         if (piezas.length === 0) {
-          alert('No se encontraron piezas válidas en el archivo CSV. Verifique que el formato sea correcto.\n\nSe esperan filas con formato: número, nombre (AD-Pxx), cantidad, código pieza (Pxx)');
+          alert('No se encontraron piezas válidas en el archivo CSV. Verifique que el formato sea correcto.');
           return;
         }
 
