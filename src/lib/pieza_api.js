@@ -138,6 +138,10 @@ export async function searchPiezas(filters = {}, page = 1, pageSize = 20) {
     query = query.ilike('tipo_material', `%${filters.tipo_material}%`);
   }
 
+  if (filters.tipo_chapa) {
+    query = query.ilike('tipo_material', `%${filters.tipo_chapa}%`);
+  }
+
   if (filters.codigo) {
     query = query.ilike('codigo', `%${filters.codigo}%`);
   }
@@ -175,6 +179,10 @@ export async function searchPiezasCount(filters = {}) {
 
   if (filters.tipo_material) {
     query = query.ilike('tipo_material', `%${filters.tipo_material}%`);
+  }
+
+  if (filters.tipo_chapa) {
+    query = query.ilike('tipo_material', `%${filters.tipo_chapa}%`);
   }
 
   if (filters.codigo) {
