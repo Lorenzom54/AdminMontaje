@@ -150,6 +150,9 @@ export async function searchPiezas(filters = {}, page = 1, pageSize = 20) {
     query = query.eq('fase', filters.fase);
   }
 
+  if (filters.chapa_id && filters.chapa_id !== '') {
+    query = query.eq('chapa_id', parseInt(filters.chapa_id));
+  }
   if (filters.obra_id && filters.obra_id !== '') {
     // Filtrar por obra_id a través de la relación con conjuntos
     query = query.not('conjunto_id', 'is', null);
@@ -189,6 +192,9 @@ export async function searchPiezasCount(filters = {}) {
     query = query.eq('fase', filters.fase);
   }
 
+  if (filters.chapa_id && filters.chapa_id !== '') {
+    query = query.eq('chapa_id', parseInt(filters.chapa_id));
+  }
   if (filters.obra_id && filters.obra_id !== '') {
     // Para el conteo, necesitamos hacer una consulta más específica
     const { data: piezasWithObra } = await supabase
@@ -200,7 +206,7 @@ export async function searchPiezasCount(filters = {}) {
       // Aplicar otros filtros sobre estos resultados
       let filteredIds = piezasWithObra.map(p => p.id);
       
-      if (filters.tipo_material || filters.codigo || filters.colada || (filters.fase !== undefined && filters.fase !== '')) {
+      if (filters.tipo_material || filters.codigo || filters.colada || (filters.fase !== undefined && filters.fase !== '') || filters.chapa_id) {
         let countQuery = supabase.from('piezas').select('*', { count: 'exact', head: true });
         countQuery = countQuery.in('id', filteredIds);
         
@@ -215,6 +221,9 @@ export async function searchPiezasCount(filters = {}) {
         }
         if (filters.fase !== undefined && filters.fase !== '') {
           countQuery = countQuery.eq('fase', filters.fase);
+        }
+        if (filters.chapa_id && filters.chapa_id !== '') {
+          countQuery = countQuery.eq('chapa_id', parseInt(filters.chapa_id));
         }
         
         const { count } = await countQuery;

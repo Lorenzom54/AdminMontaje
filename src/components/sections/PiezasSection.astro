@@ -19,15 +19,17 @@ const pageSize = parseInt(url.searchParams.get('pageSize') || '20');
 const filters = {
   fase: url.searchParams.get('fase'),
   obra_id: url.searchParams.get('obra_id'),
+  chapa_id: url.searchParams.get('chapa_id'),
   search: url.searchParams.get('search')
 };
 
 // Aplicar filtros si existen
 let piezas, totalPiezas;
-if (filters.fase || filters.obra_id || filters.search) {
+if (filters.fase || filters.obra_id || filters.chapa_id || filters.search) {
   const searchFilters = {};
   if (filters.fase) searchFilters.fase = filters.fase;
   if (filters.obra_id) searchFilters.obra_id = filters.obra_id;
+  if (filters.chapa_id) searchFilters.chapa_id = filters.chapa_id;
   if (filters.search) {
     searchFilters.codigo = filters.search;
     searchFilters.colada = filters.search;
@@ -41,6 +43,7 @@ if (filters.fase || filters.obra_id || filters.search) {
 }
 
 const obras = await fetchObrasForSelect();
+const chapas = await fetchChapasForSelect();
 
 // Mapear obras al formato esperado por FormField
 const obraOptions = obras.map(obra => ({
@@ -48,6 +51,11 @@ const obraOptions = obras.map(obra => ({
   label: obra.nombre
 }));
 
+// Mapear chapas al formato esperado por FormField
+const chapaOptions = chapas.map(chapa => ({
+  value: chapa.id.toString(),
+  label: `#${chapa.codigo}`
+}));
 // Calcular estadísticas dinámicas (usar total real, no solo la página actual)
 const piezasPorFase = piezas.reduce((acc, pieza) => {
   const fase = FASES[pieza.fase] || 'Desconocida';
@@ -149,6 +157,12 @@ const endItem = Math.min(currentPage * pageSize, totalPiezas);
           <option value="1" selected={filters.fase === '1'}>Biselado</option>
           <option value="2" selected={filters.fase === '2'}>Montaje</option>
           <option value="3" selected={filters.fase === '3'}>Soldadura</option>
+        </select>
+        <select class="filter-select" id="chapa-filter">
+          <option value="">Todas las chapas</option>
+          {chapaOptions.map(chapa => (
+            <option value={chapa.value} selected={filters.chapa_id === chapa.value}>{chapa.label}</option>
+          ))}
         </select>
         <input 
           type="text" 
@@ -646,6 +660,7 @@ const endItem = Math.min(currentPage * pageSize, totalPiezas);
   document.addEventListener('DOMContentLoaded', function() {
     const faseFilter = document.getElementById('fase-filter');
     const obraFilter = document.getElementById('obra-filter');
+    const chapaFilter = document.getElementById('chapa-filter');
     const searchInput = document.getElementById('search-input');
     
     // Estado de paginación
@@ -654,11 +669,13 @@ const endItem = Math.min(currentPage * pageSize, totalPiezas);
     let currentFilters = {
       fase: new URLSearchParams(window.location.search).get('fase') || '',
       obra_id: new URLSearchParams(window.location.search).get('obra_id') || '',
+      chapa_id: new URLSearchParams(window.location.search).get('chapa_id') || '',
       search: new URLSearchParams(window.location.search).get('search') || ''
     };
     
     // Aplicar filtros iniciales
     if (currentFilters.fase) faseFilter.value = currentFilters.fase;
+    if (currentFilters.chapa_id) chapaFilter.value = currentFilters.chapa_id;
     if (currentFilters.search) searchInput.value = currentFilters.search;
 
     // Manejar filtro de proyecto persistente
@@ -686,6 +703,7 @@ const endItem = Math.min(currentPage * pageSize, totalPiezas);
       
       if (currentFilters.fase) params.set('fase', currentFilters.fase);
       if (currentFilters.obra_id) params.set('obra_id', currentFilters.obra_id);
+      if (currentFilters.chapa_id) params.set('chapa_id', currentFilters.chapa_id);
       if (currentFilters.search) params.set('search', currentFilters.search);
       
       const newURL = `${window.location.pathname}?${params.toString()}`;
@@ -697,6 +715,7 @@ const endItem = Math.min(currentPage * pageSize, totalPiezas);
 
     function applyFilters() {
       currentFilters.fase = faseFilter.value;
+      currentFilters.chapa_id = chapaFilter.value;
       currentFilters.search = searchInput.value;
       currentPage = 1; // Resetear a la primera página cuando se aplican filtros
       updateURL();
@@ -704,6 +723,7 @@ const endItem = Math.min(currentPage * pageSize, totalPiezas);
 
     // Event listeners para filtros
     faseFilter.addEventListener('change', applyFilters);
+    chapaFilter.addEventListener('change', applyFilters);
     
     // Event listener para filtro de proyecto persistente
     activeProjectFilter.addEventListener('change', function() {
