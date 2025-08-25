@@ -354,3 +354,28 @@ export async function updatePiecesWithChapaId(pieceCode, count, chapaId) {
     return { success: false, error: err.message, updated: 0 };
   }
 }
+
+// Marcar como cortadas (avanzar fase) todas las piezas de una chapa
+export async function markPiezasCortadasByChapaId(chapaId) {
+  try {
+    const nextPhase = FASES_REVERSE['Biselado'];
+    const currentPhase = FASES_REVERSE['Corte'];
+
+    const { data, error } = await supabase
+      .from('piezas')
+      .update({ fase: nextPhase })
+      .eq('chapa_id', parseInt(chapaId))
+      .eq('fase', currentPhase)
+      .select('id');
+
+    if (error) {
+      console.error('Error al marcar piezas como cortadas:', error);
+      return { success: false, error: error.message, updated: 0 };
+    }
+
+    return { success: true, updated: (data?.length || 0) };
+  } catch (err) {
+    console.error('Error inesperado al marcar piezas como cortadas:', err);
+    return { success: false, error: err.message, updated: 0 };
+  }
+}
