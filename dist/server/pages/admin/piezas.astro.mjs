@@ -220,7 +220,7 @@ const $$TablePieza = createComponent(async ($$result, $$props, $$slots) => {
           form.querySelector('[name="codigo"]').value = pieza.codigo || '';
           form.querySelector('[name="tipo_material"]').value = pieza.tipo_material || '';
           form.querySelector('[name="colada"]').value = pieza.colada || '';
-          form.querySelector('[name="fase"]').value = pieza.fase?.toString() || '';
+          form.querySelector('[name="fase_id"]').value = pieza.fase?.toString() || '';
           form.querySelector('[name="conjunto_id"]').value = pieza.conjunto_id?.toString() || '';
           form.querySelector('[name="chapa_id"]').value = pieza.chapa_id?.toString() || '';
           
@@ -309,7 +309,7 @@ const $$TablePieza = createComponent(async ($$result, $$props, $$slots) => {
           codigo: formData.get('codigo'),
           tipo_material: formData.get('tipo_material'),
           colada: formData.get('colada'),
-          fase: formData.get('fase'),
+          fase_id: formData.get('fase_id'),
           conjunto_id: formData.get('conjunto_id'),
           chapa_id: formData.get('chapa_id'),
         };
@@ -407,7 +407,7 @@ const $$TablePieza = createComponent(async ($$result, $$props, $$slots) => {
           form.querySelector('[name="codigo"]').value = pieza.codigo || '';
           form.querySelector('[name="tipo_material"]').value = pieza.tipo_material || '';
           form.querySelector('[name="colada"]').value = pieza.colada || '';
-          form.querySelector('[name="fase"]').value = pieza.fase?.toString() || '';
+          form.querySelector('[name="fase_id"]').value = pieza.fase?.toString() || '';
           form.querySelector('[name="conjunto_id"]').value = pieza.conjunto_id?.toString() || '';
           form.querySelector('[name="chapa_id"]').value = pieza.chapa_id?.toString() || '';
           
@@ -496,7 +496,7 @@ const $$TablePieza = createComponent(async ($$result, $$props, $$slots) => {
           codigo: formData.get('codigo'),
           tipo_material: formData.get('tipo_material'),
           colada: formData.get('colada'),
-          fase: formData.get('fase'),
+          fase_id: formData.get('fase_id'),
           conjunto_id: formData.get('conjunto_id'),
           chapa_id: formData.get('chapa_id'),
         };
