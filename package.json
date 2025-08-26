@@ -6,8 +6,11 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro build",
+    "build:netlify": "cross-env NODE_ENV=production astro build",
+    "build:local": "cross-env NODE_ENV=development astro build",
     "preview": "astro preview",
     "start": "node ./dist/server/entry.mjs",
+    "start:local": "npm run build:local && npm run start",
     "astro": "astro"
   },
   "dependencies": {
@@ -17,6 +20,7 @@
     "supabase": "^2.30.4"
   },
   "devDependencies": {
-    "@astrojs/netlify": "^6.5.7"
+    "@astrojs/netlify": "^6.5.7",
+    "cross-env": "^7.0.3"
   }
 }
