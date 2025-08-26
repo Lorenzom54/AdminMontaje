@@ -1,4 +1,4 @@
-import { supabase } from './supabaseClient';
+import { supabase } from './supabaseClient.js';
 
 // Mapeo de fases (mantener para compatibilidad)
 export const FASES = {
@@ -278,7 +278,7 @@ export async function fetchChapasForSelect() {
 // Obtener fases de piezas para el formulario
 export async function fetchFasePiezasForSelect() {
   let { data: fases, error } = await supabase
-    .from('fase_piezas')
+    .from('fases_piezas')
     .select('id, fase')
     .order('created_at', { ascending: true })
     
@@ -292,7 +292,7 @@ export async function fetchFasePiezasForSelect() {
 // Obtener fase de pieza por ID
 export async function fetchFasePiezaById(id) {
   let { data: fase, error } = await supabase
-    .from('fase_piezas')
+    .from('fases_piezas')
     .select('*')
     .eq('id', id)
     .single()
@@ -307,7 +307,7 @@ export async function fetchFasePiezaById(id) {
 // Obtener fase de pieza por nombre
 export async function getFasePiezaByName(nombre) {
   let { data: fase, error } = await supabase
-    .from('fase_piezas')
+    .from('fases_piezas')
     .select('*')
     .eq('fase', nombre)
     .single()
@@ -399,50 +399,6 @@ export async function updatePiecesWithChapaId(pieceCode, count, chapaId) {
     console.error('Error inesperado al actualizar piezas:', err);
     return { success: false, error: err.message, updated: 0 };
   }
-}
-
-// Obtener fases de piezas para el formulario
-export async function fetchFasePiezasForSelect() {
-  let { data: fases, error } = await supabase
-    .from('fase_piezas')
-    .select('id, fase')
-    .order('created_at', { ascending: true })
-    
-  if (error) {
-    console.error('Error al obtener fases de piezas:', error.message);
-    return [];
-  }
-  return fases;
-}
-
-// Obtener fase de pieza por ID
-export async function fetchFasePiezaById(id) {
-  let { data: fase, error } = await supabase
-    .from('fase_piezas')
-    .select('*')
-    .eq('id', id)
-    .single()
-    
-  if (error) {
-    console.error('Error al obtener fase de pieza:', error.message);
-    return null;
-  }
-  return fase;
-}
-
-// Obtener fase de pieza por nombre
-export async function getFasePiezaByName(nombre) {
-  let { data: fase, error } = await supabase
-    .from('fase_piezas')
-    .select('*')
-    .eq('fase', nombre)
-    .single()
-    
-  if (error) {
-    console.error('Error al obtener fase de pieza por nombre:', error.message);
-    return null;
-  }
-  return fase;
 }
 
 // Marcar como cortadas (avanzar fase) todas las piezas de una chapa

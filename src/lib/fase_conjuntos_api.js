@@ -1,9 +1,9 @@
-import { supabase } from './supabaseClient';
+import { supabase } from './supabaseClient.js';
 
 // Obtener todas las fases de conjuntos
 export async function fetchFaseConjuntos() {
   const { data, error } = await supabase
-    .from('fase_conjuntos')
+    .from('fases_conjuntos')
     .select('*')
     .order('created_at', { ascending: true });
 
@@ -17,7 +17,7 @@ export async function fetchFaseConjuntos() {
 // Obtener una fase de conjunto por ID
 export async function fetchFaseConjuntoById(id) {
   const { data, error } = await supabase
-    .from('fase_conjuntos')
+    .from('fases_conjuntos')
     .select('*')
     .eq('id', id)
     .single();
@@ -32,7 +32,7 @@ export async function fetchFaseConjuntoById(id) {
 // Crear nueva fase de conjunto
 export async function addFaseConjunto(payload) {
   const { data, error } = await supabase
-    .from('fase_conjuntos')
+    .from('fases_conjuntos')
     .insert([payload])
     .select();
 
@@ -47,7 +47,7 @@ export async function addFaseConjunto(payload) {
 // Actualizar fase de conjunto existente
 export async function updateFaseConjunto(id, updates) {
   const { data, error } = await supabase
-    .from('fase_conjuntos')
+    .from('fases_conjuntos')
     .update(updates)
     .eq('id', id)
     .select();
@@ -63,7 +63,7 @@ export async function updateFaseConjunto(id, updates) {
 // Eliminar fase de conjunto
 export async function deleteFaseConjunto(id) {
   const { error } = await supabase
-    .from('fase_conjuntos')
+    .from('fases_conjuntos')
     .delete()
     .eq('id', id);
 
@@ -78,7 +78,7 @@ export async function deleteFaseConjunto(id) {
 // Obtener fases para select (formularios)
 export async function fetchFaseConjuntosForSelect() {
   const { data, error } = await supabase
-    .from('fase_conjuntos')
+    .from('fases_conjuntos')
     .select('id, fase')
     .order('created_at', { ascending: true });
 

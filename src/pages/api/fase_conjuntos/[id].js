@@ -1,4 +1,4 @@
-import { updateFaseConjunto, deleteFaseConjunto } from '../../../../lib/fase_conjuntos_api';
+import { updateFaseConjunto, deleteFaseConjunto } from '../../../../lib/fase_conjuntos_api.js';
 
 export const prerender = false;
 

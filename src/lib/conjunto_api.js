@@ -1,4 +1,4 @@
-import { supabase } from './supabaseClient';
+import { supabase } from './supabaseClient.js';
 
 // Obtener todos los conjuntos
 export async function fetchConjuntos() {
@@ -164,7 +164,7 @@ export async function fetchObrasForSelect() {
 // Obtener fases de conjuntos para el formulario
 export async function fetchFaseConjuntosForSelect() {
   let { data: fases, error } = await supabase
-    .from('fase_conjuntos')
+    .from('fases_conjuntos')
     .select('id, fase')
     .order('created_at', { ascending: true })
     
@@ -178,7 +178,7 @@ export async function fetchFaseConjuntosForSelect() {
 // Obtener fase de conjunto por ID
 export async function fetchFaseConjuntoById(id) {
   let { data: fase, error } = await supabase
-    .from('fase_conjuntos')
+    .from('fases_conjuntos')
     .select('*')
     .eq('id', id)
     .single()

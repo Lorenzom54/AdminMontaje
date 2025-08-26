@@ -1,9 +1,9 @@
-import { supabase } from './supabaseClient';
+import { supabase } from './supabaseClient.js';
 
 // Obtener todas las fases de piezas
 export async function fetchFasePiezas() {
   const { data, error } = await supabase
-    .from('fase_piezas')
+    .from('fases_piezas')
     .select('*')
     .order('created_at', { ascending: true });
 
@@ -17,7 +17,7 @@ export async function fetchFasePiezas() {
 // Obtener una fase de pieza por ID
 export async function fetchFasePiezaById(id) {
   const { data, error } = await supabase
-    .from('fase_piezas')
+    .from('fases_piezas')
     .select('*')
     .eq('id', id)
     .single();
@@ -32,7 +32,7 @@ export async function fetchFasePiezaById(id) {
 // Obtener fase de pieza por nombre
 export async function getFasePiezaByName(nombre) {
   const { data, error } = await supabase
-    .from('fase_piezas')
+    .from('fases_piezas')
     .select('*')
     .eq('fase', nombre)
     .single();
@@ -47,7 +47,7 @@ export async function getFasePiezaByName(nombre) {
 // Crear nueva fase de pieza
 export async function addFasePieza(payload) {
   const { data, error } = await supabase
-    .from('fase_piezas')
+    .from('fases_piezas')
     .insert([payload])
     .select();
 
@@ -62,7 +62,7 @@ export async function addFasePieza(payload) {
 // Actualizar fase de pieza existente
 export async function updateFasePieza(id, updates) {
   const { data, error } = await supabase
-    .from('fase_piezas')
+    .from('fases_piezas')
     .update(updates)
     .eq('id', id)
     .select();
@@ -78,7 +78,7 @@ export async function updateFasePieza(id, updates) {
 // Eliminar fase de pieza
 export async function deleteFasePieza(id) {
   const { error } = await supabase
-    .from('fase_piezas')
+    .from('fases_piezas')
     .delete()
     .eq('id', id);
 
@@ -93,7 +93,7 @@ export async function deleteFasePieza(id) {
 // Obtener fases para select (formularios)
 export async function fetchFasePiezasForSelect() {
   const { data, error } = await supabase
-    .from('fase_piezas')
+    .from('fases_piezas')
     .select('id, fase')
     .order('created_at', { ascending: true });
 

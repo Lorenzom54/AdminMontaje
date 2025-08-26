@@ -1,4 +1,4 @@
-import { addFaseConjunto } from '../../../../lib/fase_conjuntos_api';
+import { addFaseConjunto } from '../../../../lib/fase_conjuntos_api.js';
 
 export const prerender = false;
 

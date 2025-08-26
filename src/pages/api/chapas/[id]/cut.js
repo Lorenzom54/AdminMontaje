@@ -1,4 +1,4 @@
-import { markPiezasCortadasByChapaId } from '../../../../lib/pieza_api';
+import { markPiezasCortadasByChapaId } from '../../../../lib/pieza_api.js';
 
 export const prerender = false;
 

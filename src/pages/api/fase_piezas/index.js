@@ -1,4 +1,4 @@
-import { fetchFasePiezas } from '../../../../lib/fase_piezas_api';
+import { fetchFasePiezas } from '../../../../lib/fase_piezas_api.js';
 
 export const prerender = false;
 
