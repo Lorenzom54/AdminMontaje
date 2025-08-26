@@ -1,5 +1,5 @@
-import { addPieza, FASES_REVERSE } from '../../../lib/pieza_api';
-import { fetchConjuntoByCodigo, addConjunto } from '../../../lib/conjunto_api';
+import { addPieza, addConjunto, fetchConjuntoByCodigo } from '../../../lib/pieza_api.js';
+import { fetchConjuntoByCodigo as fetchConjuntoByCodigoFromConjunto } from '../../../lib/conjunto_api.js';
 
 export const prerender = false;
 
@@ -25,74 +25,88 @@ export async function POST({ request }) {
     };
     
     const conjuntosCache = new Map(); // Cache para evitar consultas repetidas
+    const BATCH_SIZE = 50; // Procesar en lotes de 50 piezas
     
-    // Procesar cada fila del CSV
-    for (let index = 0; index < csvData.length; index++) {
-      const row = csvData[index];
+    // Procesar en lotes
+    for (let batchStart = 0; batchStart < csvData.length; batchStart += BATCH_SIZE) {
+      const batchEnd = Math.min(batchStart + BATCH_SIZE, csvData.length);
+      const batch = csvData.slice(batchStart, batchEnd);
       
-      try {
-        const conjuntoCodigo = row.Conjunto?.trim();
-        const piezaCodigo = row.Parte?.trim();
-        const tipoMaterial = row.Perfil?.trim() || 'chapas y perfiles';
-        const colada = row.Apodo?.trim() || null;
+      console.log(`Procesando lote ${Math.floor(batchStart / BATCH_SIZE) + 1}/${Math.ceil(csvData.length / BATCH_SIZE)} (${batchStart + 1}-${batchEnd} de ${csvData.length})`);
+      
+      // Procesar cada fila del lote
+      for (let index = batchStart; index < batchEnd; index++) {
+        const row = csvData[index];
         
-        if (!conjuntoCodigo || !piezaCodigo) {
-          results.errores.push(`Fila ${index + 1}: Conjunto y Parte son obligatorios`);
-          continue;
-        }
-        
-        let conjuntoId;
-        
-        // Verificar si ya tenemos el conjunto en cache
-        if (conjuntosCache.has(conjuntoCodigo)) {
-          conjuntoId = conjuntosCache.get(conjuntoCodigo);
-        } else {
-          // Buscar conjunto existente
-          let conjunto = await fetchConjuntoByCodigo(conjuntoCodigo);
+        try {
+          const conjuntoCodigo = row.Conjunto?.trim();
+          const piezaCodigo = row.Parte?.trim();
+          const tipoMaterial = row.Perfil?.trim() || 'chapas y perfiles';
+          const colada = row.Apodo?.trim() || null;
           
-          if (!conjunto) {
-            // Crear nuevo conjunto
-            const conjuntoResult = await addConjunto({
-              codigo: conjuntoCodigo,
-              obra_id: parseInt(selectedObraId),
-              is_completed: false,
-              descripcion: `Conjunto ${conjuntoCodigo} - Importado desde CSV`
-            });
-            
-            if (!conjuntoResult.success) {
-              results.errores.push(`Fila ${index + 1}: Error al crear conjunto ${conjuntoCodigo}: ${conjuntoResult.error}`);
-              continue;
-            }
-            
-            conjunto = conjuntoResult.data;
-            results.conjuntosCreados++;
+          if (!conjuntoCodigo || !piezaCodigo) {
+            results.errores.push(`Fila ${index + 1}: Conjunto y Parte son obligatorios`);
+            continue;
           }
           
-          conjuntoId = conjunto.id;
-          conjuntosCache.set(conjuntoCodigo, conjuntoId);
-        }
+          let conjuntoId;
+          
+          // Verificar si ya tenemos el conjunto en cache
+          if (conjuntosCache.has(conjuntoCodigo)) {
+            conjuntoId = conjuntosCache.get(conjuntoCodigo);
+          } else {
+            // Buscar conjunto existente
+            let conjunto = await fetchConjuntoByCodigo(conjuntoCodigo);
+            
+            if (!conjunto) {
+              // Crear nuevo conjunto
+              const conjuntoResult = await addConjunto({
+                codigo: conjuntoCodigo,
+                obra_id: parseInt(selectedObraId),
+                is_completed: false,
+                descripcion: `Conjunto ${conjuntoCodigo} - Importado desde CSV`
+              });
+              
+              if (!conjuntoResult.success) {
+                results.errores.push(`Fila ${index + 1}: Error al crear conjunto ${conjuntoCodigo}: ${conjuntoResult.error}`);
+                continue;
+              }
+              
+              conjunto = conjuntoResult.data;
+              results.conjuntosCreados++;
+            }
+            
+            conjuntoId = conjunto.id;
+            conjuntosCache.set(conjuntoCodigo, conjuntoId);
+          }
 
-        // Crear la pieza
-        const piezaData = {
-          codigo: piezaCodigo,
-          tipo_material: tipoMaterial,
-          colada: colada,
-          fase: 0, // Por defecto en Corte
-          conjunto_id: conjuntoId,
-          chapa_id: null
-        };
-        
-        const piezaResult = await addPieza(piezaData);
-        
-        if (!piezaResult.success) {
-          results.errores.push(`Fila ${index + 1}: Error al crear pieza ${piezaCodigo}: ${piezaResult.error}`);
-          continue;
+          // Crear la pieza
+          const piezaData = {
+            codigo: piezaCodigo,
+            tipo_material: tipoMaterial,
+            colada: colada,
+            fase: 0, // Por defecto en Corte
+            conjunto_id: conjuntoId,
+            chapa_id: null
+          };
+          
+          const piezaResult = await addPieza(piezaData);
+          
+          if (!piezaResult.success) {
+            results.errores.push(`Fila ${index + 1}: Error al crear pieza ${piezaCodigo}: ${piezaResult.error}`);
+            continue;
+          }
+          
+          results.piezasCreadas++;
+          
+        } catch (error) {
+          results.errores.push(`Fila ${index + 1}: ${error.message}`);
         }
-        
-        results.piezasCreadas++;
-        
-      } catch (error) {
-        results.errores.push(`Fila ${index + 1}: ${error.message}`);
+      }
+      
+      // Pequeña pausa entre lotes para evitar sobrecarga
+      if (batchEnd < csvData.length) {
+        await new Promise(resolve => setTimeout(resolve, 100));
       }
     }
 
