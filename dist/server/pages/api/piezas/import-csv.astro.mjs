@@ -1,5 +1,5 @@
-import { g as addPieza } from '../../../chunks/pieza_api_huhGpEaV.mjs';
-import { g as fetchConjuntoByCodigo, c as addConjunto } from '../../../chunks/conjunto_api_samZRKcT.mjs';
+import { g as addPieza } from '../../../chunks/pieza_api_CcrAAw9v.mjs';
+import { g as fetchConjuntoByCodigo, c as addConjunto } from '../../../chunks/conjunto_api_DKXkJk9v.mjs';
 export { renderers } from '../../../renderers.mjs';
 
 const prerender = false;

@@ -1,4 +1,4 @@
-import { g as addPieza } from '../../../chunks/pieza_api_huhGpEaV.mjs';
+import { g as addPieza } from '../../../chunks/pieza_api_CcrAAw9v.mjs';
 export { renderers } from '../../../renderers.mjs';
 
 const prerender = false;

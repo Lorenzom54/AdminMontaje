@@ -12,14 +12,11 @@ const FASES = {
 async function fetchPiezas(page = 1, pageSize = 20) {
   const offset = (page - 1) * pageSize;
   
+  console.log('Fetching piezas with offset:', offset, 'pageSize:', pageSize);
+  
   let { data: piezas, error } = await supabase
     .from('piezas')
-    .select(`
-      *,
-      conjuntos:conjunto_id(codigo, obras:obra_id(nombre)),
-      chapas:chapa_id(codigo),
-      fases:fase_id(fase)
-    `)
+    .select('*')
     .order('created_at', { ascending: false })
     .range(offset, offset + pageSize - 1);
     
@@ -27,7 +24,9 @@ async function fetchPiezas(page = 1, pageSize = 20) {
     console.error('Error al obtener piezas:', error.message);
     return [];
   }
-  return piezas;
+  
+  console.log('Piezas obtenidas:', piezas?.length || 0);
+  return piezas || [];
 }
 
 // Obtener el total de piezas para paginación

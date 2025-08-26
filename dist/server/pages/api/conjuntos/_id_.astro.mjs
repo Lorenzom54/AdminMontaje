@@ -1,4 +1,4 @@
-import { d as fetchConjuntoById, u as updateConjunto, e as deleteConjunto } from '../../../chunks/conjunto_api_samZRKcT.mjs';
+import { d as fetchConjuntoById, u as updateConjunto, e as deleteConjunto } from '../../../chunks/conjunto_api_DKXkJk9v.mjs';
 export { renderers } from '../../../renderers.mjs';
 
 const prerender = false;

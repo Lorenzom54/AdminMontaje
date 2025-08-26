@@ -1,4 +1,4 @@
-import { c as addConjunto } from '../../../chunks/conjunto_api_samZRKcT.mjs';
+import { c as addConjunto } from '../../../chunks/conjunto_api_DKXkJk9v.mjs';
 export { renderers } from '../../../renderers.mjs';
 
 const prerender = false;

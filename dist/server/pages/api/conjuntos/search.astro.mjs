@@ -1,4 +1,4 @@
-import { s as searchConjuntos } from '../../../chunks/conjunto_api_samZRKcT.mjs';
+import { s as searchConjuntos } from '../../../chunks/conjunto_api_DKXkJk9v.mjs';
 export { renderers } from '../../../renderers.mjs';
 
 const prerender = false;

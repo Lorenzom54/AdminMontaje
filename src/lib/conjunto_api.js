@@ -2,31 +2,27 @@ import { supabase } from './supabaseClient.js';
 
 // Obtener todos los conjuntos
 export async function fetchConjuntos() {
+  console.log('Fetching conjuntos...');
+  
   let { data: conjuntos, error } = await supabase
     .from('conjuntos')
-    .select(`
-      *,
-      obras:obra_id(nombre),
-      fases:fase_id(fase)
-    `)
+    .select('*')
     .order('created_at', { ascending: false })
     
   if (error) {
     console.error('Error al obtener conjuntos:', error.message);
     return [];
   }
-  return conjuntos;
+  
+  console.log('Conjuntos obtenidos:', conjuntos?.length || 0);
+  return conjuntos || [];
 }
 
 // Obtener un conjunto por ID
 export async function fetchConjuntoById(id) {
   let { data: conjunto, error } = await supabase
     .from('conjuntos')
-    .select(`
-      *,
-      obras:obra_id(nombre),
-      fases:fase_id(fase)
-    `)
+    .select('*')
     .eq('id', id)
     .single()
     
@@ -92,11 +88,7 @@ export async function deleteConjunto(id) {
 
 // Buscar conjuntos por filtros
 export async function searchConjuntos(filters = {}) {
-  let query = supabase.from('conjuntos').select(`
-    *,
-    obras:obra_id(nombre),
-    fases:fase_id(fase)
-  `);
+  let query = supabase.from('conjuntos').select('*');
 
   if (filters.codigo) {
     query = query.ilike('codigo', `%${filters.codigo}%`);

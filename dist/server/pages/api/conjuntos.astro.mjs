@@ -1,4 +1,4 @@
-import { b as fetchConjuntos } from '../../chunks/conjunto_api_samZRKcT.mjs';
+import { b as fetchConjuntos } from '../../chunks/conjunto_api_DKXkJk9v.mjs';
 export { renderers } from '../../renderers.mjs';
 
 const prerender = false;
