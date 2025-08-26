@@ -2,7 +2,7 @@ import { e as createComponent, r as renderTemplate, k as renderComponent, m as m
 import 'kleur/colors';
 import { a as $$PageHeader, $ as $$AdminLayout } from '../../chunks/PageHeader_D7LDH3qQ.mjs';
 import { $ as $$FormField, a as $$Modal } from '../../chunks/FormField_D9WOQIop.mjs';
-import { f as fetchObrasForSelect, a as fetchFaseConjuntosForSelect, b as fetchConjuntos } from '../../chunks/conjunto_api_DKXkJk9v.mjs';
+import { f as fetchObrasForSelect, a as fetchFaseConjuntosForSelect, b as fetchConjuntos } from '../../chunks/conjunto_api_D-1bf52-.mjs';
 /* empty css                                        */
 import { $ as $$DetailModal } from '../../chunks/DetailModal_DVqDfwI9.mjs';
 import 'clsx';

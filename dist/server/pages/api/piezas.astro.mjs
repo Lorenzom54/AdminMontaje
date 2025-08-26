@@ -1,4 +1,4 @@
-import { d as fetchPiezas, e as fetchPiezasCount } from '../../chunks/pieza_api_CcrAAw9v.mjs';
+import { d as fetchPiezas, e as fetchPiezasCount } from '../../chunks/pieza_api_CnJ_1FmQ.mjs';
 export { renderers } from '../../renderers.mjs';
 
 const prerender = false;

@@ -23,7 +23,10 @@ export async function fetchPiezas(page = 1, pageSize = 20) {
   
   let { data: piezas, error } = await supabase
     .from('piezas')
-    .select('*')
+    .select(`
+      *,
+      conjuntos:conjunto_id(codigo, obras:obra_id(nombre))
+    `)
     .order('created_at', { ascending: false })
     .range(offset, offset + pageSize - 1)
     
@@ -55,9 +58,7 @@ export async function fetchPiezaById(id) {
     .from('piezas')
     .select(`
       *,
-      conjuntos:conjunto_id(codigo, obras:obra_id(nombre)),
-      chapas:chapa_id(codigo),
-      fases:fase_id(fase)
+      conjuntos:conjunto_id(codigo, obras:obra_id(nombre))
     `)
     .eq('id', id)
     .single()

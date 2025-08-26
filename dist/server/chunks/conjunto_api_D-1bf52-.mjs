@@ -6,7 +6,10 @@ async function fetchConjuntos() {
   
   let { data: conjuntos, error } = await supabase
     .from('conjuntos')
-    .select('*')
+    .select(`
+      *,
+      obras:obra_id(nombre)
+    `)
     .order('created_at', { ascending: false });
     
   if (error) {
@@ -22,7 +25,10 @@ async function fetchConjuntos() {
 async function fetchConjuntoById(id) {
   let { data: conjunto, error } = await supabase
     .from('conjuntos')
-    .select('*')
+    .select(`
+      *,
+      obras:obra_id(nombre)
+    `)
     .eq('id', id)
     .single();
     
@@ -88,7 +94,10 @@ async function deleteConjunto(id) {
 
 // Buscar conjuntos por filtros
 async function searchConjuntos(filters = {}) {
-  let query = supabase.from('conjuntos').select('*');
+  let query = supabase.from('conjuntos').select(`
+    *,
+    obras:obra_id(nombre)
+  `);
 
   if (filters.codigo) {
     query = query.ilike('codigo', `%${filters.codigo}%`);

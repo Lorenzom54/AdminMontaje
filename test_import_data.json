@@ -1,0 +1,21 @@
+{
+  "csvData": [
+    {
+      "Conjunto": "TEST-01",
+      "Parte": "P001",
+      "Apodo": "TUBO_TEST",
+      "Perfil": "RHS250*100*5",
+      "Longitud(mm)": "1500",
+      "Peso": "12.5"
+    },
+    {
+      "Conjunto": "TEST-01",
+      "Parte": "P002", 
+      "Apodo": "PLACA_TEST",
+      "Perfil": "PLACA10",
+      "Longitud(mm)": "800",
+      "Peso": "6.8"
+    }
+  ],
+  "selectedObraId": "15"
+}
