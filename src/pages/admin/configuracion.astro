@@ -1,56 +1,543 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
 import PageHeader from '../../components/PageHeader.astro';
+import Modal from '../../components/Modal.astro';
+import FormField from '../../components/forms/FormField.astro';
+import { fetchFasePiezas } from '../../lib/fase_piezas_api';
+import { fetchFaseConjuntos } from '../../lib/fase_conjuntos_api';
+
+const fasesPiezas = await fetchFasePiezas();
+const fasesConjuntos = await fetchFaseConjuntos();
 ---
 
 <AdminLayout title="Configuración" activeSection="configuracion">
   <PageHeader 
     title="Configuración del Sistema" 
-    subtitle="Ajustes generales y parámetros de la aplicación"
+    subtitle="Gestión de fases de piezas y conjuntos"
   />
 
   <div class="configuracion-content">
-    <div class="content-placeholder">
-      <div class="placeholder-icon">
-        <svg width="64" height="64" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-        </svg>
+    <!-- Sección de Fases de Piezas -->
+    <div class="config-section">
+      <div class="section-header">
+        <h3>Fases de Piezas</h3>
+        <button class="btn-primary" onclick="openModal('modal-nueva-fase-pieza')">
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          Nueva Fase
+        </button>
       </div>
-      <h3>Sección de Configuración</h3>
-      <p>Personaliza y ajusta los parámetros del sistema según tus necesidades.</p>
+      
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Fase</th>
+              <th>Fecha Creación</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {fasesPiezas.map((fase) => (
+              <tr>
+                <td>{fase.id}</td>
+                <td>{fase.fase}</td>
+                <td>{new Date(fase.created_at).toLocaleDateString('es-ES')}</td>
+                <td>
+                  <div class="action-buttons">
+                    <button 
+                      class="btn-icon" 
+                      title="Editar"
+                      onclick={`editFasePieza(${fase.id}, '${fase.fase}')`}
+                    >
+                      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                    </button>
+                    <button 
+                      class="btn-icon danger" 
+                      title="Eliminar"
+                      onclick={`deleteFasePieza(${fase.id}, '${fase.fase}')`}
+                    >
+                      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Sección de Fases de Conjuntos -->
+    <div class="config-section">
+      <div class="section-header">
+        <h3>Fases de Conjuntos</h3>
+        <button class="btn-primary" onclick="openModal('modal-nueva-fase-conjunto')">
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          Nueva Fase
+        </button>
+      </div>
+      
+      <div class="table-container">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Fase</th>
+              <th>Fecha Creación</th>
+              <th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            {fasesConjuntos.map((fase) => (
+              <tr>
+                <td>{fase.id}</td>
+                <td>{fase.fase}</td>
+                <td>{new Date(fase.created_at).toLocaleDateString('es-ES')}</td>
+                <td>
+                  <div class="action-buttons">
+                    <button 
+                      class="btn-icon" 
+                      title="Editar"
+                      onclick={`editFaseConjunto(${fase.id}, '${fase.fase}')`}
+                    >
+                      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                    </button>
+                    <button 
+                      class="btn-icon danger" 
+                      title="Eliminar"
+                      onclick={`deleteFaseConjunto(${fase.id}, '${fase.fase}')`}
+                    >
+                      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
+
+  <!-- Modal para Nueva Fase de Pieza -->
+  <Modal id="modal-nueva-fase-pieza" title="Nueva Fase de Pieza" size="md">
+    <form id="form-nueva-fase-pieza" class="form">
+      <FormField 
+        label="Nombre de la Fase"
+        name="fase"
+        type="text"
+        placeholder="Ej: Corte, Biselado, Montaje..."
+        required
+      />
+      <div class="form-actions">
+        <button type="button" class="btn-cancel" data-close-modal="modal-nueva-fase-pieza">
+          Cancelar
+        </button>
+        <button type="submit" class="btn-submit">
+          Crear Fase
+        </button>
+      </div>
+    </form>
+  </Modal>
+
+  <!-- Modal para Editar Fase de Pieza -->
+  <Modal id="modal-editar-fase-pieza" title="Editar Fase de Pieza" size="md">
+    <form id="form-editar-fase-pieza" class="form">
+      <input type="hidden" id="edit-fase-pieza-id" name="id" />
+      <FormField 
+        label="Nombre de la Fase"
+        name="fase"
+        type="text"
+        placeholder="Ej: Corte, Biselado, Montaje..."
+        required
+      />
+      <div class="form-actions">
+        <button type="button" class="btn-cancel" data-close-modal="modal-editar-fase-pieza">
+          Cancelar
+        </button>
+        <button type="submit" class="btn-submit">
+          Actualizar Fase
+        </button>
+      </div>
+    </form>
+  </Modal>
+
+  <!-- Modal para Nueva Fase de Conjunto -->
+  <Modal id="modal-nueva-fase-conjunto" title="Nueva Fase de Conjunto" size="md">
+    <form id="form-nueva-fase-conjunto" class="form">
+      <FormField 
+        label="Nombre de la Fase"
+        name="fase"
+        type="text"
+        placeholder="Ej: Diseño, Fabricación, Montaje..."
+        required
+      />
+      <div class="form-actions">
+        <button type="button" class="btn-cancel" data-close-modal="modal-nueva-fase-conjunto">
+          Cancelar
+        </button>
+        <button type="submit" class="btn-submit">
+          Crear Fase
+        </button>
+      </div>
+    </form>
+  </Modal>
+
+  <!-- Modal para Editar Fase de Conjunto -->
+  <Modal id="modal-editar-fase-conjunto" title="Editar Fase de Conjunto" size="md">
+    <form id="form-editar-fase-conjunto" class="form">
+      <input type="hidden" id="edit-fase-conjunto-id" name="id" />
+      <FormField 
+        label="Nombre de la Fase"
+        name="fase"
+        type="text"
+        placeholder="Ej: Diseño, Fabricación, Montaje..."
+        required
+      />
+      <div class="form-actions">
+        <button type="button" class="btn-cancel" data-close-modal="modal-editar-fase-conjunto">
+          Cancelar
+        </button>
+        <button type="submit" class="btn-submit">
+          Actualizar Fase
+        </button>
+      </div>
+    </form>
+  </Modal>
 </AdminLayout>
 
 <style>
   .configuracion-content {
+    space-y: 32px;
+  }
+
+  .config-section {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e5e7eb;
+    overflow: hidden;
+  }
+
+  .section-header {
+    padding: 24px;
+    border-bottom: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .section-header h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #111827;
+    margin: 0;
+  }
+
+  .btn-primary {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btn-primary:hover {
+    background: #2563eb;
+    transform: translateY(-1px);
+  }
+
+  .table-container {
+    overflow-x: auto;
+  }
+
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .data-table th,
+  .data-table td {
+    padding: 12px 16px;
+    text-align: left;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .data-table th {
+    background: #f9fafb;
+    font-weight: 600;
+    color: #374151;
+    font-size: 14px;
+  }
+
+  .data-table td {
+    color: #111827;
+    font-size: 14px;
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 8px;
+  }
+
+  .btn-icon {
+    width: 32px;
+    height: 32px;
+    border: 1px solid #d1d5db;
+    background: white;
+    color: #374151;
+    border-radius: 6px;
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 400px;
+    cursor: pointer;
+    transition: all 0.2s ease;
   }
 
-  .content-placeholder {
-    text-align: center;
-    max-width: 400px;
-    padding: 48px 24px;
+  .btn-icon:hover {
+    background: #f3f4f6;
+    border-color: #9ca3af;
   }
 
-  .placeholder-icon {
-    margin: 0 auto 24px;
-    color: #9ca3af;
+  .btn-icon.danger {
+    color: #dc2626;
+    border-color: #fecaca;
   }
 
-  .content-placeholder h3 {
-    font-size: 24px;
-    font-weight: 600;
-    color: #111827;
-    margin-bottom: 12px;
+  .btn-icon.danger:hover {
+    background: #fef2f2;
+    border-color: #f87171;
   }
 
-  .content-placeholder p {
-    color: #6b7280;
-    line-height: 1.6;
+  .form {
+    space-y: 20px;
+  }
+
+  .form-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: flex-end;
+    padding-top: 20px;
+    border-top: 1px solid #e5e7eb;
+  }
+
+  .btn-cancel {
+    padding: 10px 20px;
+    border: 1px solid #d1d5db;
+    background: white;
+    color: #374151;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  .btn-submit {
+    padding: 10px 20px;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  .btn-submit:hover {
+    background: #2563eb;
+  }
+
+  @media (max-width: 768px) {
+    .section-header {
+      flex-direction: column;
+      gap: 16px;
+      align-items: stretch;
+    }
+
+    .action-buttons {
+      flex-direction: column;
+    }
   }
 </style>
+
+<script type="module">
+  // Variables globales para manejar los modales
+  window.currentEditId = null;
+
+  // Funciones para Fases de Piezas
+  window.editFasePieza = function(id, fase) {
+    window.currentEditId = id;
+    document.getElementById('edit-fase-pieza-id').value = id;
+    document.querySelector('#form-editar-fase-pieza input[name="fase"]').value = fase;
+    openModal('modal-editar-fase-pieza');
+  };
+
+  window.deleteFasePieza = function(id, fase) {
+    if (confirm(`¿Estás seguro de que quieres eliminar la fase "${fase}"?`)) {
+      fetch(`/api/fase_piezas/${id}`, {
+        method: 'DELETE'
+      })
+      .then(response => response.json())
+      .then(result => {
+        if (result.success) {
+          location.reload();
+        } else {
+          alert('Error al eliminar la fase: ' + result.error);
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Error al eliminar la fase');
+      });
+    }
+  };
+
+  // Funciones para Fases de Conjuntos
+  window.editFaseConjunto = function(id, fase) {
+    window.currentEditId = id;
+    document.getElementById('edit-fase-conjunto-id').value = id;
+    document.querySelector('#form-editar-fase-conjunto input[name="fase"]').value = fase;
+    openModal('modal-editar-fase-conjunto');
+  };
+
+  window.deleteFaseConjunto = function(id, fase) {
+    if (confirm(`¿Estás seguro de que quieres eliminar la fase "${fase}"?`)) {
+      fetch(`/api/fase_conjuntos/${id}`, {
+        method: 'DELETE'
+      })
+      .then(response => response.json())
+      .then(result => {
+        if (result.success) {
+          location.reload();
+        } else {
+          alert('Error al eliminar la fase: ' + result.error);
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Error al eliminar la fase');
+      });
+    }
+  };
+
+  // Formularios
+  document.addEventListener('DOMContentLoaded', function() {
+    // Formulario para nueva fase de pieza
+    document.getElementById('form-nueva-fase-pieza').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const formData = new FormData(this);
+      
+      fetch('/api/fase_piezas/create', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => response.json())
+      .then(result => {
+        if (result.success) {
+          location.reload();
+        } else {
+          alert('Error al crear la fase: ' + result.error);
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Error al crear la fase');
+      });
+    });
+
+    // Formulario para editar fase de pieza
+    document.getElementById('form-editar-fase-pieza').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const formData = new FormData(this);
+      const id = document.getElementById('edit-fase-pieza-id').value;
+      
+      fetch(`/api/fase_piezas/${id}`, {
+        method: 'PUT',
+        body: formData
+      })
+      .then(response => response.json())
+      .then(result => {
+        if (result.success) {
+          location.reload();
+        } else {
+          alert('Error al actualizar la fase: ' + result.error);
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Error al actualizar la fase');
+      });
+    });
+
+    // Formulario para nueva fase de conjunto
+    document.getElementById('form-nueva-fase-conjunto').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const formData = new FormData(this);
+      
+      fetch('/api/fase_conjuntos/create', {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => response.json())
+      .then(result => {
+        if (result.success) {
+          location.reload();
+        } else {
+          alert('Error al crear la fase: ' + result.error);
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Error al crear la fase');
+      });
+    });
+
+    // Formulario para editar fase de conjunto
+    document.getElementById('form-editar-fase-conjunto').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const formData = new FormData(this);
+      const id = document.getElementById('edit-fase-conjunto-id').value;
+      
+      fetch(`/api/fase_conjuntos/${id}`, {
+        method: 'PUT',
+        body: formData
+      })
+      .then(response => response.json())
+      .then(result => {
+        if (result.success) {
+          location.reload();
+        } else {
+          alert('Error al actualizar la fase: ' + result.error);
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Error al actualizar la fase');
+      });
+    });
+  });
+</script>

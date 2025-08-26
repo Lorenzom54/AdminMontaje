@@ -8,7 +8,7 @@ export async function POST({ request }) {
     
     console.log('Datos recibidos:', body); // Para debug
 
-    const { codigo, tipo_material, colada, fase, conjunto_id, chapa_id } = body;
+    const { codigo, tipo_material, colada, fase_id, conjunto_id, chapa_id } = body;
 
     // Validaciones básicas
     if (!codigo || tipo_material === undefined) {
@@ -26,7 +26,7 @@ export async function POST({ request }) {
       codigo: codigo,
       tipo_material: tipo_material,
       colada: colada || null,
-      fase: parseInt(fase), // Convertir a número
+      fase_id: fase_id ? parseInt(fase_id) : null, // Usar fase_id en lugar de fase
       conjunto_id: conjunto_id ? parseInt(conjunto_id) : null,
       chapa_id: chapa_id ? parseInt(chapa_id) : null
     };

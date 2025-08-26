@@ -35,9 +35,9 @@ export async function PUT({ params, request }) {
     const { id } = params;
     const updates = await request.json();
 
-    // Convertir fase a número si está presente
-    if (updates.fase !== undefined) {
-      updates.fase = parseInt(updates.fase);
+    // Convertir fase_id a número si está presente
+    if (updates.fase_id !== undefined) {
+      updates.fase_id = parseInt(updates.fase_id);
     }
 
     // Convertir IDs a números si están presentes

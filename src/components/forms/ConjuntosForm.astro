@@ -1,14 +1,21 @@
 ---
 import FormField from './FormField.astro';
-import { fetchObrasForSelect } from '../../lib/conjunto_api';
+import { fetchObrasForSelect, fetchFaseConjuntosForSelect } from '../../lib/conjunto_api';
 
-// Obtener obras para el select
+// Obtener obras y fases para los selects
 const obras = await fetchObrasForSelect();
+const fases = await fetchFaseConjuntosForSelect();
 
 // Mapear obras al formato esperado por FormField
 const obraOptions = obras.map(obra => ({
   value: obra.id.toString(),
   label: obra.nombre
+}));
+
+// Mapear fases al formato esperado por FormField
+const faseOptions = fases.map(fase => ({
+  value: fase.id.toString(),
+  label: fase.fase
 }));
 ---
 
@@ -28,6 +35,13 @@ const obraOptions = obras.map(obra => ({
         type="select"
         options={obraOptions}
         required={true}
+      />
+      
+      <FormField 
+        label="Fase" 
+        name="fase_id" 
+        type="select"
+        options={faseOptions}
       />
     </div>
     
@@ -183,6 +197,7 @@ const obraOptions = obras.map(obra => ({
       codigo: formData.get('codigo'),
       descripcion: formData.get('descripcion'),
       obra_id: formData.get('obra_id'),
+      fase_id: formData.get('fase_id'),
       is_completed: formData.get('is_completed') === 'true',
     };
 

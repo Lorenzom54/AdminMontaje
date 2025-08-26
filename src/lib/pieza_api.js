@@ -1,9 +1,6 @@
-import { createClient } from '@supabase/supabase-js'
-const supabaseUrl = 'https://jjxvgpxweolzeqmtlkmx.supabase.co'
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpqeHZncHh3ZW9semVxbXRsa214Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMzNTAyNjcsImV4cCI6MjA2ODkyNjI2N30.UJFru02b79iTKiA-u4k3uxrnJ-pxyzUctjcT5x2KMZE"
-const supabase = createClient(supabaseUrl, supabaseKey)
+import { supabase } from './supabaseClient';
 
-// Mapeo de fases
+// Mapeo de fases (mantener para compatibilidad)
 export const FASES = {
   0: 'Corte',
   1: 'Biselado', 
@@ -27,7 +24,8 @@ export async function fetchPiezas(page = 1, pageSize = 20) {
     .select(`
       *,
       conjuntos:conjunto_id(codigo, obras:obra_id(nombre)),
-      chapas:chapa_id(codigo)
+      chapas:chapa_id(codigo),
+      fases:fase_id(fase)
     `)
     .order('created_at', { ascending: false })
     .range(offset, offset + pageSize - 1)
@@ -59,7 +57,8 @@ export async function fetchPiezaById(id) {
     .select(`
       *,
       conjuntos:conjunto_id(codigo, obras:obra_id(nombre)),
-      chapas:chapa_id(codigo)
+      chapas:chapa_id(codigo),
+      fases:fase_id(fase)
     `)
     .eq('id', id)
     .single()
@@ -131,7 +130,8 @@ export async function searchPiezas(filters = {}, page = 1, pageSize = 20) {
   let query = supabase.from('piezas').select(`
     *,
     conjuntos:conjunto_id(codigo, obras:obra_id(nombre)),
-    chapas:chapa_id(codigo)
+    chapas:chapa_id(codigo),
+    fases:fase_id(fase)
   `);
 
   if (filters.tipo_material) {
@@ -146,13 +146,14 @@ export async function searchPiezas(filters = {}, page = 1, pageSize = 20) {
     query = query.ilike('colada', `%${filters.colada}%`);
   }
 
-  if (filters.fase !== undefined && filters.fase !== '') {
-    query = query.eq('fase', filters.fase);
+  if (filters.fase_id !== undefined && filters.fase_id !== '') {
+    query = query.eq('fase_id', parseInt(filters.fase_id));
   }
 
   if (filters.chapa_id && filters.chapa_id !== '') {
     query = query.eq('chapa_id', parseInt(filters.chapa_id));
   }
+  
   if (filters.obra_id && filters.obra_id !== '') {
     // Filtrar por obra_id a través de la relación con conjuntos
     query = query.not('conjunto_id', 'is', null);
@@ -188,13 +189,14 @@ export async function searchPiezasCount(filters = {}) {
     query = query.ilike('colada', `%${filters.colada}%`);
   }
 
-  if (filters.fase !== undefined && filters.fase !== '') {
-    query = query.eq('fase', filters.fase);
+  if (filters.fase_id !== undefined && filters.fase_id !== '') {
+    query = query.eq('fase_id', parseInt(filters.fase_id));
   }
 
   if (filters.chapa_id && filters.chapa_id !== '') {
     query = query.eq('chapa_id', parseInt(filters.chapa_id));
   }
+  
   if (filters.obra_id && filters.obra_id !== '') {
     // Para el conteo, necesitamos hacer una consulta más específica
     const { data: piezasWithObra } = await supabase
@@ -206,7 +208,7 @@ export async function searchPiezasCount(filters = {}) {
       // Aplicar otros filtros sobre estos resultados
       let filteredIds = piezasWithObra.map(p => p.id);
       
-      if (filters.tipo_material || filters.codigo || filters.colada || (filters.fase !== undefined && filters.fase !== '') || filters.chapa_id) {
+      if (filters.tipo_material || filters.codigo || filters.colada || (filters.fase_id !== undefined && filters.fase_id !== '') || filters.chapa_id) {
         let countQuery = supabase.from('piezas').select('*', { count: 'exact', head: true });
         countQuery = countQuery.in('id', filteredIds);
         
@@ -219,8 +221,8 @@ export async function searchPiezasCount(filters = {}) {
         if (filters.colada) {
           countQuery = countQuery.ilike('colada', `%${filters.colada}%`);
         }
-        if (filters.fase !== undefined && filters.fase !== '') {
-          countQuery = countQuery.eq('fase', filters.fase);
+        if (filters.fase_id !== undefined && filters.fase_id !== '') {
+          countQuery = countQuery.eq('fase_id', parseInt(filters.fase_id));
         }
         if (filters.chapa_id && filters.chapa_id !== '') {
           countQuery = countQuery.eq('chapa_id', parseInt(filters.chapa_id));
@@ -271,6 +273,50 @@ export async function fetchChapasForSelect() {
     return [];
   }
   return chapas;
+}
+
+// Obtener fases de piezas para el formulario
+export async function fetchFasePiezasForSelect() {
+  let { data: fases, error } = await supabase
+    .from('fase_piezas')
+    .select('id, fase')
+    .order('created_at', { ascending: true })
+    
+  if (error) {
+    console.error('Error al obtener fases de piezas:', error.message);
+    return [];
+  }
+  return fases;
+}
+
+// Obtener fase de pieza por ID
+export async function fetchFasePiezaById(id) {
+  let { data: fase, error } = await supabase
+    .from('fase_piezas')
+    .select('*')
+    .eq('id', id)
+    .single()
+    
+  if (error) {
+    console.error('Error al obtener fase de pieza:', error.message);
+    return null;
+  }
+  return fase;
+}
+
+// Obtener fase de pieza por nombre
+export async function getFasePiezaByName(nombre) {
+  let { data: fase, error } = await supabase
+    .from('fase_piezas')
+    .select('*')
+    .eq('fase', nombre)
+    .single()
+    
+  if (error) {
+    console.error('Error al obtener fase de pieza por nombre:', error.message);
+    return null;
+  }
+  return fase;
 }
 
 // Importar piezas desde CSV
@@ -355,17 +401,70 @@ export async function updatePiecesWithChapaId(pieceCode, count, chapaId) {
   }
 }
 
+// Obtener fases de piezas para el formulario
+export async function fetchFasePiezasForSelect() {
+  let { data: fases, error } = await supabase
+    .from('fase_piezas')
+    .select('id, fase')
+    .order('created_at', { ascending: true })
+    
+  if (error) {
+    console.error('Error al obtener fases de piezas:', error.message);
+    return [];
+  }
+  return fases;
+}
+
+// Obtener fase de pieza por ID
+export async function fetchFasePiezaById(id) {
+  let { data: fase, error } = await supabase
+    .from('fase_piezas')
+    .select('*')
+    .eq('id', id)
+    .single()
+    
+  if (error) {
+    console.error('Error al obtener fase de pieza:', error.message);
+    return null;
+  }
+  return fase;
+}
+
+// Obtener fase de pieza por nombre
+export async function getFasePiezaByName(nombre) {
+  let { data: fase, error } = await supabase
+    .from('fase_piezas')
+    .select('*')
+    .eq('fase', nombre)
+    .single()
+    
+  if (error) {
+    console.error('Error al obtener fase de pieza por nombre:', error.message);
+    return null;
+  }
+  return fase;
+}
+
 // Marcar como cortadas (avanzar fase) todas las piezas de una chapa
 export async function markPiezasCortadasByChapaId(chapaId) {
   try {
-    const nextPhase = FASES_REVERSE['Biselado'];
-    const currentPhase = FASES_REVERSE['Corte'];
+    // Obtener IDs de las fases
+    const faseCorte = await getFasePiezaByName('Corte');
+    const faseBiselado = await getFasePiezaByName('Biselado');
+
+    if (!faseCorte || !faseBiselado) {
+      return {
+        success: false,
+        error: 'No se encontraron las fases "Corte" o "Biselado" en la configuración',
+        updated: 0
+      };
+    }
 
     const { data, error } = await supabase
       .from('piezas')
-      .update({ fase: nextPhase })
+      .update({ fase_id: faseBiselado.id })
       .eq('chapa_id', parseInt(chapaId))
-      .eq('fase', currentPhase)
+      .eq('fase_id', faseCorte.id)
       .select('id');
 
     if (error) {

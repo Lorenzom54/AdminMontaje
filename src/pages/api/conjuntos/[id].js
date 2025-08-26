@@ -40,6 +40,11 @@ export async function PUT({ params, request }) {
       updates.obra_id = parseInt(updates.obra_id);
     }
 
+    // Convertir fase_id a número si está presente
+    if (updates.fase_id !== undefined) {
+      updates.fase_id = parseInt(updates.fase_id);
+    }
+
     const result = await updateConjunto(id, updates);
 
     if (!result.success) {

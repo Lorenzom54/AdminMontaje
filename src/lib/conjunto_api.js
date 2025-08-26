@@ -1,7 +1,4 @@
-import { createClient } from '@supabase/supabase-js'
-const supabaseUrl = 'https://jjxvgpxweolzeqmtlkmx.supabase.co'
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpqeHZncHh3ZW9semVxbXRsa214Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMzNTAyNjcsImV4cCI6MjA2ODkyNjI2N30.UJFru02b79iTKiA-u4k3uxrnJ-pxyzUctjcT5x2KMZE"
-const supabase = createClient(supabaseUrl, supabaseKey)
+import { supabase } from './supabaseClient';
 
 // Obtener todos los conjuntos
 export async function fetchConjuntos() {
@@ -9,7 +6,8 @@ export async function fetchConjuntos() {
     .from('conjuntos')
     .select(`
       *,
-      obras:obra_id(nombre)
+      obras:obra_id(nombre),
+      fases:fase_id(fase)
     `)
     .order('created_at', { ascending: false })
     
@@ -26,7 +24,8 @@ export async function fetchConjuntoById(id) {
     .from('conjuntos')
     .select(`
       *,
-      obras:obra_id(nombre)
+      obras:obra_id(nombre),
+      fases:fase_id(fase)
     `)
     .eq('id', id)
     .single()
@@ -95,7 +94,8 @@ export async function deleteConjunto(id) {
 export async function searchConjuntos(filters = {}) {
   let query = supabase.from('conjuntos').select(`
     *,
-    obras:obra_id(nombre)
+    obras:obra_id(nombre),
+    fases:fase_id(fase)
   `);
 
   if (filters.codigo) {
@@ -108,6 +108,10 @@ export async function searchConjuntos(filters = {}) {
 
   if (filters.obra_id) {
     query = query.eq('obra_id', filters.obra_id);
+  }
+
+  if (filters.fase_id !== undefined && filters.fase_id !== '') {
+    query = query.eq('fase_id', parseInt(filters.fase_id));
   }
 
   if (filters.is_completed !== undefined) {
@@ -155,4 +159,33 @@ export async function fetchObrasForSelect() {
     return [];
   }
   return obras;
+}
+
+// Obtener fases de conjuntos para el formulario
+export async function fetchFaseConjuntosForSelect() {
+  let { data: fases, error } = await supabase
+    .from('fase_conjuntos')
+    .select('id, fase')
+    .order('created_at', { ascending: true })
+    
+  if (error) {
+    console.error('Error al obtener fases de conjuntos:', error.message);
+    return [];
+  }
+  return fases;
+}
+
+// Obtener fase de conjunto por ID
+export async function fetchFaseConjuntoById(id) {
+  let { data: fase, error } = await supabase
+    .from('fase_conjuntos')
+    .select('*')
+    .eq('id', id)
+    .single()
+    
+  if (error) {
+    console.error('Error al obtener fase de conjunto:', error.message);
+    return null;
+  }
+  return fase;
 }
