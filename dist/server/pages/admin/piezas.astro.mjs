@@ -915,16 +915,29 @@ Importar CSV
         alert('Por favor selecciona una obra de destino');
         return;
       }
+      
+      // Mostrar advertencia para archivos grandes
+      if (csvData.length > 1000) {
+        const confirmImport = confirm(\`Est\xE1s a punto de importar \${csvData.length} piezas. Esto puede tomar varios minutos. \xBFQuieres continuar?\`);
+        if (!confirmImport) return;
+      }
+      
       importBtn.disabled = true;
       const originalText = importBtn.innerHTML;
       importBtn.innerHTML = \`
         <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="animate-spin">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
         </svg>
-        Importando...
+        Importando \${csvData.length} piezas...
       \`;
 
       try {
+        // Configurar timeout m\xE1s largo para archivos grandes
+        const timeout = csvData.length > 1000 ? 300000 : 60000; // 5 minutos para archivos grandes, 1 minuto para peque\xF1os
+        
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeout);
+        
         const response = await fetch('/api/piezas/import-csv', {
           method: 'POST',
           headers: {
@@ -933,8 +946,15 @@ Importar CSV
           body: JSON.stringify({ 
             csvData: csvData,
             selectedObraId: selectedObraId 
-          })
+          }),
+          signal: controller.signal
         });
+        
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+          throw new Error(\`Error del servidor: \${response.status} \${response.statusText}\`);
+        }
 
         const result = await response.json();
 
@@ -950,17 +970,37 @@ Importar CSV
           \`;
           importBtn.style.background = '#10b981';
           
-          alert(result.message);
+          // Mostrar mensaje detallado
+          let message = result.message;
+          if (result.data && result.data.errores && result.data.errores.length > 0) {
+            message += \`\\n\\nErrores encontrados: \${result.data.errores.length}\`;
+            if (result.data.errores.length <= 10) {
+              message += '\\n' + result.data.errores.join('\\n');
+            } else {
+              message += '\\n(Mostrando solo los primeros 10 errores)';
+              message += '\\n' + result.data.errores.slice(0, 10).join('\\n');
+            }
+          }
+          
+          alert(message);
           
           setTimeout(() => {
             location.reload();
-          }, 1500);
+          }, 2000);
         } else {
           throw new Error(result.error || 'Error al importar CSV');
         }
       } catch (error) {
         console.error('Error al importar CSV:', error);
-        alert('Error al importar CSV: ' + error.message);
+        
+        let errorMessage = 'Error al importar CSV: ';
+        if (error.name === 'AbortError') {
+          errorMessage += 'La importaci\xF3n tard\xF3 demasiado tiempo. Intenta con un archivo m\xE1s peque\xF1o o divide el archivo en partes.';
+        } else {
+          errorMessage += error.message;
+        }
+        
+        alert(errorMessage);
         
         importBtn.innerHTML = originalText;
         importBtn.disabled = false;
@@ -1204,16 +1244,29 @@ Importar CSV
         alert('Por favor selecciona una obra de destino');
         return;
       }
+      
+      // Mostrar advertencia para archivos grandes
+      if (csvData.length > 1000) {
+        const confirmImport = confirm(\\\`Est\xE1s a punto de importar \\\${csvData.length} piezas. Esto puede tomar varios minutos. \xBFQuieres continuar?\\\`);
+        if (!confirmImport) return;
+      }
+      
       importBtn.disabled = true;
       const originalText = importBtn.innerHTML;
       importBtn.innerHTML = \\\`
         <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="animate-spin">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
         </svg>
-        Importando...
+        Importando \\\${csvData.length} piezas...
       \\\`;
 
       try {
+        // Configurar timeout m\xE1s largo para archivos grandes
+        const timeout = csvData.length > 1000 ? 300000 : 60000; // 5 minutos para archivos grandes, 1 minuto para peque\xF1os
+        
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), timeout);
+        
         const response = await fetch('/api/piezas/import-csv', {
           method: 'POST',
           headers: {
@@ -1222,8 +1275,15 @@ Importar CSV
           body: JSON.stringify({ 
             csvData: csvData,
             selectedObraId: selectedObraId 
-          })
+          }),
+          signal: controller.signal
         });
+        
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+          throw new Error(\\\`Error del servidor: \\\${response.status} \\\${response.statusText}\\\`);
+        }
 
         const result = await response.json();
 
@@ -1239,17 +1299,37 @@ Importar CSV
           \\\`;
           importBtn.style.background = '#10b981';
           
-          alert(result.message);
+          // Mostrar mensaje detallado
+          let message = result.message;
+          if (result.data && result.data.errores && result.data.errores.length > 0) {
+            message += \\\`\\\\n\\\\nErrores encontrados: \\\${result.data.errores.length}\\\`;
+            if (result.data.errores.length <= 10) {
+              message += '\\\\n' + result.data.errores.join('\\\\n');
+            } else {
+              message += '\\\\n(Mostrando solo los primeros 10 errores)';
+              message += '\\\\n' + result.data.errores.slice(0, 10).join('\\\\n');
+            }
+          }
+          
+          alert(message);
           
           setTimeout(() => {
             location.reload();
-          }, 1500);
+          }, 2000);
         } else {
           throw new Error(result.error || 'Error al importar CSV');
         }
       } catch (error) {
         console.error('Error al importar CSV:', error);
-        alert('Error al importar CSV: ' + error.message);
+        
+        let errorMessage = 'Error al importar CSV: ';
+        if (error.name === 'AbortError') {
+          errorMessage += 'La importaci\xF3n tard\xF3 demasiado tiempo. Intenta con un archivo m\xE1s peque\xF1o o divide el archivo en partes.';
+        } else {
+          errorMessage += error.message;
+        }
+        
+        alert(errorMessage);
         
         importBtn.innerHTML = originalText;
         importBtn.disabled = false;

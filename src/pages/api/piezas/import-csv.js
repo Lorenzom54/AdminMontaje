@@ -1,5 +1,5 @@
-import { addPieza, addConjunto, fetchConjuntoByCodigo } from '../../../lib/pieza_api.js';
-import { fetchConjuntoByCodigo as fetchConjuntoByCodigoFromConjunto } from '../../../lib/conjunto_api.js';
+import { addPieza } from '../../../lib/pieza_api.js';
+import { fetchConjuntoByCodigo, addConjunto } from '../../../lib/conjunto_api.js';
 
 export const prerender = false;
 
