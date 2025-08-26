@@ -1,4 +1,4 @@
-import { updateFasePieza, deleteFasePieza } from '../../../../lib/fase_piezas_api.js';
+import { updateFasePieza, deleteFasePieza } from '../../../lib/fase_piezas_api.js';
 
 export const prerender = false;
 

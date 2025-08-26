@@ -1,4 +1,4 @@
-import { fetchFaseConjuntos } from '../../../../lib/fase_conjuntos_api.js';
+import { fetchFaseConjuntos } from '../../../lib/fase_conjuntos_api.js';
 
 export const prerender = false;
 
