@@ -16,17 +16,17 @@ interface Props {
 const { obras } = Astro.props;
 
 // Función para formatear fechas
-function formatDate(dateString) {
+function formatDate(dateString: string) {
   if (!dateString) return '-';
   return new Date(dateString).toLocaleDateString('es-ES');
 }
 
 // Función para calcular días restantes
-function getDaysRemaining(fechaFin) {
+function getDaysRemaining(fechaFin: string) {
   if (!fechaFin) return null;
   const today = new Date();
   const endDate = new Date(fechaFin);
-  const diffTime = endDate - today;
+  const diffTime = endDate.getTime() - today.getTime();
   const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   return diffDays;
 }
@@ -285,7 +285,11 @@ function getDaysRemaining(fechaFin) {
     if (confirm(`¿Estás seguro de que quieres eliminar la obra "${obraNombre}"? Esta acción no se puede deshacer.`)) {
       try {
         const response = await fetch(`/api/obras/${obraId}`, {
-          method: 'DELETE'
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ action: 'delete' })
         });
         
         const result = await response.json();
@@ -303,101 +307,7 @@ function getDaysRemaining(fechaFin) {
     }
   };
 
-  // Modificar el comportamiento del formulario para manejar edición
-  document.addEventListener('DOMContentLoaded', function() {
-    const form = document.getElementById('obras-form');
-    if (form) {
-      // Remover event listeners existentes para evitar duplicados
-      const newForm = form.cloneNode(true);
-      form.parentNode.replaceChild(newForm, form);
-      
-      newForm.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
-        const editId = newForm.getAttribute('data-edit-id');
-        const isEditing = !!editId;
-        
-        const formData = new FormData(newForm);
-        const submitButton = newForm.querySelector('.btn-submit');
-        
-        // Prevenir múltiples envíos
-        if (submitButton.disabled) {
-          return;
-        }
-        
-        // Deshabilitar botón durante el envío
-        submitButton.disabled = true;
-        const originalText = submitButton.innerHTML;
-        submitButton.innerHTML = `
-          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="animate-spin">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
-          ${isEditing ? 'Actualizando...' : 'Creando...'}
-        `;
 
-        const body = {
-          nombre: formData.get('nombre'),
-          estado: formData.get('estado'),
-          fecha_inicio: formData.get('fecha_inicio'),
-          fecha_fin: formData.get('fecha_fin'),
-          ubicacion: formData.get('ubicacion'),
-          responsable: formData.get('responsable'),
-          descripcion: formData.get('descripcion'),
-        };
-
-        try {
-          const url = isEditing ? `/api/obras/${editId}` : '/api/obras/create';
-          const method = isEditing ? 'PUT' : 'POST';
-          
-          const res = await fetch(url, {
-            method: method,
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(body)
-          });
-
-          const json = await res.json();
-          
-          if (json.success) {
-            // Mostrar éxito
-            submitButton.innerHTML = `
-              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-              </svg>
-              ${isEditing ? '¡Obra actualizada!' : '¡Obra creada!'}
-            `;
-            submitButton.style.background = '#10b981';
-            
-            // Recargar la página después de un breve delay
-            setTimeout(() => {
-              location.reload();
-            }, 1500);
-          } else {
-            throw new Error(json.error || `Error al ${isEditing ? 'actualizar' : 'crear'} la obra`);
-          }
-        } catch (error) {
-          console.error(`Error al ${isEditing ? 'actualizar' : 'crear'} obra:`, error);
-          
-          // Mostrar error
-          submitButton.innerHTML = `
-            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-            Error al ${isEditing ? 'actualizar' : 'crear'}
-          `;
-          submitButton.style.background = '#ef4444';
-          
-          // Restaurar botón después de un delay
-          setTimeout(() => {
-            submitButton.innerHTML = originalText;
-            submitButton.style.background = '';
-            submitButton.disabled = false;
-          }, 2000);
-        }
-      });
-    }
-  });
 
   // Limpiar formulario cuando se cierra el modal
   document.addEventListener('click', function(e) {

@@ -31,7 +31,86 @@ const { title, activeSection } = Astro.props;
       </main>
     </div>
     
-    <script src="/src/scripts/modal.js"></script>
+    <script src="/src/scripts/modal.js" defer></script>
+    <script>
+      // Asegurar que las funciones globales estén disponibles
+      window.addEventListener('load', () => {
+        if (typeof window.openModal === 'undefined') {
+          console.warn('openModal no está definido, definiendo función temporal');
+          window.openModal = function(modalId) {
+            console.log('openModal llamado con:', modalId);
+            if (window.modalManager) {
+              window.modalManager.openModal(modalId);
+            } else {
+              console.error('ModalManager no está disponible');
+            }
+          };
+        }
+        
+        if (typeof window.closeModal === 'undefined') {
+          window.closeModal = function(modalId) {
+            if (window.modalManager) {
+              window.modalManager.closeModal(modalId);
+            } else {
+              console.error('ModalManager no está disponible');
+            }
+          };
+        }
+        
+        // Función para editar obra (si no está definida)
+        if (typeof window.editObra === 'undefined') {
+          window.editObra = async function(obraId) {
+            console.log('editObra llamado con:', obraId);
+            try {
+              const response = await fetch(`/api/obras/${obraId}`);
+              const result = await response.json();
+              
+              if (result.success) {
+                const obra = result.data;
+                
+                // Llenar el formulario con los datos existentes
+                const form = document.getElementById('obras-form');
+                if (form) {
+                  form.querySelector('[name="nombre"]').value = obra.nombre || '';
+                  form.querySelector('[name="estado"]').value = obra.estado || '';
+                  form.querySelector('[name="fecha_inicio"]').value = obra.fecha_inicio || '';
+                  form.querySelector('[name="fecha_fin"]').value = obra.fecha_fin || '';
+                  form.querySelector('[name="ubicacion"]').value = obra.ubicacion || '';
+                  form.querySelector('[name="responsable"]').value = obra.responsable || '';
+                  form.querySelector('[name="descripcion"]').value = obra.descripcion || '';
+                  
+                  // Cambiar el comportamiento del formulario para actualizar
+                  form.setAttribute('data-edit-id', obraId);
+                  form.querySelector('.btn-submit').innerHTML = `
+                    <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    Actualizar Obra
+                  `;
+                  
+                  // Cambiar el título del modal
+                  const modal = document.getElementById('modal-nueva-obra');
+                  const title = modal.querySelector('.modal-title');
+                  if (title) {
+                    title.textContent = 'Editar Obra';
+                  }
+                  
+                  // Abrir el modal
+                  if (window.openModal) {
+                    window.openModal('modal-nueva-obra');
+                  } else {
+                    console.error('openModal no está disponible');
+                  }
+                }
+              }
+            } catch (error) {
+              console.error('Error al cargar obra para editar:', error);
+              alert('Error al cargar los datos de la obra');
+            }
+          };
+        }
+      });
+    </script>
   </body>
 </html>
 

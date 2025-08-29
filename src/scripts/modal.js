@@ -97,23 +97,80 @@ class ModalManager {
     });
   }
 
-  handleFormSubmit(form) {
+  async handleFormSubmit(form) {
     const formData = new FormData(form);
     const data = Object.fromEntries(formData.entries());
     
-    // Simular envío de datos
-    console.log('Datos del formulario:', data);
-    
-    // Mostrar mensaje de éxito
-    this.showSuccessMessage(form);
-    
-    // Cerrar modal después de un breve delay
-    setTimeout(() => {
-      const modal = form.closest('.modal');
-      if (modal) {
-        this.closeModal(modal.id);
+    // Si es el formulario de obras, obtener las fases dinámicamente
+    if (form.id === 'obras-form') {
+      console.log('=== FORMULARIO DE OBRAS ===');
+      
+      // Verificar si estamos editando
+      const editId = form.getAttribute('data-edit-id');
+      const isEditing = !!editId;
+      
+      console.log('¿Estamos editando?', isEditing, 'ID:', editId);
+      
+      try {
+        // Obtener las fases desde la base de datos
+        const fasesResponse = await fetch('/api/fases/get');
+        const fasesData = await fasesResponse.json();
+        
+        if (fasesData.success) {
+          const fasesPiezas = fasesData.fases_piezas;
+          const fasesConjuntos = fasesData.fases_conjuntos;
+          
+          // Agregar las fases al objeto de datos
+          data.fases_piezas = fasesPiezas;
+          data.fases_conjuntos = fasesConjuntos;
+          
+          console.log('Fases de piezas obtenidas de BD:', fasesPiezas);
+          console.log('Fases de conjuntos obtenidas de BD:', fasesConjuntos);
+          console.log('Datos completos:', data);
+          
+          // Enviar al API
+          this.sendObraToAPI(data, form, isEditing, editId);
+        } else {
+          throw new Error('Error al obtener fases: ' + fasesData.error);
+        }
+      } catch (error) {
+        console.error('Error al obtener fases:', error);
+        
+        // Fallback: usar fases por defecto si hay error
+        const fasesPiezas = ["Para cortar", "Cortado"];
+        const fasesConjuntos = [
+          "Incompleto", 
+          "Para montar", 
+          "Montado 1", 
+          "Soldado 1", 
+          "Montado 2", 
+          "Montado 3", 
+          "Soldado 3", 
+          "Montado", 
+          "Soldado", 
+          "Completado"
+        ];
+        
+        data.fases_piezas = fasesPiezas;
+        data.fases_conjuntos = fasesConjuntos;
+        
+        console.log('Usando fases por defecto debido a error:', fasesPiezas, fasesConjuntos);
+        
+        // Enviar al API
+        this.sendObraToAPI(data, form, isEditing, editId);
       }
-    }, 1500);
+    } else {
+      // Para otros formularios, comportamiento normal
+      console.log('Datos del formulario:', data);
+      this.showSuccessMessage(form);
+      
+      setTimeout(() => {
+        const modal = form.closest('.modal');
+        if (modal) {
+          this.closeModal(modal.id);
+        }
+      }, 1500);
+    }
   }
 
   showSuccessMessage(form) {
@@ -261,6 +318,62 @@ class ModalManager {
     }
   }
 
+  async sendObraToAPI(data, form, isEditing = false, editId = null) {
+    const submitButton = form.querySelector('[type="submit"]');
+    if (submitButton) {
+      // Deshabilitar botón durante el envío
+      submitButton.disabled = true;
+      const originalText = submitButton.innerHTML;
+      submitButton.innerHTML = isEditing ? 'Actualizando...' : 'Creando...';
+    }
+
+    try {
+      const url = isEditing ? `/api/obras/${editId}` : '/api/obras/create';
+      const method = isEditing ? 'PUT' : 'POST';
+      
+      console.log('Enviando a:', url, 'método:', method);
+      
+      const res = await fetch(url, {
+        method: method,
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(data)
+      });
+
+      const json = await res.json();
+      
+      if (json.success) {
+        // Mostrar éxito
+        if (submitButton) {
+          submitButton.innerHTML = isEditing ? '¡Obra actualizada!' : '¡Obra creada!';
+          submitButton.style.background = '#10b981';
+        }
+        
+        // Recargar la página después de un breve delay
+        setTimeout(() => {
+          location.reload();
+        }, 1500);
+      } else {
+        throw new Error(json.error || `Error al ${isEditing ? 'actualizar' : 'crear'} la obra`);
+      }
+    } catch (error) {
+      console.error(`Error al ${isEditing ? 'actualizar' : 'crear'} obra:`, error);
+      
+      // Mostrar error
+      if (submitButton) {
+        submitButton.innerHTML = `Error al ${isEditing ? 'actualizar' : 'crear'}`;
+        submitButton.style.background = '#ef4444';
+        submitButton.disabled = false;
+        
+        setTimeout(() => {
+          submitButton.innerHTML = originalText;
+          submitButton.style.background = '';
+        }, 2000);
+      }
+    }
+  }
+
   saveChanges(modal) {
     const editableFields = modal.querySelectorAll('.info-value.editable');
     const changes = {};
@@ -303,16 +416,26 @@ class ModalManager {
 
 // Funciones globales para compatibilidad
 window.openModal = function(modalId) {
-  window.modalManager.openModal(modalId);
+  if (window.modalManager) {
+    window.modalManager.openModal(modalId);
+  } else {
+    console.error('ModalManager no está inicializado');
+  }
 };
 
 window.closeModal = function(modalId) {
-  window.modalManager.closeModal(modalId);
+  if (window.modalManager) {
+    window.modalManager.closeModal(modalId);
+  } else {
+    console.error('ModalManager no está inicializado');
+  }
 };
 
 // Inicializar cuando el DOM esté listo
 document.addEventListener('DOMContentLoaded', () => {
+  console.log('Inicializando ModalManager...');
   window.modalManager = new ModalManager();
+  console.log('ModalManager inicializado:', window.modalManager);
   
   // Agregar estilos para el modo de edición
   const style = document.createElement('style');

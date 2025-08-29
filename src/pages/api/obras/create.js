@@ -5,14 +5,29 @@ export const prerender = false;
 export async function POST({ request }) {
   try {
     const body = await request.json();
+    
+    console.log('=== DATOS RECIBIDOS EN API ===');
+    console.log('Body completo:', body);
+    console.log('fases_piezas:', body.fases_piezas, 'tipo:', typeof body.fases_piezas);
+    console.log('fases_conjuntos:', body.fases_conjuntos, 'tipo:', typeof body.fases_conjuntos);
 
-    const { nombre, estado, fecha_inicio, fecha_fin, ubicacion, responsable, descripcion } = body;
+    const { 
+      nombre, 
+      estado, 
+      fecha_inicio, 
+      fecha_fin, 
+      ubicacion, 
+      responsable, 
+      descripcion,
+      fases_piezas,
+      fases_conjuntos
+    } = body;
 
     // Validaciones básicas
     if (!nombre || !estado || !fecha_inicio) {
       return new Response(JSON.stringify({ 
         success: false, 
-        error: 'Los campos nombre, estado, fecha de inicio' 
+        error: 'Los campos nombre, estado, fecha de inicio son obligatorios' 
       }), {
         status: 400,
         headers: { 'Content-Type': 'application/json' },
@@ -27,6 +42,8 @@ export async function POST({ request }) {
       ubicacion,
       responsable,
       descripcion,
+      fases_piezas,
+      fases_conjuntos
     });
 
     if (!result.success) {

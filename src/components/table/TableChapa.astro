@@ -254,18 +254,18 @@ function formatDate(dateString: string) {
     }
     
     // Marcar formulario como en modo edición
-    const form = document.getElementById('chapas-form');
+        const form = document.getElementById('chapas-form');
     form.setAttribute('data-edit-id', id);
     
     // Cambiar texto del botón
     const submitButton = form.querySelector('.btn-submit');
     submitButton.innerHTML = `
-      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-      </svg>
-      Actualizar Chapa
-    `;
-    
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            Actualizar Chapa
+          `;
+          
     // Cargar datos de la chapa
     fetch(`/api/chapas/${id}`)
       .then(response => response.json())
@@ -290,7 +290,7 @@ function formatDate(dateString: string) {
   window.deleteChapa = function(id, codigo) {
     if (confirm(`¿Estás seguro de que quieres eliminar la chapa #${codigo}?`)) {
       fetch(`/api/chapas/${id}`, {
-        method: 'DELETE'
+          method: 'DELETE'
       })
       .then(response => response.json())
       .then(result => {
@@ -313,7 +313,7 @@ function formatDate(dateString: string) {
     if (form) {
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
-
+        
         const formData = new FormData(form);
         const submitButton = form.querySelector('.btn-submit');
         const isEditing = form.hasAttribute('data-edit-id');

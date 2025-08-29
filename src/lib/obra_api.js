@@ -1,7 +1,4 @@
-import { createClient } from '@supabase/supabase-js'
-const supabaseUrl = 'https://jjxvgpxweolzeqmtlkmx.supabase.co'
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpqeHZncHh3ZW9semVxbXRsa214Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMzNTAyNjcsImV4cCI6MjA2ODkyNjI2N30.UJFru02b79iTKiA-u4k3uxrnJ-pxyzUctjcT5x2KMZE"
-const supabase = createClient(supabaseUrl, supabaseKey)
+import { supabase } from './supabaseClient.js';
 
 // Obtener todas las obras
 export async function fetchObras() {
@@ -33,28 +30,65 @@ export async function fetchObraById(id) {
 }
 
 // Crear nueva obra
-export async function addObra({ nombre, estado, fecha_inicio, fecha_fin, ubicacion, responsable, descripcion }) {
-  const { data, error } = await supabase
-    .from('obras')
-    .insert([
-      {
-        nombre,
-        estado,
-        fecha_inicio,
-        fecha_fin,
-        ubicacion,
-        responsable,
-        descripcion
-      }
-    ])
-    .select()
+export async function addObra({ nombre, estado, fecha_inicio, fecha_fin, ubicacion, responsable, descripcion, fases_piezas = [], fases_conjuntos = [] }) {
+  try {
+    // Verificar si las fases ya son nombres (strings) o IDs (números)
+    const fasesPiezasNombres = typeof fases_piezas[0] === 'string' ? fases_piezas : await convertirIdsANombres(fases_piezas, 'fases_piezas');
+    const fasesConjuntosNombres = typeof fases_conjuntos[0] === 'string' ? fases_conjuntos : await convertirIdsANombres(fases_conjuntos, 'fases_conjuntos');
 
-  if (error) {
-    console.error('Error al insertar obra:', error.message);
+    console.log('Fases de piezas a guardar:', fasesPiezasNombres);
+    console.log('Fases de conjuntos a guardar:', fasesConjuntosNombres);
+
+    // Crear la obra con las fases incluidas directamente
+    const { data: obraData, error: obraError } = await supabase
+      .from('obras')
+      .insert([
+        {
+          nombre,
+          estado,
+          fecha_inicio,
+          fecha_fin,
+          ubicacion,
+          responsable,
+          descripcion,
+          fases_piezas: fasesPiezasNombres,
+          fases_conjuntos: fasesConjuntosNombres
+        }
+      ])
+      .select()
+
+    if (obraError) {
+      console.error('Error al insertar obra:', obraError.message);
+      return { success: false, error: obraError.message };
+    }
+
+    const obra = obraData[0];
+    return { success: true, data: obra };
+  } catch (error) {
+    console.error('Error inesperado al crear obra:', error.message);
     return { success: false, error: error.message };
   }
+}
 
-  return { success: true, data: data[0] };
+// Función auxiliar para convertir IDs a nombres de fases
+async function convertirIdsANombres(ids, tipoTabla) {
+  if (!ids || ids.length === 0) {
+    return [];
+  }
+  
+  const tabla = tipoTabla === 'fases_piezas' ? 'fases_piezas' : 'fases_conjuntos';
+  
+  const { data, error } = await supabase
+    .from(tabla)
+    .select('fase')
+    .in('id', ids);
+
+  if (error) {
+    console.error(`Error al obtener nombres de ${tipoTabla}:`, error.message);
+    return [];
+  }
+
+  return data.map(item => item.fase);
 }
 
 // Actualizar obra existente
@@ -71,6 +105,39 @@ export async function updateObra(id, updates) {
   }
 
   return { success: true, data: data[0] };
+}
+
+// Actualizar obra con fases
+export async function updateObraWithFases(id, updates, fases_piezas = [], fases_conjuntos = []) {
+  try {
+    // Convertir IDs de fases a nombres
+    const fasesPiezasNombres = await convertirIdsANombres(fases_piezas, 'fases_piezas');
+    const fasesConjuntosNombres = await convertirIdsANombres(fases_conjuntos, 'fases_conjuntos');
+
+    // Actualizar la obra incluyendo las fases
+    const updatesWithFases = {
+      ...updates,
+      fases_piezas: fasesPiezasNombres,
+      fases_conjuntos: fasesConjuntosNombres
+    };
+
+    const { data: obraData, error: obraError } = await supabase
+      .from('obras')
+      .update(updatesWithFases)
+      .eq('id', id)
+      .select()
+
+    if (obraError) {
+      console.error('Error al actualizar obra:', obraError.message);
+      return { success: false, error: obraError.message };
+    }
+
+    const obra = obraData[0];
+    return { success: true, data: obra };
+  } catch (error) {
+    console.error('Error inesperado al actualizar obra:', error.message);
+    return { success: false, error: error.message };
+  }
 }
 
 // Eliminar obra
@@ -125,4 +192,90 @@ export async function searchObras(filters = {}) {
   }
 
   return data;
+}
+
+// Obtener obras con sus fases
+export async function fetchObrasWithFases() {
+  let { data: obras, error } = await supabase
+    .from('obras')
+    .select('*')
+    .order('created_at', { ascending: false })
+    
+  if (error) {
+    console.error('Error al obtener obras:', error.message);
+    return [];
+  }
+
+  // Para cada obra, obtener sus fases
+  const obrasConFases = await Promise.all(
+    obras.map(async (obra) => {
+      const fasesPiezas = await getObraFasesPiezas(obra.id);
+      const fasesConjuntos = await getObraFasesConjuntos(obra.id);
+      return {
+        ...obra,
+        fases_piezas: fasesPiezas,
+        fases_conjuntos: fasesConjuntos
+      };
+    })
+  );
+
+  return obrasConFases;
+}
+
+// Obtener una obra por ID con sus fases
+export async function fetchObraByIdWithFases(id) {
+  let { data: obra, error } = await supabase
+    .from('obras')
+    .select('*')
+    .eq('id', id)
+    .single()
+    
+  if (error) {
+    console.error('Error al obtener obra:', error.message);
+    return null;
+  }
+
+  // Obtener las fases de la obra
+  const fasesPiezas = await getObraFasesPiezas(id);
+  const fasesConjuntos = await getObraFasesConjuntos(id);
+
+  return {
+    ...obra,
+    fases_piezas: fasesPiezas,
+    fases_conjuntos: fasesConjuntos
+  };
+}
+
+// Obtener fases de piezas de una obra
+export async function getObraFasesPiezas(obraId) {
+  const { data, error } = await supabase
+    .from('obras')
+    .select('fases_piezas')
+    .eq('id', obraId)
+    .single();
+
+  if (error) {
+    console.error('Error al obtener fases de piezas de la obra:', error.message);
+    return [];
+  }
+
+  // Las fases ya están almacenadas como nombres, no necesitamos conversión
+  return data.fases_piezas || [];
+}
+
+// Obtener fases de conjuntos de una obra
+export async function getObraFasesConjuntos(obraId) {
+  const { data, error } = await supabase
+    .from('obras')
+    .select('fases_conjuntos')
+    .eq('id', obraId)
+    .single();
+
+  if (error) {
+    console.error('Error al obtener fases de conjuntos de la obra:', error.message);
+    return [];
+  }
+
+  // Las fases ya están almacenadas como nombres, no necesitamos conversión
+  return data.fases_conjuntos || [];
 }

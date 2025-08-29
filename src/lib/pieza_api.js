@@ -130,8 +130,7 @@ export async function searchPiezas(filters = {}, page = 1, pageSize = 20) {
   let query = supabase.from('piezas').select(`
     *,
     conjuntos:conjunto_id(codigo, obras:obra_id(nombre)),
-    chapas:chapa_id(codigo),
-    fases:fase_id(fase)
+    chapas:chapa_id(codigo)
   `);
 
   if (filters.tipo_material) {
@@ -146,8 +145,8 @@ export async function searchPiezas(filters = {}, page = 1, pageSize = 20) {
     query = query.ilike('colada', `%${filters.colada}%`);
   }
 
-  if (filters.fase_id !== undefined && filters.fase_id !== '') {
-    query = query.eq('fase_id', parseInt(filters.fase_id));
+  if (filters.fase !== undefined && filters.fase !== '') {
+    query = query.eq('fase', parseInt(filters.fase));
   }
 
   if (filters.chapa_id && filters.chapa_id !== '') {
@@ -189,8 +188,8 @@ export async function searchPiezasCount(filters = {}) {
     query = query.ilike('colada', `%${filters.colada}%`);
   }
 
-  if (filters.fase_id !== undefined && filters.fase_id !== '') {
-    query = query.eq('fase_id', parseInt(filters.fase_id));
+  if (filters.fase !== undefined && filters.fase !== '') {
+    query = query.eq('fase', parseInt(filters.fase));
   }
 
   if (filters.chapa_id && filters.chapa_id !== '') {
@@ -208,7 +207,7 @@ export async function searchPiezasCount(filters = {}) {
       // Aplicar otros filtros sobre estos resultados
       let filteredIds = piezasWithObra.map(p => p.id);
       
-      if (filters.tipo_material || filters.codigo || filters.colada || (filters.fase_id !== undefined && filters.fase_id !== '') || filters.chapa_id) {
+      if (filters.tipo_material || filters.codigo || filters.colada || (filters.fase !== undefined && filters.fase !== '') || filters.chapa_id) {
         let countQuery = supabase.from('piezas').select('*', { count: 'exact', head: true });
         countQuery = countQuery.in('id', filteredIds);
         
@@ -221,8 +220,8 @@ export async function searchPiezasCount(filters = {}) {
         if (filters.colada) {
           countQuery = countQuery.ilike('colada', `%${filters.colada}%`);
         }
-        if (filters.fase_id !== undefined && filters.fase_id !== '') {
-          countQuery = countQuery.eq('fase_id', parseInt(filters.fase_id));
+        if (filters.fase !== undefined && filters.fase !== '') {
+          countQuery = countQuery.eq('fase', parseInt(filters.fase));
         }
         if (filters.chapa_id && filters.chapa_id !== '') {
           countQuery = countQuery.eq('chapa_id', parseInt(filters.chapa_id));
