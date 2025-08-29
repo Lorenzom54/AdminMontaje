@@ -190,3 +190,95 @@ export async function fetchFaseConjuntoById(id) {
   }
   return fase;
 }
+
+// Función para actualizar las fases de un conjunto basado en su obra
+export async function actualizarFasesConjunto(conjuntoId) {
+  try {
+    // Primero obtener el conjunto para saber a qué obra pertenece
+    const conjunto = await fetchConjuntoById(conjuntoId);
+    if (!conjunto) {
+      return { success: false, error: 'Conjunto no encontrado' };
+    }
+
+    // Obtener las fases de la obra
+    const { getObraFasesPiezas, getObraFasesConjuntos } = await import('./obra_api.js');
+    const fasesPiezas = await getObraFasesPiezas(conjunto.obra_id);
+    const fasesConjuntos = await getObraFasesConjuntos(conjunto.obra_id);
+
+    // Actualizar el conjunto con las fases
+    const { data, error } = await supabase
+      .from('conjuntos')
+      .update({
+        estados: fasesConjuntos,
+        fases_piezas: fasesPiezas
+      })
+      .eq('id', conjuntoId)
+      .select();
+
+    if (error) {
+      console.error('Error al actualizar fases del conjunto:', error.message);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, data: data[0] };
+  } catch (err) {
+    console.error('Error inesperado al actualizar fases del conjunto:', err.message);
+    return { success: false, error: err.message };
+  }
+}
+
+// Función para actualizar todos los conjuntos existentes
+export async function actualizarFasesTodosConjuntos() {
+  try {
+    // Obtener todos los conjuntos
+    const conjuntos = await fetchConjuntos();
+    const results = {
+      total: conjuntos.length,
+      actualizados: 0,
+      errores: []
+    };
+
+    console.log(`Actualizando fases para ${conjuntos.length} conjuntos...`);
+
+    // Actualizar cada conjunto
+    for (const conjunto of conjuntos) {
+      try {
+        const result = await actualizarFasesConjunto(conjunto.id);
+        if (result.success) {
+          results.actualizados++;
+          console.log(`✅ Conjunto ${conjunto.codigo} actualizado`);
+        } else {
+          results.errores.push(`Conjunto ${conjunto.codigo}: ${result.error}`);
+          console.log(`❌ Error en conjunto ${conjunto.codigo}: ${result.error}`);
+        }
+      } catch (error) {
+        results.errores.push(`Conjunto ${conjunto.codigo}: ${error.message}`);
+        console.log(`❌ Error inesperado en conjunto ${conjunto.codigo}: ${error.message}`);
+      }
+    }
+
+    console.log(`Actualización completada: ${results.actualizados}/${results.total} conjuntos actualizados`);
+    return results;
+  } catch (err) {
+    console.error('Error inesperado al actualizar todos los conjuntos:', err.message);
+    return { success: false, error: err.message };
+  }
+}
+
+// Función para obtener conjuntos con sus fases
+export async function fetchConjuntosWithFases() {
+  let { data: conjuntos, error } = await supabase
+    .from('conjuntos')
+    .select(`
+      *,
+      obras:obra_id(nombre)
+    `)
+    .order('created_at', { ascending: false })
+    
+  if (error) {
+    console.error('Error al obtener conjuntos:', error.message);
+    return [];
+  }
+  
+  return conjuntos || [];
+}
