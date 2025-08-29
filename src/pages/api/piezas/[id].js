@@ -34,19 +34,16 @@ export async function PUT({ params, request }) {
   try {
     const { id } = params;
     const updates = await request.json();
+    
+    console.log('Datos recibidos para actualizar pieza:', { id, updates }); // Debug
 
-    // Convertir fase_id a número si está presente
+    // Convertir fase_id a fase
     if (updates.fase_id !== undefined) {
-      updates.fase_id = parseInt(updates.fase_id);
+      updates.fase = updates.fase_id;
+      delete updates.fase_id;
     }
-
-    // Convertir IDs a números si están presentes
-    if (updates.conjunto_id) {
-      updates.conjunto_id = parseInt(updates.conjunto_id);
-    }
-    if (updates.chapa_id) {
-      updates.chapa_id = parseInt(updates.chapa_id);
-    }
+    
+    console.log('Datos procesados para actualizar:', updates); // Debug
 
     const result = await updatePieza(id, updates);
 

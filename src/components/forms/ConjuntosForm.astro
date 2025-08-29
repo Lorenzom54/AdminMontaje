@@ -2,21 +2,18 @@
 import FormField from './FormField.astro';
 import { fetchObrasForSelect, fetchFaseConjuntosForSelect } from '../../lib/conjunto_api';
 
-// Obtener obras y fases para los selects
+// Obtener obras para los selects
 const obras = await fetchObrasForSelect();
-const fases = await fetchFaseConjuntosForSelect();
 
 // Mapear obras al formato esperado por FormField
-const obraOptions = obras.map(obra => ({
+const obraOptions = obras?.map(obra => ({
   value: obra.id.toString(),
   label: obra.nombre
-}));
+})) || [];
 
-// Mapear fases al formato esperado por FormField
-const faseOptions = fases.map(fase => ({
-  value: fase.id.toString(),
-  label: fase.fase
-}));
+// Obtener estados de la base de datos
+const fasesConjuntos = await fetchFaseConjuntosForSelect();
+const estadosDisponibles = fasesConjuntos?.map(fase => fase.fase) || [];
 ---
 
 <form class="conjuntos-form" id="conjuntos-form">
@@ -37,12 +34,7 @@ const faseOptions = fases.map(fase => ({
         required={true}
       />
       
-      <FormField 
-        label="Fase" 
-        name="fase_id" 
-        type="select"
-        options={faseOptions}
-      />
+
     </div>
     
     <div class="form-column">
@@ -53,6 +45,16 @@ const faseOptions = fases.map(fase => ({
         rows={3}
         placeholder="Descripción del conjunto..."
       />
+      
+      <div class="form-field">
+        <label class="form-label">Estado Actual</label>
+        <select name="estado_actual" class="form-select">
+          <option value="">Seleccionar estado</option>
+          {fasesConjuntos?.map((fase) => (
+            <option value={fase.id}>{fase.fase}</option>
+          ))}
+        </select>
+      </div>
       
       <div class="form-field">
         <label class="form-label">
@@ -110,6 +112,23 @@ const faseOptions = fases.map(fase => ({
   .form-label input[type="checkbox"] {
     width: 16px;
     height: 16px;
+  }
+
+  .form-select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+    background: white;
+    color: #374151;
+    transition: border-color 0.2s ease;
+  }
+
+  .form-select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
   }
 
   .form-actions {
@@ -197,8 +216,8 @@ const faseOptions = fases.map(fase => ({
       codigo: formData.get('codigo'),
       descripcion: formData.get('descripcion'),
       obra_id: formData.get('obra_id'),
-      fase_id: formData.get('fase_id'),
-      is_completed: formData.get('is_completed') === 'true',
+      estado_actual: formData.get('estado_actual') ? parseInt(formData.get('estado_actual')) : null,
+      is_completed: formData.has('is_completed'),
     };
 
     try {

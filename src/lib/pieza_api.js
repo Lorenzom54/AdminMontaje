@@ -2,17 +2,19 @@ import { supabase } from './supabaseClient.js';
 
 // Mapeo de fases (mantener para compatibilidad)
 export const FASES = {
-  0: 'Corte',
-  1: 'Biselado', 
-  2: 'Montaje',
-  3: 'Soldadura'
+  1: 'Para cortar',
+  2: 'Cortado',
+  3: 'Biselado', 
+  4: 'Montaje',
+  5: 'Soldadura'
 };
 
 export const FASES_REVERSE = {
-  'Corte': 0,
-  'Biselado': 1,
-  'Montaje': 2,
-  'Soldadura': 3
+  'Para cortar': 1,
+  'Cortado': 2,
+  'Biselado': 3,
+  'Montaje': 4,
+  'Soldadura': 5
 };
 
 // Obtener todas las piezas
@@ -89,18 +91,81 @@ export async function addPieza(piezaData) {
 
 // Actualizar pieza existente
 export async function updatePieza(id, updates) {
-  const { data, error } = await supabase
-    .from('piezas')
-    .update(updates)
-    .eq('id', id)
-    .select()
+  console.log('Intentando actualizar pieza:', { id, updates }); // Debug
+  
+  try {
+    // Limpiar campos undefined o null problemáticos
+    const cleanUpdates = { ...updates };
+    
+    // Asegurar que fase sea un número válido o null
+    if (cleanUpdates.fase !== undefined) {
+      if (cleanUpdates.fase === '' || cleanUpdates.fase === null) {
+        cleanUpdates.fase = null;
+      } else {
+        cleanUpdates.fase = parseInt(cleanUpdates.fase);
+        if (isNaN(cleanUpdates.fase)) {
+          cleanUpdates.fase = null;
+        }
+      }
+    }
+    
+    // Asegurar que conjunto_id sea un número válido o null
+    if (cleanUpdates.conjunto_id !== undefined) {
+      if (cleanUpdates.conjunto_id === '' || cleanUpdates.conjunto_id === null) {
+        cleanUpdates.conjunto_id = null;
+      } else {
+        cleanUpdates.conjunto_id = parseInt(cleanUpdates.conjunto_id);
+        if (isNaN(cleanUpdates.conjunto_id)) {
+          cleanUpdates.conjunto_id = null;
+        }
+      }
+    }
+    
+    // Asegurar que chapa_id sea un número válido o null
+    if (cleanUpdates.chapa_id !== undefined) {
+      if (cleanUpdates.chapa_id === '' || cleanUpdates.chapa_id === null) {
+        cleanUpdates.chapa_id = null;
+      } else {
+        cleanUpdates.chapa_id = parseInt(cleanUpdates.chapa_id);
+        if (isNaN(cleanUpdates.chapa_id)) {
+          cleanUpdates.chapa_id = null;
+        }
+      }
+    }
+    
+    console.log('Datos limpios para actualizar:', cleanUpdates); // Debug
+    
+    // Intentar actualización sin select primero para evitar el trigger problemático
+    const { error: updateError } = await supabase
+      .from('piezas')
+      .update(cleanUpdates)
+      .eq('id', id);
 
-  if (error) {
-    console.error('Error al actualizar pieza:', error.message);
-    return { success: false, error: error.message };
+    if (updateError) {
+      console.error('Error al actualizar pieza:', updateError.message);
+      console.error('Detalles del error:', updateError); // Debug completo
+      return { success: false, error: updateError.message };
+    }
+
+    // Si la actualización fue exitosa, obtener los datos actualizados
+    const { data, error: selectError } = await supabase
+      .from('piezas')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (selectError) {
+      console.error('Error al obtener pieza actualizada:', selectError.message);
+      // Aunque no podamos obtener los datos, la actualización fue exitosa
+      return { success: true, data: null };
+    }
+
+    console.log('Pieza actualizada exitosamente:', data); // Debug
+    return { success: true, data: data };
+  } catch (err) {
+    console.error('Error inesperado al actualizar pieza:', err);
+    return { success: false, error: err.message };
   }
-
-  return { success: true, data: data[0] };
 }
 
 // Eliminar pieza
@@ -403,23 +468,15 @@ export async function updatePiecesWithChapaId(pieceCode, count, chapaId) {
 // Marcar como cortadas (avanzar fase) todas las piezas de una chapa
 export async function markPiezasCortadasByChapaId(chapaId) {
   try {
-    // Obtener IDs de las fases
-    const faseCorte = await getFasePiezaByName('Corte');
-    const faseBiselado = await getFasePiezaByName('Biselado');
-
-    if (!faseCorte || !faseBiselado) {
-      return {
-        success: false,
-        error: 'No se encontraron las fases "Corte" o "Biselado" en la configuración',
-        updated: 0
-      };
-    }
+    // Usar los valores numéricos directamente
+    const faseParaCortar = 1; // "Para cortar"
+    const faseCortado = 2;    // "Cortado"
 
     const { data, error } = await supabase
       .from('piezas')
-      .update({ fase_id: faseBiselado.id })
+      .update({ fase: faseCortado })
       .eq('chapa_id', parseInt(chapaId))
-      .eq('fase_id', faseCorte.id)
+      .eq('fase', faseParaCortar)
       .select('id');
 
     if (error) {

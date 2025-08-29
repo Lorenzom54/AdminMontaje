@@ -26,9 +26,9 @@ export async function POST({ request }) {
       codigo: codigo,
       tipo_material: tipo_material,
       colada: colada || null,
-      fase_id: fase_id ? parseInt(fase_id) : null, // Usar fase_id en lugar de fase
-      conjunto_id: conjunto_id ? parseInt(conjunto_id) : null,
-      chapa_id: chapa_id ? parseInt(chapa_id) : null
+      fase: (fase_id && fase_id !== '') ? parseInt(fase_id) : null,
+      conjunto_id: (conjunto_id && conjunto_id !== '') ? parseInt(conjunto_id) : null,
+      chapa_id: (chapa_id && chapa_id !== '') ? parseInt(chapa_id) : null
     };
     
     console.log('Datos a insertar:', piezaData); // Para debug

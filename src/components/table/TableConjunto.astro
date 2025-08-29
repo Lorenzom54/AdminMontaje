@@ -5,11 +5,12 @@ interface Props {
     codigo: string;
     descripcion: string;
     obra_id: number;
-    fase_id: number;
+    estado_actual: number;
+    estados: Array<string>;
+    fases: Array<{id: number, fase: string}>;
     is_completed: boolean;
     created_at: string;
     obras?: { nombre: string };
-    fases?: { fase: string };
   }>;
 }
 
@@ -29,7 +30,7 @@ function formatDate(dateString: string) {
         <th>Código</th>
         <th>Descripción</th>
         <th>Obra</th>
-        <th>Fase</th>
+        <th>Estado Actual</th>
         <th>Estado</th>
         <th>Fecha Creación</th>
         <th>Acciones</th>
@@ -55,8 +56,10 @@ function formatDate(dateString: string) {
             </div>
           </td>
           <td>
-            <span class="fase-badge">
-              {conjunto.fases?.fase || 'Sin fase'}
+            <span class="estado-actual-badge">
+              {conjunto.estado_actual !== null && conjunto.fases ? 
+                conjunto.fases.find(fase => fase.id === conjunto.estado_actual)?.fase || 'Sin estado' 
+                : 'Sin estado'}
             </span>
           </td>
           <td>
@@ -151,6 +154,16 @@ function formatDate(dateString: string) {
     font-weight: 500;
   }
 
+  .estado-actual-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    background: #e5e7eb;
+    color: #374151;
+  }
+
   .status-badge {
     display: inline-block;
     padding: 4px 8px;
@@ -220,12 +233,13 @@ function formatDate(dateString: string) {
       if (result.success) {
         const conjunto = result.data;
         
-        // Llenar el formulario con los datos existentes
+                // Llenar el formulario con los datos existentes
         const form = document.getElementById('conjuntos-form');
         if (form) {
           form.querySelector('[name="codigo"]').value = conjunto.codigo || '';
           form.querySelector('[name="descripcion"]').value = conjunto.descripcion || '';
           form.querySelector('[name="obra_id"]').value = conjunto.obra_id?.toString() || '';
+          form.querySelector('[name="estado_actual"]').value = conjunto.estado_actual?.toString() || '';
           form.querySelector('[name="is_completed"]').checked = conjunto.is_completed || false;
           
           // Cambiar el comportamiento del formulario para actualizar
@@ -313,7 +327,8 @@ function formatDate(dateString: string) {
           codigo: formData.get('codigo'),
           descripcion: formData.get('descripcion'),
           obra_id: formData.get('obra_id'),
-          is_completed: formData.get('is_completed') === 'true',
+          estado_actual: formData.get('estado_actual') ? parseInt(formData.get('estado_actual')) : null,
+          is_completed: formData.has('is_completed'),
         };
 
         try {

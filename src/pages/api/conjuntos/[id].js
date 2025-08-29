@@ -35,15 +35,26 @@ export async function PUT({ params, request }) {
     const { id } = params;
     const updates = await request.json();
 
+    console.log('Datos recibidos para actualizar:', updates); // Para debug
+
     // Convertir obra_id a número si está presente
     if (updates.obra_id) {
       updates.obra_id = parseInt(updates.obra_id);
     }
 
-    // Convertir fase_id a número si está presente
-    if (updates.fase_id !== undefined) {
-      updates.fase_id = parseInt(updates.fase_id);
+
+
+    // Asegurar que is_completed sea un booleano
+    if (updates.is_completed !== undefined) {
+      updates.is_completed = Boolean(updates.is_completed);
     }
+
+    // Asegurar que estado_actual sea un número válido
+    if (updates.estado_actual !== undefined) {
+      updates.estado_actual = updates.estado_actual ? parseInt(updates.estado_actual) : null;
+    }
+
+    console.log('Datos procesados para actualizar:', updates); // Para debug
 
     const result = await updateConjunto(id, updates);
 

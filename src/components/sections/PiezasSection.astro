@@ -46,27 +46,27 @@ const obras = await fetchObrasForSelect();
 const chapas = await fetchChapasForSelect();
 
 // Mapear obras al formato esperado por FormField
-const obraOptions = obras.map(obra => ({
+const obraOptions = (obras || []).map(obra => ({
   value: obra.id.toString(),
   label: obra.nombre
 }));
 
 // Mapear chapas al formato esperado por FormField
-const chapaOptions = chapas.map(chapa => ({
+const chapaOptions = (chapas || []).map(chapa => ({
   value: chapa.id.toString(),
   label: `#${chapa.codigo}`
 }));
 // Calcular estadísticas dinámicas (usar total real, no solo la página actual)
 const piezasPorFase = piezas.reduce((acc, pieza) => {
-  const fase = FASES[pieza.fase] || 'Desconocida';
+  const fase = FASES[pieza.fase as keyof typeof FASES] || 'Desconocida';
   acc[fase] = (acc[fase] || 0) + 1;
   return acc;
-}, {});
+}, {} as Record<string, number>);
 
 // Calcular datos de paginación
-const totalPages = Math.ceil(totalPiezas / pageSize);
-const startItem = totalPiezas > 0 ? (currentPage - 1) * pageSize + 1 : 0;
-const endItem = Math.min(currentPage * pageSize, totalPiezas);
+const totalPages = Math.ceil((totalPiezas || 0) / pageSize);
+const startItem = (totalPiezas || 0) > 0 ? (currentPage - 1) * pageSize + 1 : 0;
+const endItem = Math.min(currentPage * pageSize, totalPiezas || 0);
 ---
 
 <PageHeader 
@@ -86,7 +86,7 @@ const endItem = Math.min(currentPage * pageSize, totalPiezas);
     </div>
     <select class="project-filter-select" id="active-project-filter">
       <option value="">Todos los proyectos</option>
-      {obras.map(obra => (
+      {(obras || []).map(obra => (
         <option value={obra.id.toString()} selected={filters.obra_id === obra.id.toString()}>{obra.nombre}</option>
       ))}
     </select>
@@ -153,10 +153,11 @@ const endItem = Math.min(currentPage * pageSize, totalPiezas);
       <div class="table-filters">
         <select class="filter-select" id="fase-filter">
           <option value="">Todas las fases</option>
-          <option value="0" selected={filters.fase === '0'}>Corte</option>
-          <option value="1" selected={filters.fase === '1'}>Biselado</option>
-          <option value="2" selected={filters.fase === '2'}>Montaje</option>
-          <option value="3" selected={filters.fase === '3'}>Soldadura</option>
+          <option value="1" selected={filters.fase === '1'}>Para cortar</option>
+          <option value="2" selected={filters.fase === '2'}>Cortado</option>
+          <option value="3" selected={filters.fase === '3'}>Biselado</option>
+          <option value="4" selected={filters.fase === '4'}>Montaje</option>
+          <option value="5" selected={filters.fase === '5'}>Soldadura</option>
         </select>
         <select class="filter-select" id="chapa-filter">
           <option value="">Todas las chapas</option>

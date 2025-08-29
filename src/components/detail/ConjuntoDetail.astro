@@ -5,6 +5,8 @@ interface Props {
     codigo: string;
     descripcion: string;
     obra_id: number;
+    estado_actual: number;
+    estados: Array<string>;
     is_completed: boolean;
     created_at: string;
     obras?: { nombre: string };
@@ -14,7 +16,7 @@ interface Props {
 const { conjunto } = Astro.props;
 
 // Función para formatear fechas
-function formatDate(dateString) {
+function formatDate(dateString: string) {
   if (!dateString) return '-';
   return new Date(dateString).toLocaleDateString('es-ES', {
     year: 'numeric',
@@ -53,6 +55,14 @@ function formatDate(dateString) {
     <div class="detail-section">
       <h3 class="section-title">Estado y Descripción</h3>
       <div class="info-grid">
+        <div class="info-item">
+          <label class="info-label">Estado Actual</label>
+          <div class="info-value">
+            <span class="estado-actual-badge">
+              {conjunto.estados && conjunto.estado_actual !== null ? conjunto.estados[conjunto.estado_actual] : 'Sin estado'}
+            </span>
+          </div>
+        </div>
         <div class="info-item">
           <label class="info-label">Estado</label>
           <div class="info-value">
@@ -151,6 +161,16 @@ function formatDate(dateString) {
 </div>
 
 <style>
+  .estado-actual-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    background: #e5e7eb;
+    color: #374151;
+  }
+
   .status-badge {
     padding: 4px 12px;
     border-radius: 20px;

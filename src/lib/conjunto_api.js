@@ -1,5 +1,32 @@
 import { supabase } from './supabaseClient.js';
 
+// Función auxiliar para obtener estados de la base de datos
+async function obtenerEstadosDeBD() {
+  const { data: fases, error } = await supabase
+    .from('fases_conjuntos')
+    .select('id, fase')
+    .order('created_at', { ascending: true });
+
+  if (error) {
+    console.error('Error al obtener fases de conjuntos:', error.message);
+    return [];
+  }
+  
+  return fases;
+}
+
+// Función auxiliar para agregar estados a un conjunto
+async function agregarEstadosAConjunto(conjunto) {
+  if (conjunto && !conjunto.estados) {
+    const estados = await obtenerEstadosDeBD();
+    return {
+      ...conjunto,
+      estados: estados
+    };
+  }
+  return conjunto;
+}
+
 // Obtener todos los conjuntos
 export async function fetchConjuntos() {
   console.log('Fetching conjuntos...');
@@ -15,6 +42,16 @@ export async function fetchConjuntos() {
   if (error) {
     console.error('Error al obtener conjuntos:', error.message);
     return [];
+  }
+
+  // Agregar el array de estados a cada conjunto si no existe
+  if (conjuntos) {
+    const fases = await obtenerEstadosDeBD();
+    conjuntos = conjuntos.map(conjunto => ({
+      ...conjunto,
+      estados: conjunto.estados || fases.map(fase => fase.fase),
+      fases: conjunto.fases || fases
+    }));
   }
   
   console.log('Conjuntos obtenidos:', conjuntos?.length || 0);
@@ -36,6 +73,15 @@ export async function fetchConjuntoById(id) {
     console.error('Error al obtener conjunto:', error.message);
     return null;
   }
+
+  if (conjunto && !conjunto.estados) {
+    const estados = await obtenerEstadosDeBD();
+    return {
+      ...conjunto,
+      estados: estados
+    };
+  }
+
   return conjunto;
 }
 
@@ -58,6 +104,8 @@ export async function addConjunto(conjuntoData) {
 
 // Actualizar conjunto existente
 export async function updateConjunto(id, updates) {
+  console.log('Actualizando conjunto ID:', id, 'con datos:', updates); // Para debug
+  
   const { data, error } = await supabase
     .from('conjuntos')
     .update(updates)
@@ -69,6 +117,7 @@ export async function updateConjunto(id, updates) {
     return { success: false, error: error.message };
   }
 
+  console.log('Conjunto actualizado exitosamente:', data[0]); // Para debug
   return { success: true, data: data[0] };
 }
 
@@ -111,8 +160,8 @@ export async function searchConjuntos(filters = {}) {
     query = query.eq('obra_id', filters.obra_id);
   }
 
-  if (filters.fase_id !== undefined && filters.fase_id !== '') {
-    query = query.eq('fase_id', parseInt(filters.fase_id));
+  if (filters.estado_actual !== undefined && filters.estado_actual !== '') {
+    query = query.eq('estado_actual', parseInt(filters.estado_actual));
   }
 
   if (filters.is_completed !== undefined) {
@@ -124,6 +173,15 @@ export async function searchConjuntos(filters = {}) {
   if (error) {
     console.error('Error al buscar conjuntos:', error.message);
     return [];
+  }
+
+  // Agregar el array de estados a cada conjunto si no existe
+  if (data) {
+    const estados = await obtenerEstadosDeBD();
+    return data.map(conjunto => ({
+      ...conjunto,
+      estados: conjunto.estados || estados
+    }));
   }
 
   return data;
@@ -145,6 +203,15 @@ export async function fetchConjuntoByCodigo(codigo) {
     console.error('Error al obtener conjunto por código:', error.message);
     return null;
   }
+
+  if (conjunto && !conjunto.estados) {
+    const estados = await obtenerEstadosDeBD();
+    return {
+      ...conjunto,
+      estados: estados
+    };
+  }
+
   return conjunto;
 }
 

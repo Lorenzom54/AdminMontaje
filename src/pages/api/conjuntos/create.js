@@ -8,7 +8,7 @@ export async function POST({ request }) {
     
     console.log('Datos recibidos:', body); // Para debug
 
-    const { codigo, descripcion, obra_id, fase_id, is_completed } = body;
+    const { codigo, descripcion, obra_id, estado_actual, is_completed } = body;
 
     // Validaciones básicas
     if (!codigo || !obra_id) {
@@ -26,7 +26,7 @@ export async function POST({ request }) {
       codigo: codigo,
       descripcion: descripcion || null,
       obra_id: parseInt(obra_id),
-      fase_id: fase_id ? parseInt(fase_id) : null, // Añadir fase_id
+      estado_actual: estado_actual ? parseInt(estado_actual) : null,
       is_completed: is_completed || false
     };
     

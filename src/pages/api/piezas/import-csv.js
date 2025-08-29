@@ -63,6 +63,7 @@ export async function POST({ request }) {
               const conjuntoResult = await addConjunto({
                 codigo: conjuntoCodigo,
                 obra_id: parseInt(selectedObraId),
+                estado_actual: 1, // Estado por defecto en 1
                 is_completed: false,
                 descripcion: `Conjunto ${conjuntoCodigo} - Importado desde CSV`
               });
@@ -85,7 +86,7 @@ export async function POST({ request }) {
             codigo: piezaCodigo,
             tipo_material: tipoMaterial,
             colada: colada,
-            fase: 0, // Por defecto en Corte
+            fase: 1, // Por defecto en Corte
             conjunto_id: conjuntoId,
             chapa_id: null
           };
