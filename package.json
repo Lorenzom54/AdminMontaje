@@ -9,7 +9,7 @@
     "build:netlify": "cross-env NODE_ENV=production astro build",
     "build:local": "cross-env NODE_ENV=development astro build",
     "preview": "astro preview",
-    "start": "node ./dist/server/entry.mjs --host",
+    "start": "node ./dist/server/entry.mjs --host 0.0.0.0",
     "start:local": "npm run build:local && npm run start",
     "astro": "astro"
   },
