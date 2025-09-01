@@ -1,5 +1,22 @@
 import { supabase } from './supabaseClient.js';
 
+// Mapeo de estados para conjuntos
+export const ESTADOS_CONJUNTOS = {
+  0: 'Incompleto',
+  1: 'En Progreso',
+  2: 'Completado',
+  3: 'Revisión',
+  4: 'Aprobado'
+};
+
+export const ESTADOS_CONJUNTOS_REVERSE = {
+  'Incompleto': 0,
+  'En Progreso': 1,
+  'Completado': 2,
+  'Revisión': 3,
+  'Aprobado': 4
+};
+
 // Función auxiliar para obtener estados de la base de datos
 async function obtenerEstadosDeBD() {
   const { data: fases, error } = await supabase

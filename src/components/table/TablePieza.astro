@@ -1,6 +1,4 @@
 ---
-import { FASES } from '../../lib/pieza_api';
-
 interface Props {
   piezas: Array<{
     id: number;
@@ -22,11 +20,6 @@ const { piezas } = Astro.props;
 function formatDate(dateString: string) {
   if (!dateString) return '-';
   return new Date(dateString).toLocaleDateString('es-ES');
-}
-
-// Función para obtener el nombre de la fase
-function getFaseName(fase: number): string {
-  return FASES[fase as keyof typeof FASES] || 'Sin fase';
 }
 ---
 
@@ -61,7 +54,7 @@ function getFaseName(fase: number): string {
           </td>
           <td>
             <span class="fase-badge">
-              {getFaseName(pieza.fase)}
+              {pieza.fase === 0 ? 'Para cortar' : pieza.fase === 1 ? 'Cortado' : `Fase ${pieza.fase}`}
             </span>
           </td>
           <td>

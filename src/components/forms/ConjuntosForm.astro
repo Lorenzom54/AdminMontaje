@@ -13,7 +13,6 @@ const obraOptions = obras?.map(obra => ({
 
 // Obtener estados de la base de datos
 const fasesConjuntos = await fetchFaseConjuntosForSelect();
-const estadosDisponibles = fasesConjuntos?.map(fase => fase.fase) || [];
 ---
 
 <form class="conjuntos-form" id="conjuntos-form">

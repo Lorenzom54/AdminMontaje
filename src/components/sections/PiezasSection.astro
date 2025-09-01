@@ -58,7 +58,7 @@ const chapaOptions = (chapas || []).map(chapa => ({
 }));
 // Calcular estadísticas dinámicas (usar total real, no solo la página actual)
 const piezasPorFase = piezas.reduce((acc, pieza) => {
-  const fase = FASES[pieza.fase as keyof typeof FASES] || 'Desconocida';
+  const fase = pieza.fase === 0 ? 'Para cortar' : pieza.fase === 1 ? 'Cortado' : `Fase ${pieza.fase}`;
   acc[fase] = (acc[fase] || 0) + 1;
   return acc;
 }, {} as Record<string, number>);
@@ -117,8 +117,8 @@ const endItem = Math.min(currentPage * pageSize, totalPiezas || 0);
         </svg>
       </div>
       <div class="stat-content">
-        <div class="stat-number">{piezasPorFase['Corte'] || 0}</div>
-        <div class="stat-label">En Corte</div>
+        <div class="stat-number">{piezasPorFase['Para cortar'] || 0}</div>
+        <div class="stat-label">Para cortar</div>
       </div>
     </div>
     
@@ -129,20 +129,8 @@ const endItem = Math.min(currentPage * pageSize, totalPiezas || 0);
         </svg>
       </div>
       <div class="stat-content">
-        <div class="stat-number">{piezasPorFase['Soldadura'] || 0}</div>
-        <div class="stat-label">En Soldadura</div>
-      </div>
-    </div>
-    
-    <div class="stat-card">
-      <div class="stat-icon quality">
-        <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-        </svg>
-      </div>
-      <div class="stat-content">
-        <div class="stat-number">{piezasPorFase['Montaje'] || 0}</div>
-        <div class="stat-label">En Montaje</div>
+        <div class="stat-number">{piezasPorFase['Cortado'] || 0}</div>
+        <div class="stat-label">Cortado</div>
       </div>
     </div>
   </div>
@@ -153,11 +141,8 @@ const endItem = Math.min(currentPage * pageSize, totalPiezas || 0);
       <div class="table-filters">
         <select class="filter-select" id="fase-filter">
           <option value="">Todas las fases</option>
-          <option value="1" selected={filters.fase === '1'}>Para cortar</option>
-          <option value="2" selected={filters.fase === '2'}>Cortado</option>
-          <option value="3" selected={filters.fase === '3'}>Biselado</option>
-          <option value="4" selected={filters.fase === '4'}>Montaje</option>
-          <option value="5" selected={filters.fase === '5'}>Soldadura</option>
+          <option value="0" selected={filters.fase === '0'}>Para cortar</option>
+          <option value="1" selected={filters.fase === '1'}>Cortado</option>
         </select>
         <select class="filter-select" id="chapa-filter">
           <option value="">Todas las chapas</option>

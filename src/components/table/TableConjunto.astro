@@ -7,7 +7,6 @@ interface Props {
     obra_id: number;
     estado_actual: number;
     estados: Array<string>;
-    fases: Array<{id: number, fase: string}>;
     is_completed: boolean;
     created_at: string;
     obras?: { nombre: string };
@@ -57,9 +56,7 @@ function formatDate(dateString: string) {
           </td>
           <td>
             <span class="estado-actual-badge">
-              {conjunto.estado_actual !== null && conjunto.fases ? 
-                conjunto.fases.find(fase => fase.id === conjunto.estado_actual)?.fase || 'Sin estado' 
-                : 'Sin estado'}
+              {conjunto.estados[conjunto.estado_actual]}
             </span>
           </td>
           <td>

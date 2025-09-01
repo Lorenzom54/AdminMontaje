@@ -11,9 +11,9 @@ const tipoMaterialOptions = [
   { value: 'chapas y perfiles', label: 'Chapas y Perfiles' }
 ];
 
-const faseOptions = fases.map(f => ({ value: f.id.toString(), label: f.fase }));
-const conjuntoOptions = conjuntos.map(c => ({ value: c.id.toString(), label: c.codigo }));
-const chapaOptions = chapas.map(c => ({ value: c.id.toString(), label: `#${c.codigo}` }));
+const faseOptions = fases?.map(f => ({ value: f.id.toString(), label: f.fase })) || [];
+const conjuntoOptions = conjuntos?.map(c => ({ value: c.id.toString(), label: c.codigo })) || [];
+const chapaOptions = chapas?.map(c => ({ value: c.id.toString(), label: `#${c.codigo}` })) || [];
 ---
 
 <form class="piezas-form" id="piezas-form">

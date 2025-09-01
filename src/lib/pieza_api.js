@@ -1,21 +1,19 @@
 import { supabase } from './supabaseClient.js';
 
-// Mapeo de fases (mantener para compatibilidad)
-export const FASES = {
-  1: 'Para cortar',
-  2: 'Cortado',
-  3: 'Biselado', 
-  4: 'Montaje',
-  5: 'Soldadura'
-};
+// Función para obtener el nombre de la fase desde la base de datos
+export async function getFaseName(faseId) {
+  const { data, error } = await supabase
+    .from('fases_piezas')
+    .select('fase')
+    .eq('id', faseId)
+    .single();
 
-export const FASES_REVERSE = {
-  'Para cortar': 1,
-  'Cortado': 2,
-  'Biselado': 3,
-  'Montaje': 4,
-  'Soldadura': 5
-};
+  if (error) {
+    console.error('Error al obtener nombre de fase:', error.message);
+    return 'Sin fase';
+  }
+  return data?.fase || 'Sin fase';
+}
 
 // Obtener todas las piezas
 export async function fetchPiezas(page = 1, pageSize = 20) {
@@ -135,7 +133,8 @@ export async function updatePieza(id, updates) {
     
     console.log('Datos limpios para actualizar:', cleanUpdates); // Debug
     
-    // Intentar actualización sin select primero para evitar el trigger problemático
+    // Intentar actualización sin triggers problemáticos
+    // Primero intentar con una actualización simple sin select
     const { error: updateError } = await supabase
       .from('piezas')
       .update(cleanUpdates)
@@ -143,25 +142,59 @@ export async function updatePieza(id, updates) {
 
     if (updateError) {
       console.error('Error al actualizar pieza:', updateError.message);
-      console.error('Detalles del error:', updateError); // Debug completo
-      return { success: false, error: updateError.message };
-    }
-
-    // Si la actualización fue exitosa, obtener los datos actualizados
-    const { data, error: selectError } = await supabase
-      .from('piezas')
-      .select('*')
-      .eq('id', id)
-      .single();
-
-    if (selectError) {
-      console.error('Error al obtener pieza actualizada:', selectError.message);
-      // Aunque no podamos obtener los datos, la actualización fue exitosa
+      console.error('Detalles del error:', updateError);
+      
+      // Si el error persiste, intentar actualizar solo campos específicos uno por uno
+      console.log('Intentando actualización campo por campo...');
+      
+      const fieldsToUpdate = Object.keys(cleanUpdates);
+      let successCount = 0;
+      
+      for (const field of fieldsToUpdate) {
+        try {
+          const { error: fieldError } = await supabase
+    .from('piezas')
+            .update({ [field]: cleanUpdates[field] })
+            .eq('id', id);
+            
+          if (!fieldError) {
+            successCount++;
+          } else {
+            console.error(`Error actualizando campo ${field}:`, fieldError.message);
+          }
+        } catch (err) {
+          console.error(`Error inesperado actualizando campo ${field}:`, err);
+        }
+      }
+      
+      if (successCount === 0) {
+        return { success: false, error: 'No se pudo actualizar ningún campo' };
+      }
+      
+      console.log(`Se actualizaron ${successCount} de ${fieldsToUpdate.length} campos`);
       return { success: true, data: null };
     }
 
-    console.log('Pieza actualizada exitosamente:', data); // Debug
-    return { success: true, data: data };
+    // Si la actualización fue exitosa, intentar obtener los datos
+    try {
+      const { data, error: selectError } = await supabase
+        .from('piezas')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (selectError) {
+        console.error('Error al obtener pieza actualizada:', selectError.message);
+        // La actualización fue exitosa aunque no podamos obtener los datos
+        return { success: true, data: null };
+      }
+
+      console.log('Pieza actualizada exitosamente:', data);
+      return { success: true, data: data };
+    } catch (selectErr) {
+      console.error('Error inesperado al obtener datos:', selectErr);
+      return { success: true, data: null };
+    }
   } catch (err) {
     console.error('Error inesperado al actualizar pieza:', err);
     return { success: false, error: err.message };
@@ -468,9 +501,9 @@ export async function updatePiecesWithChapaId(pieceCode, count, chapaId) {
 // Marcar como cortadas (avanzar fase) todas las piezas de una chapa
 export async function markPiezasCortadasByChapaId(chapaId) {
   try {
-    // Usar los valores numéricos directamente
-    const faseParaCortar = 1; // "Para cortar"
-    const faseCortado = 2;    // "Cortado"
+    // Usar los valores numéricos directamente - primer estado (0) al segundo estado (1)
+    const faseParaCortar = 0; // Primer estado
+    const faseCortado = 1;    // Segundo estado
 
     const { data, error } = await supabase
       .from('piezas')

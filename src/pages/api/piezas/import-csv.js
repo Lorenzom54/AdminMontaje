@@ -1,5 +1,6 @@
 import { addPieza } from '../../../lib/pieza_api.js';
 import { fetchConjuntoByCodigo, addConjunto } from '../../../lib/conjunto_api.js';
+import { fetchFaseConjuntosForSelect } from '../../../lib/fase_conjuntos_api.js';
 
 export const prerender = false;
 
@@ -17,6 +18,20 @@ export async function POST({ request }) {
         headers: { 'Content-Type': 'application/json' },
       });
     }
+
+    // Obtener las fases de conjuntos para encontrar el estado "Incompleto"
+    const fasesConjuntos = await fetchFaseConjuntosForSelect();
+    const estadoIncompleto = fasesConjuntos.find(fase => 
+      fase.fase.toLowerCase().includes('incompleto') || 
+      fase.fase.toLowerCase().includes('pendiente') ||
+      fase.fase.toLowerCase().includes('inicial')
+    );
+    
+    // Usar 0 como estado por defecto para conjuntos (Incompleto)
+    const estadoPorDefecto = 0;
+    
+    console.log('Estado por defecto para conjuntos:', estadoPorDefecto);
+    console.log('Fases disponibles:', fasesConjuntos.map(f => `${f.id}: ${f.fase}`));
 
     const results = {
       conjuntosCreados: 0,
@@ -63,7 +78,7 @@ export async function POST({ request }) {
               const conjuntoResult = await addConjunto({
                 codigo: conjuntoCodigo,
                 obra_id: parseInt(selectedObraId),
-                estado_actual: 1, // Estado por defecto en 1
+                estado_actual: estadoPorDefecto, // Estado por defecto dinámico
                 is_completed: false,
                 descripcion: `Conjunto ${conjuntoCodigo} - Importado desde CSV`
               });
@@ -86,7 +101,7 @@ export async function POST({ request }) {
             codigo: piezaCodigo,
             tipo_material: tipoMaterial,
             colada: colada,
-            fase: 1, // Por defecto en Corte
+            fase: 0, // Por defecto en el primer estado (0)
             conjunto_id: conjuntoId,
             chapa_id: null
           };
