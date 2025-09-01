@@ -286,6 +286,43 @@ class ModalManager {
   convertToInput(field) {
     const currentValue = field.textContent.trim();
     const fieldName = field.getAttribute('data-field');
+    const dataType = field.getAttribute('data-type');
+    
+    // Si es un select, crear un elemento select
+    if (dataType === 'select') {
+      const optionsAttr = field.getAttribute('data-options');
+      const currentValueAttr = field.getAttribute('data-value');
+      
+      try {
+        const options = JSON.parse(optionsAttr || '[]');
+        const select = document.createElement('select');
+        select.className = 'edit-input edit-select';
+        select.setAttribute('data-original-value', currentValue);
+        
+        // Añadir opción vacía
+        const emptyOption = document.createElement('option');
+        emptyOption.value = '';
+        emptyOption.textContent = 'Seleccionar...';
+        select.appendChild(emptyOption);
+        
+        // Añadir opciones
+        options.forEach(option => {
+          const optionElement = document.createElement('option');
+          optionElement.value = option.value;
+          optionElement.textContent = option.label;
+          if (option.value === currentValueAttr) {
+            optionElement.selected = true;
+          }
+          select.appendChild(optionElement);
+        });
+        
+        field.innerHTML = '';
+        field.appendChild(select);
+        return;
+      } catch (e) {
+        console.error('Error parsing select options:', e);
+      }
+    }
     
     // Determinar el tipo de input basado en el campo
     let inputType = 'text';
@@ -374,7 +411,7 @@ class ModalManager {
     }
   }
 
-  saveChanges(modal) {
+  async saveChanges(modal) {
     const editableFields = modal.querySelectorAll('.info-value.editable');
     const changes = {};
     
@@ -382,34 +419,107 @@ class ModalManager {
       const input = field.querySelector('.edit-input');
       if (input) {
         const fieldName = field.getAttribute('data-field');
-        const newValue = input.value;
+        let newValue = input.value;
+        
+        // Convertir valores numéricos
+        if (fieldName === 'estado_actual' && newValue !== '') {
+          newValue = parseInt(newValue);
+        }
+        
         changes[fieldName] = newValue;
         
-        // Actualizar el valor mostrado
-        field.textContent = newValue;
+        // Actualizar el valor mostrado en el DOM
+        if (input.tagName === 'SELECT') {
+          const selectedOption = input.options[input.selectedIndex];
+          field.innerHTML = `<span class="estado-actual-badge">${selectedOption.textContent}</span>`;
+          // Actualizar el data-value para futuras ediciones
+          field.setAttribute('data-value', newValue.toString());
+        } else {
+          field.textContent = newValue;
+        }
       }
     });
     
-    // Simular guardado
-    console.log('Cambios guardados:', changes);
+    // Determinar el tipo de entidad y el ID
+    const modalId = modal.id;
+    let entityType = '';
+    let entityId = '';
     
-    // Mostrar mensaje de éxito
+    if (modalId.includes('detail-pieza-')) {
+      entityType = 'piezas';
+      entityId = modalId.replace('detail-pieza-', '');
+    } else if (modalId.includes('detail-conjunto-')) {
+      entityType = 'conjuntos';
+      entityId = modalId.replace('detail-conjunto-', '');
+    } else if (modalId.includes('detail-obra-')) {
+      entityType = 'obras';
+      entityId = modalId.replace('detail-obra-', '');
+    }
+    
+    console.log('Cambios a guardar:', changes);
+    console.log('Entidad:', entityType, 'ID:', entityId);
+    
     const saveButton = modal.querySelector('[data-edit-mode="save"]');
     if (saveButton) {
       const originalText = saveButton.innerHTML;
+      saveButton.disabled = true;
       saveButton.innerHTML = `
-        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="animate-spin">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
         </svg>
-        ¡Guardado!
+        Guardando...
       `;
-      saveButton.style.background = '#10b981';
       
-      setTimeout(() => {
-        saveButton.innerHTML = originalText;
-        saveButton.style.background = '';
-        this.disableEditMode(modal);
-      }, 1500);
+      try {
+        const response = await fetch(`/api/${entityType}/${entityId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(changes)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+          // Mostrar mensaje de éxito
+          saveButton.innerHTML = `
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            ¡Guardado!
+          `;
+          saveButton.style.background = '#10b981';
+          
+          setTimeout(() => {
+            saveButton.innerHTML = originalText;
+            saveButton.style.background = '';
+            saveButton.disabled = false;
+            this.disableEditMode(modal);
+            // Recargar la página para reflejar cambios
+            location.reload();
+          }, 1500);
+        } else {
+          throw new Error(result.error || 'Error al guardar');
+        }
+      } catch (error) {
+        console.error('Error al guardar cambios:', error);
+        
+        // Mostrar error
+        saveButton.innerHTML = `
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+          Error al guardar
+        `;
+        saveButton.style.background = '#ef4444';
+        
+        setTimeout(() => {
+          saveButton.innerHTML = originalText;
+          saveButton.style.background = '';
+          saveButton.disabled = false;
+        }, 2000);
+      }
     }
   }
 }
@@ -440,7 +550,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Agregar estilos para el modo de edición
   const style = document.createElement('style');
   style.textContent = `
-    .edit-input {
+    .edit-input, .edit-select {
       width: 100%;
       padding: 6px 8px;
       border: 1px solid #3b82f6;

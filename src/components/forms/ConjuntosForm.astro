@@ -49,8 +49,8 @@ const fasesConjuntos = await fetchFaseConjuntosForSelect();
         <label class="form-label">Estado Actual</label>
         <select name="estado_actual" class="form-select">
           <option value="">Seleccionar estado</option>
-          {fasesConjuntos?.map((fase) => (
-            <option value={fase.id}>{fase.fase}</option>
+          {fasesConjuntos?.map((fase, i) => (
+            <option value={i}>{fase.fase}</option>
           ))}
         </select>
       </div>

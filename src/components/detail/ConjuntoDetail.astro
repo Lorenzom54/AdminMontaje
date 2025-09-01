@@ -57,7 +57,7 @@ function formatDate(dateString: string) {
       <div class="info-grid">
         <div class="info-item">
           <label class="info-label">Estado Actual</label>
-          <div class="info-value">
+          <div class="info-value editable" data-field="estado_actual" data-type="select" data-value={conjunto.estado_actual?.toString() || ""} data-options={JSON.stringify(conjunto.estados?.map((estado, i) => ({ value: i.toString(), label: estado })) || [])}>
             <span class="estado-actual-badge">
               {conjunto.estados && conjunto.estado_actual !== null ? conjunto.estados[conjunto.estado_actual] : 'Sin estado'}
             </span>
