@@ -1,4 +1,4 @@
-import { f as fetchFasePiezas } from '../../chunks/fase_piezas_api_CAQrCH92.mjs';
+import { f as fetchFasePiezas } from '../../chunks/fase_piezas_api_BMSUIlot.mjs';
 export { renderers } from '../../renderers.mjs';
 
 const prerender = false;

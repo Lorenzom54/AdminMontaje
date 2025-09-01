@@ -1,4 +1,4 @@
-import { s as supabase } from './supabaseClient_CMJLZPZx.mjs';
+import { s as supabase } from './supabaseClient_CTFy9dOP.mjs';
 
 // Obtener todas las fases de conjuntos
 async function fetchFaseConjuntos() {
@@ -60,4 +60,18 @@ async function deleteFaseConjunto(id) {
   return { success: true };
 }
 
-export { addFaseConjunto as a, deleteFaseConjunto as d, fetchFaseConjuntos as f, updateFaseConjunto as u };
+// Obtener fases para select (formularios)
+async function fetchFaseConjuntosForSelect() {
+  const { data, error } = await supabase
+    .from('fases_conjuntos')
+    .select('id, fase')
+    .order('created_at', { ascending: true });
+
+  if (error) {
+    console.error('Error al obtener fases de conjuntos para select:', error.message);
+    return [];
+  }
+  return data;
+}
+
+export { addFaseConjunto as a, fetchFaseConjuntosForSelect as b, deleteFaseConjunto as d, fetchFaseConjuntos as f, updateFaseConjunto as u };

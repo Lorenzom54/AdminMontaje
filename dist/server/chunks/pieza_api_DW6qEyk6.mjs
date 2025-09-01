@@ -1,12 +1,52 @@
-import { s as supabase } from './supabaseClient_CMJLZPZx.mjs';
+import { s as supabase } from './supabaseClient_CTFy9dOP.mjs';
 
-// Mapeo de fases (mantener para compatibilidad)
+// Mapeo estático de fases de piezas (fallback)
 const FASES = {
-  0: 'Corte',
-  1: 'Biselado', 
-  2: 'Montaje',
-  3: 'Soldadura'
+  0: 'Para cortar',
+  1: 'Cortado'
 };
+
+// Caché en memoria para el mapa de fases
+let fasesCache = null;
+let fasesCacheUpdatedAt = 0;
+const FASES_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutos
+
+// Obtener mapa dinámico de fases (índice -> nombre) desde la BD con caché
+async function getFasesMap() {
+  const now = Date.now();
+  if (fasesCache && (now - fasesCacheUpdatedAt) < FASES_CACHE_TTL_MS) {
+    return fasesCache;
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('fases_piezas')
+      .select('id, fase, created_at')
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      console.error('Error al obtener fases dinámicas de piezas:', error.message);
+      fasesCache = FASES;
+      fasesCacheUpdatedAt = now;
+      return fasesCache;
+    }
+
+    // Construir el mapa por índice ordinal (0..n-1) según el orden de creación
+    const map = {};
+    (data || []).forEach((row, index) => {
+      map[index] = row.fase;
+    });
+
+    fasesCache = Object.keys(map).length > 0 ? map : FASES;
+    fasesCacheUpdatedAt = now;
+    return fasesCache;
+  } catch (err) {
+    console.error('Error inesperado al construir mapa de fases:', err);
+    fasesCache = FASES;
+    fasesCacheUpdatedAt = now;
+    return fasesCache;
+  }
+}
 
 // Obtener todas las piezas
 async function fetchPiezas(page = 1, pageSize = 20) {
@@ -82,18 +122,116 @@ async function addPieza(piezaData) {
 
 // Actualizar pieza existente
 async function updatePieza(id, updates) {
-  const { data, error } = await supabase
+  console.log('Intentando actualizar pieza:', { id, updates }); // Debug
+  
+  try {
+    // Limpiar campos undefined o null problemáticos
+    const cleanUpdates = { ...updates };
+    
+    // Asegurar que fase sea un número válido o null
+    if (cleanUpdates.fase !== undefined) {
+      if (cleanUpdates.fase === '' || cleanUpdates.fase === null) {
+        cleanUpdates.fase = null;
+      } else {
+        cleanUpdates.fase = parseInt(cleanUpdates.fase);
+        if (isNaN(cleanUpdates.fase)) {
+          cleanUpdates.fase = null;
+        }
+      }
+    }
+    
+    // Asegurar que conjunto_id sea un número válido o null
+    if (cleanUpdates.conjunto_id !== undefined) {
+      if (cleanUpdates.conjunto_id === '' || cleanUpdates.conjunto_id === null) {
+        cleanUpdates.conjunto_id = null;
+      } else {
+        cleanUpdates.conjunto_id = parseInt(cleanUpdates.conjunto_id);
+        if (isNaN(cleanUpdates.conjunto_id)) {
+          cleanUpdates.conjunto_id = null;
+        }
+      }
+    }
+    
+    // Asegurar que chapa_id sea un número válido o null
+    if (cleanUpdates.chapa_id !== undefined) {
+      if (cleanUpdates.chapa_id === '' || cleanUpdates.chapa_id === null) {
+        cleanUpdates.chapa_id = null;
+      } else {
+        cleanUpdates.chapa_id = parseInt(cleanUpdates.chapa_id);
+        if (isNaN(cleanUpdates.chapa_id)) {
+          cleanUpdates.chapa_id = null;
+        }
+      }
+    }
+    
+    console.log('Datos limpios para actualizar:', cleanUpdates); // Debug
+    
+    // Intentar actualización sin triggers problemáticos
+    // Primero intentar con una actualización simple sin select
+    const { error: updateError } = await supabase
+      .from('piezas')
+      .update(cleanUpdates)
+      .eq('id', id);
+
+    if (updateError) {
+      console.error('Error al actualizar pieza:', updateError.message);
+      console.error('Detalles del error:', updateError);
+      
+      // Si el error persiste, intentar actualizar solo campos específicos uno por uno
+      console.log('Intentando actualización campo por campo...');
+      
+      const fieldsToUpdate = Object.keys(cleanUpdates);
+      let successCount = 0;
+      
+      for (const field of fieldsToUpdate) {
+        try {
+          const { error: fieldError } = await supabase
     .from('piezas')
-    .update(updates)
-    .eq('id', id)
-    .select();
+            .update({ [field]: cleanUpdates[field] })
+            .eq('id', id);
+            
+          if (!fieldError) {
+            successCount++;
+          } else {
+            console.error(`Error actualizando campo ${field}:`, fieldError.message);
+          }
+        } catch (err) {
+          console.error(`Error inesperado actualizando campo ${field}:`, err);
+        }
+      }
+      
+      if (successCount === 0) {
+        return { success: false, error: 'No se pudo actualizar ningún campo' };
+      }
+      
+      console.log(`Se actualizaron ${successCount} de ${fieldsToUpdate.length} campos`);
+      return { success: true, data: null };
+    }
 
-  if (error) {
-    console.error('Error al actualizar pieza:', error.message);
-    return { success: false, error: error.message };
+    // Si la actualización fue exitosa, intentar obtener los datos
+    try {
+      const { data, error: selectError } = await supabase
+        .from('piezas')
+        .select('*')
+        .eq('id', id)
+        .single();
+
+      if (selectError) {
+        console.error('Error al obtener pieza actualizada:', selectError.message);
+        // La actualización fue exitosa aunque no podamos obtener los datos
+        return { success: true, data: null };
+      }
+
+      console.log('Pieza actualizada exitosamente:', data);
+      return { success: true, data: data };
+    } catch (selectErr) {
+      console.error('Error inesperado al obtener datos:', selectErr);
+      return { success: true, data: null };
+    }
+  } catch (err) {
+    console.error('Error inesperado al actualizar pieza:', err);
+    return { success: false, error: err.message };
   }
-
-  return { success: true, data: data[0] };
 }
 
 // Eliminar pieza
@@ -123,8 +261,7 @@ async function searchPiezas(filters = {}, page = 1, pageSize = 20) {
   let query = supabase.from('piezas').select(`
     *,
     conjuntos:conjunto_id(codigo, obras:obra_id(nombre)),
-    chapas:chapa_id(codigo),
-    fases:fase_id(fase)
+    chapas:chapa_id(codigo)
   `);
 
   if (filters.tipo_material) {
@@ -139,8 +276,8 @@ async function searchPiezas(filters = {}, page = 1, pageSize = 20) {
     query = query.ilike('colada', `%${filters.colada}%`);
   }
 
-  if (filters.fase_id !== undefined && filters.fase_id !== '') {
-    query = query.eq('fase_id', parseInt(filters.fase_id));
+  if (filters.fase !== undefined && filters.fase !== '') {
+    query = query.eq('fase', parseInt(filters.fase));
   }
 
   if (filters.chapa_id && filters.chapa_id !== '') {
@@ -182,8 +319,8 @@ async function searchPiezasCount(filters = {}) {
     query = query.ilike('colada', `%${filters.colada}%`);
   }
 
-  if (filters.fase_id !== undefined && filters.fase_id !== '') {
-    query = query.eq('fase_id', parseInt(filters.fase_id));
+  if (filters.fase !== undefined && filters.fase !== '') {
+    query = query.eq('fase', parseInt(filters.fase));
   }
 
   if (filters.chapa_id && filters.chapa_id !== '') {
@@ -201,7 +338,7 @@ async function searchPiezasCount(filters = {}) {
       // Aplicar otros filtros sobre estos resultados
       let filteredIds = piezasWithObra.map(p => p.id);
       
-      if (filters.tipo_material || filters.codigo || filters.colada || (filters.fase_id !== undefined && filters.fase_id !== '') || filters.chapa_id) {
+      if (filters.tipo_material || filters.codigo || filters.colada || (filters.fase !== undefined && filters.fase !== '') || filters.chapa_id) {
         let countQuery = supabase.from('piezas').select('*', { count: 'exact', head: true });
         countQuery = countQuery.in('id', filteredIds);
         
@@ -214,8 +351,8 @@ async function searchPiezasCount(filters = {}) {
         if (filters.colada) {
           countQuery = countQuery.ilike('colada', `%${filters.colada}%`);
         }
-        if (filters.fase_id !== undefined && filters.fase_id !== '') {
-          countQuery = countQuery.eq('fase_id', parseInt(filters.fase_id));
+        if (filters.fase !== undefined && filters.fase !== '') {
+          countQuery = countQuery.eq('fase', parseInt(filters.fase));
         }
         if (filters.chapa_id && filters.chapa_id !== '') {
           countQuery = countQuery.eq('chapa_id', parseInt(filters.chapa_id));
@@ -280,21 +417,6 @@ async function fetchFasePiezasForSelect() {
     return [];
   }
   return fases;
-}
-
-// Obtener fase de pieza por nombre
-async function getFasePiezaByName(nombre) {
-  let { data: fase, error } = await supabase
-    .from('fases_piezas')
-    .select('*')
-    .eq('fase', nombre)
-    .single();
-    
-  if (error) {
-    console.error('Error al obtener fase de pieza por nombre:', error.message);
-    return null;
-  }
-  return fase;
 }
 
 // Actualizar piezas con chapa_id
@@ -362,23 +484,15 @@ async function updatePiecesWithChapaId(pieceCode, count, chapaId) {
 // Marcar como cortadas (avanzar fase) todas las piezas de una chapa
 async function markPiezasCortadasByChapaId(chapaId) {
   try {
-    // Obtener IDs de las fases
-    const faseCorte = await getFasePiezaByName('Corte');
-    const faseBiselado = await getFasePiezaByName('Biselado');
-
-    if (!faseCorte || !faseBiselado) {
-      return {
-        success: false,
-        error: 'No se encontraron las fases "Corte" o "Biselado" en la configuración',
-        updated: 0
-      };
-    }
+    // Usar los valores numéricos directamente - primer estado (0) al segundo estado (1)
+    const faseParaCortar = 0; // Primer estado
+    const faseCortado = 1;    // Segundo estado
 
     const { data, error } = await supabase
       .from('piezas')
-      .update({ fase_id: faseBiselado.id })
+      .update({ fase: faseCortado })
       .eq('chapa_id', parseInt(chapaId))
-      .eq('fase_id', faseCorte.id)
+      .eq('fase', faseParaCortar)
       .select('id');
 
     if (error) {
@@ -393,4 +507,4 @@ async function markPiezasCortadasByChapaId(chapaId) {
   }
 }
 
-export { FASES as F, fetchChapasForSelect as a, fetchFasePiezasForSelect as b, searchPiezasCount as c, fetchPiezas as d, fetchPiezasCount as e, fetchConjuntosForSelect as f, addPieza as g, fetchPiezaById as h, updatePieza as i, deletePieza as j, markPiezasCortadasByChapaId as m, searchPiezas as s, updatePiecesWithChapaId as u };
+export { fetchChapasForSelect as a, fetchFasePiezasForSelect as b, searchPiezasCount as c, fetchPiezas as d, fetchPiezasCount as e, fetchConjuntosForSelect as f, getFasesMap as g, addPieza as h, fetchPiezaById as i, updatePieza as j, deletePieza as k, markPiezasCortadasByChapaId as m, searchPiezas as s, updatePiecesWithChapaId as u };

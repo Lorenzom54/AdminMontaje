@@ -1,8 +1,8 @@
 import { readFile } from 'node:fs/promises';
-import os from 'node:os';
-import { fileURLToPath, pathToFileURL } from 'node:url';
-import { j as joinPaths, i as isRemotePath, r as removeQueryString } from './path_81mnGUal.mjs';
-import { A as AstroError, E as ExpectedImage, L as LocalImageUsedWrongly, M as MissingImageDimension, U as UnsupportedImageFormat, I as IncompatibleDescriptorOptions, a as UnsupportedImageConversion, t as toStyleString, N as NoImageMetadata, F as FailedToFetchRemoteImageDimensions, b as ExpectedImageOptions, c as ExpectedNotESMImage, d as InvalidImageService, e as createComponent, f as createAstro, g as ImageMissingAlt, m as maybeRenderHead, h as addAttribute, s as spreadAttributes, r as renderTemplate, i as ExperimentalFontsNotEnabled, j as FontFamilyNotFound, u as unescapeHTML } from './astro/server_BxYUwxS1.mjs';
+import { isAbsolute } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { j as joinPaths, i as isRemotePath } from './path_BuZodYwm.mjs';
+import { A as AstroError, E as ExpectedImage, L as LocalImageUsedWrongly, M as MissingImageDimension, U as UnsupportedImageFormat, I as IncompatibleDescriptorOptions, a as UnsupportedImageConversion, t as toStyleString, N as NoImageMetadata, F as FailedToFetchRemoteImageDimensions, b as ExpectedImageOptions, c as ExpectedNotESMImage, d as InvalidImageService, e as createComponent, f as createAstro, g as ImageMissingAlt, m as maybeRenderHead, h as addAttribute, s as spreadAttributes, r as renderTemplate, i as ExperimentalFontsNotEnabled, j as FontFamilyNotFound, u as unescapeHTML } from './astro/server_B5z0SCK9.mjs';
 import 'clsx';
 import * as mime from 'mrmime';
 import 'kleur/colors';
@@ -1259,7 +1259,7 @@ async function getConfiguredImageService() {
   if (!globalThis?.astroAsset?.imageService) {
     const { default: service } = await import(
       // @ts-expect-error
-      './sharp_CqYgTzrN.mjs'
+      './sharp_D6sl3fVd.mjs'
     ).catch((e) => {
       const error = new AstroError(InvalidImageService);
       error.cause = e;
@@ -1426,9 +1426,6 @@ const $$Image = createComponent(async ($$result, $$props, $$slots) => {
   if (image.srcSet.values.length > 0) {
     additionalAttributes.srcset = image.srcSet.attribute;
   }
-  {
-    additionalAttributes["data-image-component"] = "true";
-  }
   const { class: className, ...attributes } = { ...additionalAttributes, ...image.attributes };
   return renderTemplate`${maybeRenderHead()}<img${addAttribute(image.src, "src")}${spreadAttributes(attributes)}${addAttribute(className, "class")}>`;
 }, "/Applications/XAMPP/xamppfiles/htdocs/AdminMontaje/node_modules/astro/components/Image.astro", void 0);
@@ -1493,9 +1490,6 @@ const $$Picture = createComponent(async ($$result, $$props, $$slots) => {
   }
   if (fallbackImage.srcSet.values.length > 0) {
     imgAdditionalAttributes.srcset = fallbackImage.srcSet.attribute;
-  }
-  {
-    imgAdditionalAttributes["data-image-component"] = "true";
   }
   const { class: className, ...attributes } = {
     ...imgAdditionalAttributes,
@@ -1566,14 +1560,23 @@ const etag = (payload, weak = false) => {
   return prefix + fnv1a52(payload).toString(36) + payload.length.toString(36) + '"';
 };
 
-function replaceFileSystemReferences(src) {
-  return os.platform().includes("win32") ? src.replace(/^\/@fs\//, "") : src.replace(/^\/@fs/, "");
-}
 async function loadLocalImage(src, url) {
-  fileURLToPath(assetsDir);
+  const assetsDirPath = fileURLToPath(assetsDir);
   let fileUrl;
   {
-    fileUrl = pathToFileURL(removeQueryString(replaceFileSystemReferences(src)));
+    try {
+      const idx = url.pathname.indexOf("/_image");
+      if (idx > 0) {
+        src = src.slice(idx);
+      }
+      fileUrl = new URL("." + src, outDir);
+      const filePath = fileURLToPath(fileUrl);
+      if (!isAbsolute(filePath) || !filePath.startsWith(assetsDirPath)) {
+        return void 0;
+      }
+    } catch {
+      return void 0;
+    }
   }
   let buffer = void 0;
   try {
@@ -1640,7 +1643,7 @@ const GET = async ({ request }) => {
   } catch (err) {
     console.error("Could not process image request:", err);
     return new Response(
-      `Could not process image request: ${err}` ,
+      `Internal Server Error`,
       {
         status: 500
       }

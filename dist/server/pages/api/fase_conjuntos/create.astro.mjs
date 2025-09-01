@@ -1,4 +1,4 @@
-import { a as addFaseConjunto } from '../../../chunks/fase_conjuntos_api_DqQB7fPa.mjs';
+import { a as addFaseConjunto } from '../../../chunks/fase_conjuntos_api_CA1fKWH4.mjs';
 export { renderers } from '../../../renderers.mjs';
 
 const prerender = false;

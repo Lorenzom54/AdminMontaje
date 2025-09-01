@@ -1,194 +1,26 @@
-import { e as createComponent, r as renderTemplate, k as renderComponent, m as maybeRenderHead, f as createAstro, h as addAttribute } from './astro/server_BxYUwxS1.mjs';
+import { e as createComponent, m as maybeRenderHead, k as renderComponent, r as renderTemplate, f as createAstro, h as addAttribute } from './astro/server_B5z0SCK9.mjs';
 import 'kleur/colors';
-import { a as $$PageHeader } from './PageHeader_D7LDH3qQ.mjs';
-import { $ as $$FormField, a as $$Modal } from './FormField_D9WOQIop.mjs';
+import { a as $$PageHeader } from './PageHeader_B1Q6qJIn.mjs';
+import { $ as $$FormField, a as $$Modal } from './FormField_CyNQw7Yx.mjs';
 /* empty css                         */
-import { $ as $$DetailModal } from './DetailModal_DVqDfwI9.mjs';
+import { $ as $$DetailModal } from './DetailModal_CzXwdrlz.mjs';
 import 'clsx';
-import { b as fetchObras } from './obra_api_DPwG3jSY.mjs';
+import { fetchObras } from './obra_api_D3QhXp__.mjs';
 
-var __freeze$2 = Object.freeze;
-var __defProp$2 = Object.defineProperty;
-var __template$2 = (cooked, raw) => __freeze$2(__defProp$2(cooked, "raw", { value: __freeze$2(raw || cooked.slice()) }));
-var _a$2;
-const $$ObrasForm = createComponent(async ($$result, $$props, $$slots) => {
+const $$ObrasForm = createComponent(($$result, $$props, $$slots) => {
   const estadoOptions = [
     { value: "planificacion", label: "Planificaci\xF3n" },
     { value: "enprogreso", label: "En Progreso" },
     { value: "pausada", label: "Pausada" },
     { value: "completada", label: "Completada" }
   ];
-  return renderTemplate(_a$2 || (_a$2 = __template$2(["", '<form class="obras-form" id="obras-form" data-astro-cid-o5nfvmc2> <div class="form-grid" data-astro-cid-o5nfvmc2> <div class="form-column" data-astro-cid-o5nfvmc2> ', " ", " ", ' </div> <div class="form-column" data-astro-cid-o5nfvmc2> ', " ", " ", " </div> </div> ", ` <div class="form-actions" data-astro-cid-o5nfvmc2> <button type="button" class="btn-cancel" data-close-modal="modal-nueva-obra" data-astro-cid-o5nfvmc2>
+  return renderTemplate`${maybeRenderHead()}<form class="obras-form" id="obras-form" data-astro-cid-o5nfvmc2> <div class="form-grid" data-astro-cid-o5nfvmc2> <div class="form-column" data-astro-cid-o5nfvmc2> ${renderComponent($$result, "FormField", $$FormField, { "label": "Nombre de la Obra", "name": "nombre", "required": true, "placeholder": "Ej: Centro Comercial Plaza Norte", "data-astro-cid-o5nfvmc2": true })} ${renderComponent($$result, "FormField", $$FormField, { "label": "Estado", "name": "estado", "type": "select", "options": estadoOptions, "required": true, "data-astro-cid-o5nfvmc2": true })} ${renderComponent($$result, "FormField", $$FormField, { "label": "Fecha de Inicio", "name": "fecha_inicio", "type": "date", "required": true, "data-astro-cid-o5nfvmc2": true })} </div> <div class="form-column" data-astro-cid-o5nfvmc2> ${renderComponent($$result, "FormField", $$FormField, { "label": "Fecha de Finalizaci\xF3n", "name": "fecha_fin", "type": "date", "required": true, "data-astro-cid-o5nfvmc2": true })} ${renderComponent($$result, "FormField", $$FormField, { "label": "Responsable del Proyecto", "name": "responsable", "placeholder": "Nombre del responsable", "required": true, "data-astro-cid-o5nfvmc2": true })} ${renderComponent($$result, "FormField", $$FormField, { "label": "Ubicaci\xF3n", "name": "ubicacion", "placeholder": "Direcci\xF3n completa de la obra", "required": true, "data-astro-cid-o5nfvmc2": true })} </div> </div> ${renderComponent($$result, "FormField", $$FormField, { "label": "Descripci\xF3n", "name": "descripcion", "type": "textarea", "rows": 4, "placeholder": "Descripci\xF3n detallada de la obra...", "data-astro-cid-o5nfvmc2": true })} <!-- Información de Fases --> <div class="phases-info" data-astro-cid-o5nfvmc2> <h3 class="section-title" data-astro-cid-o5nfvmc2>Fases de la Obra</h3> <p class="section-description" data-astro-cid-o5nfvmc2>
+Esta obra incluirá automáticamente todas las fases disponibles configuradas en el sistema.
+</p> <div class="phases-summary" data-astro-cid-o5nfvmc2> <div class="phase-group" data-astro-cid-o5nfvmc2> <h4 data-astro-cid-o5nfvmc2>Fases de Piezas:</h4> <p data-astro-cid-o5nfvmc2>Se cargarán dinámicamente desde la base de datos</p> </div> <div class="phase-group" data-astro-cid-o5nfvmc2> <h4 data-astro-cid-o5nfvmc2>Fases de Conjuntos:</h4> <p data-astro-cid-o5nfvmc2>Se cargarán dinámicamente desde la base de datos</p> </div> </div> </div> <div class="form-actions" data-astro-cid-o5nfvmc2> <button type="button" class="btn-cancel" data-close-modal="modal-nueva-obra" data-astro-cid-o5nfvmc2>
 Cancelar
 </button> <button type="submit" class="btn-submit" data-astro-cid-o5nfvmc2> <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" data-astro-cid-o5nfvmc2> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" data-astro-cid-o5nfvmc2></path> </svg>
 Crear Obra
-</button> </div> </form>  <script type="module">
-  document.getElementById('obras-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    const form = e.target;
-    const formData = new FormData(form);
-    const submitButton = form.querySelector('.btn-submit');
-    
-    // Prevenir m\xFAltiples env\xEDos
-    if (submitButton.disabled) {
-      return;
-    }
-    
-    // Deshabilitar bot\xF3n durante el env\xEDo
-    submitButton.disabled = true;
-    const originalText = submitButton.innerHTML;
-    submitButton.innerHTML = \`
-      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="animate-spin">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-      </svg>
-      Creando...
-    \`;
-
-    const body = {
-      nombre: formData.get('nombre'),
-      estado: formData.get('estado'),
-      fecha_inicio: formData.get('fecha_inicio'),
-      fecha_fin: formData.get('fecha_fin'),
-      ubicacion: formData.get('ubicacion'),
-      responsable: formData.get('responsable'),
-      descripcion: formData.get('descripcion'),
-    };
-
-    try {
-      const res = await fetch('/api/obras/create', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(body)
-      });
-
-      const json = await res.json();
-      
-      if (json.success) {
-        // Mostrar \xE9xito
-        submitButton.innerHTML = \`
-          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-          </svg>
-          \xA1Obra creada!
-        \`;
-        submitButton.style.background = '#10b981';
-        
-        // Recargar la p\xE1gina despu\xE9s de un breve delay
-        setTimeout(() => {
-          location.reload();
-        }, 1500);
-      } else {
-        throw new Error(json.error || 'Error al crear la obra');
-      }
-    } catch (error) {
-      console.error('Error al crear obra:', error);
-      
-      // Mostrar error
-      submitButton.innerHTML = \`
-        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-        Error al crear
-      \`;
-      submitButton.style.background = '#ef4444';
-      
-      // Restaurar bot\xF3n despu\xE9s de un delay
-      setTimeout(() => {
-        submitButton.innerHTML = originalText;
-        submitButton.style.background = '';
-        submitButton.disabled = false;
-      }, 2000);
-    }
-  });
-<\/script>`], ["", '<form class="obras-form" id="obras-form" data-astro-cid-o5nfvmc2> <div class="form-grid" data-astro-cid-o5nfvmc2> <div class="form-column" data-astro-cid-o5nfvmc2> ', " ", " ", ' </div> <div class="form-column" data-astro-cid-o5nfvmc2> ', " ", " ", " </div> </div> ", ` <div class="form-actions" data-astro-cid-o5nfvmc2> <button type="button" class="btn-cancel" data-close-modal="modal-nueva-obra" data-astro-cid-o5nfvmc2>
-Cancelar
-</button> <button type="submit" class="btn-submit" data-astro-cid-o5nfvmc2> <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" data-astro-cid-o5nfvmc2> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" data-astro-cid-o5nfvmc2></path> </svg>
-Crear Obra
-</button> </div> </form>  <script type="module">
-  document.getElementById('obras-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    const form = e.target;
-    const formData = new FormData(form);
-    const submitButton = form.querySelector('.btn-submit');
-    
-    // Prevenir m\xFAltiples env\xEDos
-    if (submitButton.disabled) {
-      return;
-    }
-    
-    // Deshabilitar bot\xF3n durante el env\xEDo
-    submitButton.disabled = true;
-    const originalText = submitButton.innerHTML;
-    submitButton.innerHTML = \\\`
-      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="animate-spin">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-      </svg>
-      Creando...
-    \\\`;
-
-    const body = {
-      nombre: formData.get('nombre'),
-      estado: formData.get('estado'),
-      fecha_inicio: formData.get('fecha_inicio'),
-      fecha_fin: formData.get('fecha_fin'),
-      ubicacion: formData.get('ubicacion'),
-      responsable: formData.get('responsable'),
-      descripcion: formData.get('descripcion'),
-    };
-
-    try {
-      const res = await fetch('/api/obras/create', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(body)
-      });
-
-      const json = await res.json();
-      
-      if (json.success) {
-        // Mostrar \xE9xito
-        submitButton.innerHTML = \\\`
-          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-          </svg>
-          \xA1Obra creada!
-        \\\`;
-        submitButton.style.background = '#10b981';
-        
-        // Recargar la p\xE1gina despu\xE9s de un breve delay
-        setTimeout(() => {
-          location.reload();
-        }, 1500);
-      } else {
-        throw new Error(json.error || 'Error al crear la obra');
-      }
-    } catch (error) {
-      console.error('Error al crear obra:', error);
-      
-      // Mostrar error
-      submitButton.innerHTML = \\\`
-        <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-        </svg>
-        Error al crear
-      \\\`;
-      submitButton.style.background = '#ef4444';
-      
-      // Restaurar bot\xF3n despu\xE9s de un delay
-      setTimeout(() => {
-        submitButton.innerHTML = originalText;
-        submitButton.style.background = '';
-        submitButton.disabled = false;
-      }, 2000);
-    }
-  });
-<\/script>`])), maybeRenderHead(), renderComponent($$result, "FormField", $$FormField, { "label": "Nombre de la Obra", "name": "nombre", "required": true, "placeholder": "Ej: Centro Comercial Plaza Norte", "data-astro-cid-o5nfvmc2": true }), renderComponent($$result, "FormField", $$FormField, { "label": "Estado", "name": "estado", "type": "select", "options": estadoOptions, "required": true, "data-astro-cid-o5nfvmc2": true }), renderComponent($$result, "FormField", $$FormField, { "label": "Fecha de Inicio", "name": "fecha_inicio", "type": "date", "required": true, "data-astro-cid-o5nfvmc2": true }), renderComponent($$result, "FormField", $$FormField, { "label": "Fecha de Finalizaci\xF3n", "name": "fecha_fin", "type": "date", "required": true, "data-astro-cid-o5nfvmc2": true }), renderComponent($$result, "FormField", $$FormField, { "label": "Responsable del Proyecto", "name": "responsable", "placeholder": "Nombre del responsable", "required": true, "data-astro-cid-o5nfvmc2": true }), renderComponent($$result, "FormField", $$FormField, { "label": "Ubicaci\xF3n", "name": "ubicacion", "placeholder": "Direcci\xF3n completa de la obra", "required": true, "data-astro-cid-o5nfvmc2": true }), renderComponent($$result, "FormField", $$FormField, { "label": "Descripci\xF3n", "name": "descripcion", "type": "textarea", "rows": 4, "placeholder": "Descripci\xF3n detallada de la obra...", "data-astro-cid-o5nfvmc2": true }));
+</button> </div> </form> `;
 }, "/Applications/XAMPP/xamppfiles/htdocs/AdminMontaje/src/components/forms/ObrasForm.astro", void 0);
 
 var __freeze$1 = Object.freeze;
@@ -208,7 +40,7 @@ const $$TableObra = createComponent(async ($$result, $$props, $$slots) => {
     if (!fechaFin) return null;
     const today = /* @__PURE__ */ new Date();
     const endDate = new Date(fechaFin);
-    const diffTime = endDate - today;
+    const diffTime = endDate.getTime() - today.getTime();
     const diffDays = Math.ceil(diffTime / (1e3 * 60 * 60 * 24));
     return diffDays;
   }
@@ -264,7 +96,11 @@ const $$TableObra = createComponent(async ($$result, $$props, $$slots) => {
     if (confirm(\`\xBFEst\xE1s seguro de que quieres eliminar la obra "\${obraNombre}"? Esta acci\xF3n no se puede deshacer.\`)) {
       try {
         const response = await fetch(\`/api/obras/\${obraId}\`, {
-          method: 'DELETE'
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ action: 'delete' })
         });
         
         const result = await response.json();
@@ -281,102 +117,6 @@ const $$TableObra = createComponent(async ($$result, $$props, $$slots) => {
       }
     }
   };
-
-  // Modificar el comportamiento del formulario para manejar edici\xF3n
-  document.addEventListener('DOMContentLoaded', function() {
-    const form = document.getElementById('obras-form');
-    if (form) {
-      // Remover event listeners existentes para evitar duplicados
-      const newForm = form.cloneNode(true);
-      form.parentNode.replaceChild(newForm, form);
-      
-      newForm.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
-        const editId = newForm.getAttribute('data-edit-id');
-        const isEditing = !!editId;
-        
-        const formData = new FormData(newForm);
-        const submitButton = newForm.querySelector('.btn-submit');
-        
-        // Prevenir m\xFAltiples env\xEDos
-        if (submitButton.disabled) {
-          return;
-        }
-        
-        // Deshabilitar bot\xF3n durante el env\xEDo
-        submitButton.disabled = true;
-        const originalText = submitButton.innerHTML;
-        submitButton.innerHTML = \`
-          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="animate-spin">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
-          \${isEditing ? 'Actualizando...' : 'Creando...'}
-        \`;
-
-        const body = {
-          nombre: formData.get('nombre'),
-          estado: formData.get('estado'),
-          fecha_inicio: formData.get('fecha_inicio'),
-          fecha_fin: formData.get('fecha_fin'),
-          ubicacion: formData.get('ubicacion'),
-          responsable: formData.get('responsable'),
-          descripcion: formData.get('descripcion'),
-        };
-
-        try {
-          const url = isEditing ? \`/api/obras/\${editId}\` : '/api/obras/create';
-          const method = isEditing ? 'PUT' : 'POST';
-          
-          const res = await fetch(url, {
-            method: method,
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(body)
-          });
-
-          const json = await res.json();
-          
-          if (json.success) {
-            // Mostrar \xE9xito
-            submitButton.innerHTML = \`
-              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-              </svg>
-              \${isEditing ? '\xA1Obra actualizada!' : '\xA1Obra creada!'}
-            \`;
-            submitButton.style.background = '#10b981';
-            
-            // Recargar la p\xE1gina despu\xE9s de un breve delay
-            setTimeout(() => {
-              location.reload();
-            }, 1500);
-          } else {
-            throw new Error(json.error || \`Error al \${isEditing ? 'actualizar' : 'crear'} la obra\`);
-          }
-        } catch (error) {
-          console.error(\`Error al \${isEditing ? 'actualizar' : 'crear'} obra:\`, error);
-          
-          // Mostrar error
-          submitButton.innerHTML = \`
-            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-            Error al \${isEditing ? 'actualizar' : 'crear'}
-          \`;
-          submitButton.style.background = '#ef4444';
-          
-          // Restaurar bot\xF3n despu\xE9s de un delay
-          setTimeout(() => {
-            submitButton.innerHTML = originalText;
-            submitButton.style.background = '';
-            submitButton.disabled = false;
-          }, 2000);
-        }
-      });
-    }
-  });
 
   // Limpiar formulario cuando se cierra el modal
   document.addEventListener('click', function(e) {
@@ -453,7 +193,11 @@ const $$TableObra = createComponent(async ($$result, $$props, $$slots) => {
     if (confirm(\\\`\xBFEst\xE1s seguro de que quieres eliminar la obra "\\\${obraNombre}"? Esta acci\xF3n no se puede deshacer.\\\`)) {
       try {
         const response = await fetch(\\\`/api/obras/\\\${obraId}\\\`, {
-          method: 'DELETE'
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ action: 'delete' })
         });
         
         const result = await response.json();
@@ -470,102 +214,6 @@ const $$TableObra = createComponent(async ($$result, $$props, $$slots) => {
       }
     }
   };
-
-  // Modificar el comportamiento del formulario para manejar edici\xF3n
-  document.addEventListener('DOMContentLoaded', function() {
-    const form = document.getElementById('obras-form');
-    if (form) {
-      // Remover event listeners existentes para evitar duplicados
-      const newForm = form.cloneNode(true);
-      form.parentNode.replaceChild(newForm, form);
-      
-      newForm.addEventListener('submit', async function(e) {
-        e.preventDefault();
-        
-        const editId = newForm.getAttribute('data-edit-id');
-        const isEditing = !!editId;
-        
-        const formData = new FormData(newForm);
-        const submitButton = newForm.querySelector('.btn-submit');
-        
-        // Prevenir m\xFAltiples env\xEDos
-        if (submitButton.disabled) {
-          return;
-        }
-        
-        // Deshabilitar bot\xF3n durante el env\xEDo
-        submitButton.disabled = true;
-        const originalText = submitButton.innerHTML;
-        submitButton.innerHTML = \\\`
-          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="animate-spin">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
-          \\\${isEditing ? 'Actualizando...' : 'Creando...'}
-        \\\`;
-
-        const body = {
-          nombre: formData.get('nombre'),
-          estado: formData.get('estado'),
-          fecha_inicio: formData.get('fecha_inicio'),
-          fecha_fin: formData.get('fecha_fin'),
-          ubicacion: formData.get('ubicacion'),
-          responsable: formData.get('responsable'),
-          descripcion: formData.get('descripcion'),
-        };
-
-        try {
-          const url = isEditing ? \\\`/api/obras/\\\${editId}\\\` : '/api/obras/create';
-          const method = isEditing ? 'PUT' : 'POST';
-          
-          const res = await fetch(url, {
-            method: method,
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(body)
-          });
-
-          const json = await res.json();
-          
-          if (json.success) {
-            // Mostrar \xE9xito
-            submitButton.innerHTML = \\\`
-              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-              </svg>
-              \\\${isEditing ? '\xA1Obra actualizada!' : '\xA1Obra creada!'}
-            \\\`;
-            submitButton.style.background = '#10b981';
-            
-            // Recargar la p\xE1gina despu\xE9s de un breve delay
-            setTimeout(() => {
-              location.reload();
-            }, 1500);
-          } else {
-            throw new Error(json.error || \\\`Error al \\\${isEditing ? 'actualizar' : 'crear'} la obra\\\`);
-          }
-        } catch (error) {
-          console.error(\\\`Error al \\\${isEditing ? 'actualizar' : 'crear'} obra:\\\`, error);
-          
-          // Mostrar error
-          submitButton.innerHTML = \\\`
-            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-            Error al \\\${isEditing ? 'actualizar' : 'crear'}
-          \\\`;
-          submitButton.style.background = '#ef4444';
-          
-          // Restaurar bot\xF3n despu\xE9s de un delay
-          setTimeout(() => {
-            submitButton.innerHTML = originalText;
-            submitButton.style.background = '';
-            submitButton.disabled = false;
-          }, 2000);
-        }
-      });
-    }
-  });
 
   // Limpiar formulario cuando se cierra el modal
   document.addEventListener('click', function(e) {

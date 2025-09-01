@@ -1,4 +1,4 @@
-import { u as updateFasePieza, d as deleteFasePieza } from '../../../chunks/fase_piezas_api_CAQrCH92.mjs';
+import { u as updateFasePieza, d as deleteFasePieza } from '../../../chunks/fase_piezas_api_BMSUIlot.mjs';
 export { renderers } from '../../../renderers.mjs';
 
 const prerender = false;

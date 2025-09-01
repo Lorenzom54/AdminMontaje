@@ -1,4 +1,4 @@
-import { s as searchObras } from '../../../chunks/obra_api_DPwG3jSY.mjs';
+import { searchObras } from '../../../chunks/obra_api_D3QhXp__.mjs';
 export { renderers } from '../../../renderers.mjs';
 
 const prerender = false;

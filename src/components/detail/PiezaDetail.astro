@@ -1,5 +1,5 @@
 ---
-import { FASES } from '../../lib/pieza_api';
+import { getFasesMap } from '../../lib/pieza_api';
 
 interface Props {
   pieza: {
@@ -17,6 +17,8 @@ interface Props {
 }
 
 const { pieza } = Astro.props;
+
+const FASES = await getFasesMap();
 
 // Función para formatear fechas
 function formatDate(dateString: string) {

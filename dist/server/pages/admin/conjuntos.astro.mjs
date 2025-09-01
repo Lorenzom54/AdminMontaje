@@ -1,10 +1,10 @@
-import { e as createComponent, r as renderTemplate, k as renderComponent, m as maybeRenderHead, f as createAstro, h as addAttribute } from '../../chunks/astro/server_BxYUwxS1.mjs';
+import { e as createComponent, r as renderTemplate, h as addAttribute, k as renderComponent, m as maybeRenderHead, f as createAstro } from '../../chunks/astro/server_B5z0SCK9.mjs';
 import 'kleur/colors';
-import { a as $$PageHeader, $ as $$AdminLayout } from '../../chunks/PageHeader_D7LDH3qQ.mjs';
-import { $ as $$FormField, a as $$Modal } from '../../chunks/FormField_D9WOQIop.mjs';
-import { f as fetchObrasForSelect, a as fetchFaseConjuntosForSelect, b as fetchConjuntos } from '../../chunks/conjunto_api_D-1bf52-.mjs';
+import { a as $$PageHeader, $ as $$AdminLayout } from '../../chunks/PageHeader_B1Q6qJIn.mjs';
+import { $ as $$FormField, a as $$Modal } from '../../chunks/FormField_CyNQw7Yx.mjs';
+import { f as fetchObrasForSelect, a as fetchFaseConjuntosForSelect, b as fetchConjuntos } from '../../chunks/conjunto_api_DdlW2uM9.mjs';
 /* empty css                                        */
-import { $ as $$DetailModal } from '../../chunks/DetailModal_DVqDfwI9.mjs';
+import { $ as $$DetailModal } from '../../chunks/DetailModal_CzXwdrlz.mjs';
 import 'clsx';
 export { renderers } from '../../renderers.mjs';
 
@@ -14,16 +14,12 @@ var __template$2 = (cooked, raw) => __freeze$2(__defProp$2(cooked, "raw", { valu
 var _a$2;
 const $$ConjuntosForm = createComponent(async ($$result, $$props, $$slots) => {
   const obras = await fetchObrasForSelect();
-  const fases = await fetchFaseConjuntosForSelect();
-  const obraOptions = obras.map((obra) => ({
+  const obraOptions = obras?.map((obra) => ({
     value: obra.id.toString(),
     label: obra.nombre
-  }));
-  const faseOptions = fases.map((fase) => ({
-    value: fase.id.toString(),
-    label: fase.fase
-  }));
-  return renderTemplate(_a$2 || (_a$2 = __template$2(["", '<form class="conjuntos-form" id="conjuntos-form" data-astro-cid-kg2k3o6u> <div class="form-grid" data-astro-cid-kg2k3o6u> <div class="form-column" data-astro-cid-kg2k3o6u> ', " ", " ", ' </div> <div class="form-column" data-astro-cid-kg2k3o6u> ', ` <div class="form-field" data-astro-cid-kg2k3o6u> <label class="form-label" data-astro-cid-kg2k3o6u> <input type="checkbox" name="is_completed" value="true" data-astro-cid-kg2k3o6u>
+  })) || [];
+  const fasesConjuntos = await fetchFaseConjuntosForSelect();
+  return renderTemplate(_a$2 || (_a$2 = __template$2(["", '<form class="conjuntos-form" id="conjuntos-form" data-astro-cid-kg2k3o6u> <div class="form-grid" data-astro-cid-kg2k3o6u> <div class="form-column" data-astro-cid-kg2k3o6u> ', " ", ' </div> <div class="form-column" data-astro-cid-kg2k3o6u> ', ' <div class="form-field" data-astro-cid-kg2k3o6u> <label class="form-label" data-astro-cid-kg2k3o6u>Estado Actual</label> <select name="estado_actual" class="form-select" data-astro-cid-kg2k3o6u> <option value="" data-astro-cid-kg2k3o6u>Seleccionar estado</option> ', ` </select> </div> <div class="form-field" data-astro-cid-kg2k3o6u> <label class="form-label" data-astro-cid-kg2k3o6u> <input type="checkbox" name="is_completed" value="true" data-astro-cid-kg2k3o6u>
 Conjunto completado
 </label> </div> </div> </div> <div class="form-actions" data-astro-cid-kg2k3o6u> <button type="button" class="btn-cancel" data-close-modal="modal-nuevo-conjunto" data-astro-cid-kg2k3o6u>
 Cancelar
@@ -56,8 +52,8 @@ Crear Conjunto
       codigo: formData.get('codigo'),
       descripcion: formData.get('descripcion'),
       obra_id: formData.get('obra_id'),
-      fase_id: formData.get('fase_id'),
-      is_completed: formData.get('is_completed') === 'true',
+      estado_actual: formData.get('estado_actual') ? parseInt(formData.get('estado_actual')) : null,
+      is_completed: formData.has('is_completed'),
     };
 
     try {
@@ -108,7 +104,7 @@ Crear Conjunto
       }, 2000);
     }
   });
-<\/script>`], ["", '<form class="conjuntos-form" id="conjuntos-form" data-astro-cid-kg2k3o6u> <div class="form-grid" data-astro-cid-kg2k3o6u> <div class="form-column" data-astro-cid-kg2k3o6u> ', " ", " ", ' </div> <div class="form-column" data-astro-cid-kg2k3o6u> ', ` <div class="form-field" data-astro-cid-kg2k3o6u> <label class="form-label" data-astro-cid-kg2k3o6u> <input type="checkbox" name="is_completed" value="true" data-astro-cid-kg2k3o6u>
+<\/script>`], ["", '<form class="conjuntos-form" id="conjuntos-form" data-astro-cid-kg2k3o6u> <div class="form-grid" data-astro-cid-kg2k3o6u> <div class="form-column" data-astro-cid-kg2k3o6u> ', " ", ' </div> <div class="form-column" data-astro-cid-kg2k3o6u> ', ' <div class="form-field" data-astro-cid-kg2k3o6u> <label class="form-label" data-astro-cid-kg2k3o6u>Estado Actual</label> <select name="estado_actual" class="form-select" data-astro-cid-kg2k3o6u> <option value="" data-astro-cid-kg2k3o6u>Seleccionar estado</option> ', ` </select> </div> <div class="form-field" data-astro-cid-kg2k3o6u> <label class="form-label" data-astro-cid-kg2k3o6u> <input type="checkbox" name="is_completed" value="true" data-astro-cid-kg2k3o6u>
 Conjunto completado
 </label> </div> </div> </div> <div class="form-actions" data-astro-cid-kg2k3o6u> <button type="button" class="btn-cancel" data-close-modal="modal-nuevo-conjunto" data-astro-cid-kg2k3o6u>
 Cancelar
@@ -141,8 +137,8 @@ Crear Conjunto
       codigo: formData.get('codigo'),
       descripcion: formData.get('descripcion'),
       obra_id: formData.get('obra_id'),
-      fase_id: formData.get('fase_id'),
-      is_completed: formData.get('is_completed') === 'true',
+      estado_actual: formData.get('estado_actual') ? parseInt(formData.get('estado_actual')) : null,
+      is_completed: formData.has('is_completed'),
     };
 
     try {
@@ -193,7 +189,7 @@ Crear Conjunto
       }, 2000);
     }
   });
-<\/script>`])), maybeRenderHead(), renderComponent($$result, "FormField", $$FormField, { "label": "C\xF3digo del Conjunto", "name": "codigo", "required": true, "placeholder": "Ej: CNJ-001", "data-astro-cid-kg2k3o6u": true }), renderComponent($$result, "FormField", $$FormField, { "label": "Obra", "name": "obra_id", "type": "select", "options": obraOptions, "required": true, "data-astro-cid-kg2k3o6u": true }), renderComponent($$result, "FormField", $$FormField, { "label": "Fase", "name": "fase_id", "type": "select", "options": faseOptions, "data-astro-cid-kg2k3o6u": true }), renderComponent($$result, "FormField", $$FormField, { "label": "Descripci\xF3n", "name": "descripcion", "type": "textarea", "rows": 3, "placeholder": "Descripci\xF3n del conjunto...", "data-astro-cid-kg2k3o6u": true }));
+<\/script>`])), maybeRenderHead(), renderComponent($$result, "FormField", $$FormField, { "label": "C\xF3digo del Conjunto", "name": "codigo", "required": true, "placeholder": "Ej: CNJ-001", "data-astro-cid-kg2k3o6u": true }), renderComponent($$result, "FormField", $$FormField, { "label": "Obra", "name": "obra_id", "type": "select", "options": obraOptions, "required": true, "data-astro-cid-kg2k3o6u": true }), renderComponent($$result, "FormField", $$FormField, { "label": "Descripci\xF3n", "name": "descripcion", "type": "textarea", "rows": 3, "placeholder": "Descripci\xF3n del conjunto...", "data-astro-cid-kg2k3o6u": true }), fasesConjuntos?.map((fase) => renderTemplate`<option${addAttribute(fase.id, "value")} data-astro-cid-kg2k3o6u>${fase.fase}</option>`));
 }, "/Applications/XAMPP/xamppfiles/htdocs/AdminMontaje/src/components/forms/ConjuntosForm.astro", void 0);
 
 var __freeze$1 = Object.freeze;
@@ -209,7 +205,7 @@ const $$TableConjunto = createComponent(async ($$result, $$props, $$slots) => {
     if (!dateString) return "-";
     return new Date(dateString).toLocaleDateString("es-ES");
   }
-  return renderTemplate(_a$1 || (_a$1 = __template$1(["", '<div class="table-container" data-astro-cid-uza2tlil> <table class="data-table" data-astro-cid-uza2tlil> <thead data-astro-cid-uza2tlil> <tr data-astro-cid-uza2tlil> <th data-astro-cid-uza2tlil>C\xF3digo</th> <th data-astro-cid-uza2tlil>Descripci\xF3n</th> <th data-astro-cid-uza2tlil>Obra</th> <th data-astro-cid-uza2tlil>Fase</th> <th data-astro-cid-uza2tlil>Estado</th> <th data-astro-cid-uza2tlil>Fecha Creaci\xF3n</th> <th data-astro-cid-uza2tlil>Acciones</th> </tr> </thead> <tbody data-astro-cid-uza2tlil> ', ` </tbody> </table> </div>  <script type="module">
+  return renderTemplate(_a$1 || (_a$1 = __template$1(["", '<div class="table-container" data-astro-cid-uza2tlil> <table class="data-table" data-astro-cid-uza2tlil> <thead data-astro-cid-uza2tlil> <tr data-astro-cid-uza2tlil> <th data-astro-cid-uza2tlil>C\xF3digo</th> <th data-astro-cid-uza2tlil>Descripci\xF3n</th> <th data-astro-cid-uza2tlil>Obra</th> <th data-astro-cid-uza2tlil>Estado Actual</th> <th data-astro-cid-uza2tlil>Estado</th> <th data-astro-cid-uza2tlil>Fecha Creaci\xF3n</th> <th data-astro-cid-uza2tlil>Acciones</th> </tr> </thead> <tbody data-astro-cid-uza2tlil> ', ` </tbody> </table> </div>  <script type="module">
   // Funci\xF3n para editar conjunto
   window.editConjunto = async function(conjuntoId) {
     try {
@@ -219,12 +215,13 @@ const $$TableConjunto = createComponent(async ($$result, $$props, $$slots) => {
       if (result.success) {
         const conjunto = result.data;
         
-        // Llenar el formulario con los datos existentes
+                // Llenar el formulario con los datos existentes
         const form = document.getElementById('conjuntos-form');
         if (form) {
           form.querySelector('[name="codigo"]').value = conjunto.codigo || '';
           form.querySelector('[name="descripcion"]').value = conjunto.descripcion || '';
           form.querySelector('[name="obra_id"]').value = conjunto.obra_id?.toString() || '';
+          form.querySelector('[name="estado_actual"]').value = conjunto.estado_actual?.toString() || '';
           form.querySelector('[name="is_completed"]').checked = conjunto.is_completed || false;
           
           // Cambiar el comportamiento del formulario para actualizar
@@ -312,7 +309,8 @@ const $$TableConjunto = createComponent(async ($$result, $$props, $$slots) => {
           codigo: formData.get('codigo'),
           descripcion: formData.get('descripcion'),
           obra_id: formData.get('obra_id'),
-          is_completed: formData.get('is_completed') === 'true',
+          estado_actual: formData.get('estado_actual') ? parseInt(formData.get('estado_actual')) : null,
+          is_completed: formData.has('is_completed'),
         };
 
         try {
@@ -392,7 +390,7 @@ const $$TableConjunto = createComponent(async ($$result, $$props, $$slots) => {
       }
     }
   });
-<\/script>`], ["", '<div class="table-container" data-astro-cid-uza2tlil> <table class="data-table" data-astro-cid-uza2tlil> <thead data-astro-cid-uza2tlil> <tr data-astro-cid-uza2tlil> <th data-astro-cid-uza2tlil>C\xF3digo</th> <th data-astro-cid-uza2tlil>Descripci\xF3n</th> <th data-astro-cid-uza2tlil>Obra</th> <th data-astro-cid-uza2tlil>Fase</th> <th data-astro-cid-uza2tlil>Estado</th> <th data-astro-cid-uza2tlil>Fecha Creaci\xF3n</th> <th data-astro-cid-uza2tlil>Acciones</th> </tr> </thead> <tbody data-astro-cid-uza2tlil> ', ` </tbody> </table> </div>  <script type="module">
+<\/script>`], ["", '<div class="table-container" data-astro-cid-uza2tlil> <table class="data-table" data-astro-cid-uza2tlil> <thead data-astro-cid-uza2tlil> <tr data-astro-cid-uza2tlil> <th data-astro-cid-uza2tlil>C\xF3digo</th> <th data-astro-cid-uza2tlil>Descripci\xF3n</th> <th data-astro-cid-uza2tlil>Obra</th> <th data-astro-cid-uza2tlil>Estado Actual</th> <th data-astro-cid-uza2tlil>Estado</th> <th data-astro-cid-uza2tlil>Fecha Creaci\xF3n</th> <th data-astro-cid-uza2tlil>Acciones</th> </tr> </thead> <tbody data-astro-cid-uza2tlil> ', ` </tbody> </table> </div>  <script type="module">
   // Funci\xF3n para editar conjunto
   window.editConjunto = async function(conjuntoId) {
     try {
@@ -402,12 +400,13 @@ const $$TableConjunto = createComponent(async ($$result, $$props, $$slots) => {
       if (result.success) {
         const conjunto = result.data;
         
-        // Llenar el formulario con los datos existentes
+                // Llenar el formulario con los datos existentes
         const form = document.getElementById('conjuntos-form');
         if (form) {
           form.querySelector('[name="codigo"]').value = conjunto.codigo || '';
           form.querySelector('[name="descripcion"]').value = conjunto.descripcion || '';
           form.querySelector('[name="obra_id"]').value = conjunto.obra_id?.toString() || '';
+          form.querySelector('[name="estado_actual"]').value = conjunto.estado_actual?.toString() || '';
           form.querySelector('[name="is_completed"]').checked = conjunto.is_completed || false;
           
           // Cambiar el comportamiento del formulario para actualizar
@@ -495,7 +494,8 @@ const $$TableConjunto = createComponent(async ($$result, $$props, $$slots) => {
           codigo: formData.get('codigo'),
           descripcion: formData.get('descripcion'),
           obra_id: formData.get('obra_id'),
-          is_completed: formData.get('is_completed') === 'true',
+          estado_actual: formData.get('estado_actual') ? parseInt(formData.get('estado_actual')) : null,
+          is_completed: formData.has('is_completed'),
         };
 
         try {
@@ -575,7 +575,7 @@ const $$TableConjunto = createComponent(async ($$result, $$props, $$slots) => {
       }
     }
   });
-<\/script>`])), maybeRenderHead(), conjuntos.map((conjunto) => renderTemplate`<tr data-astro-cid-uza2tlil> <td data-astro-cid-uza2tlil> <div class="conjunto-info" data-astro-cid-uza2tlil> <strong data-astro-cid-uza2tlil>${conjunto.codigo}</strong> <span class="conjunto-id" data-astro-cid-uza2tlil>ID: ${conjunto.id}</span> </div> </td> <td data-astro-cid-uza2tlil> <div class="descripcion-info" data-astro-cid-uza2tlil> <span data-astro-cid-uza2tlil>${conjunto.descripcion || "-"}</span> </div> </td> <td data-astro-cid-uza2tlil> <div class="obra-info" data-astro-cid-uza2tlil> <span data-astro-cid-uza2tlil>${conjunto.obras?.nombre || "-"}</span> </div> </td> <td data-astro-cid-uza2tlil> <span class="fase-badge" data-astro-cid-uza2tlil> ${conjunto.fases?.fase || "Sin fase"} </span> </td> <td data-astro-cid-uza2tlil> <span${addAttribute(`status-badge ${conjunto.is_completed ? "completed" : "pending"}`, "class")} data-astro-cid-uza2tlil> ${conjunto.is_completed ? "Completado" : "En Progreso"} </span> </td> <td data-astro-cid-uza2tlil>${formatDate(conjunto.created_at)}</td> <td data-astro-cid-uza2tlil> <div class="action-buttons" data-astro-cid-uza2tlil> <button class="btn-icon" title="Ver detalles"${addAttribute(`openModal('detail-conjunto-${conjunto.id}')`, "onclick")} data-astro-cid-uza2tlil> <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" data-astro-cid-uza2tlil> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" data-astro-cid-uza2tlil></path> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" data-astro-cid-uza2tlil></path> </svg> </button> <button class="btn-icon" title="Editar"${addAttribute(`editConjunto('${conjunto.id}')`, "onclick")} data-astro-cid-uza2tlil> <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" data-astro-cid-uza2tlil> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" data-astro-cid-uza2tlil></path> </svg> </button> <button class="btn-icon btn-delete" title="Eliminar"${addAttribute(`deleteConjunto('${conjunto.id}', '${conjunto.codigo}')`, "onclick")} data-astro-cid-uza2tlil> <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" data-astro-cid-uza2tlil> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" data-astro-cid-uza2tlil></path> </svg> </button> </div> </td> </tr>`));
+<\/script>`])), maybeRenderHead(), conjuntos.map((conjunto) => renderTemplate`<tr data-astro-cid-uza2tlil> <td data-astro-cid-uza2tlil> <div class="conjunto-info" data-astro-cid-uza2tlil> <strong data-astro-cid-uza2tlil>${conjunto.codigo}</strong> <span class="conjunto-id" data-astro-cid-uza2tlil>ID: ${conjunto.id}</span> </div> </td> <td data-astro-cid-uza2tlil> <div class="descripcion-info" data-astro-cid-uza2tlil> <span data-astro-cid-uza2tlil>${conjunto.descripcion || "-"}</span> </div> </td> <td data-astro-cid-uza2tlil> <div class="obra-info" data-astro-cid-uza2tlil> <span data-astro-cid-uza2tlil>${conjunto.obras?.nombre || "-"}</span> </div> </td> <td data-astro-cid-uza2tlil> <span class="estado-actual-badge" data-astro-cid-uza2tlil> ${conjunto.estados[conjunto.estado_actual]} </span> </td> <td data-astro-cid-uza2tlil> <span${addAttribute(`status-badge ${conjunto.is_completed ? "completed" : "pending"}`, "class")} data-astro-cid-uza2tlil> ${conjunto.is_completed ? "Completado" : "En Progreso"} </span> </td> <td data-astro-cid-uza2tlil>${formatDate(conjunto.created_at)}</td> <td data-astro-cid-uza2tlil> <div class="action-buttons" data-astro-cid-uza2tlil> <button class="btn-icon" title="Ver detalles"${addAttribute(`openModal('detail-conjunto-${conjunto.id}')`, "onclick")} data-astro-cid-uza2tlil> <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" data-astro-cid-uza2tlil> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" data-astro-cid-uza2tlil></path> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" data-astro-cid-uza2tlil></path> </svg> </button> <button class="btn-icon" title="Editar"${addAttribute(`editConjunto('${conjunto.id}')`, "onclick")} data-astro-cid-uza2tlil> <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" data-astro-cid-uza2tlil> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" data-astro-cid-uza2tlil></path> </svg> </button> <button class="btn-icon btn-delete" title="Eliminar"${addAttribute(`deleteConjunto('${conjunto.id}', '${conjunto.codigo}')`, "onclick")} data-astro-cid-uza2tlil> <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" data-astro-cid-uza2tlil> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" data-astro-cid-uza2tlil></path> </svg> </button> </div> </td> </tr>`));
 }, "/Applications/XAMPP/xamppfiles/htdocs/AdminMontaje/src/components/table/TableConjunto.astro", void 0);
 
 const $$Astro = createAstro();
@@ -593,7 +593,7 @@ const $$ConjuntoDetail = createComponent(($$result, $$props, $$slots) => {
       minute: "2-digit"
     });
   }
-  return renderTemplate`${maybeRenderHead()}<div slot="general" class="detail-content" data-astro-cid-74raotst> <div class="detail-grid" data-astro-cid-74raotst> <div class="detail-section" data-astro-cid-74raotst> <h3 class="section-title" data-astro-cid-74raotst>Información del Conjunto</h3> <div class="info-grid" data-astro-cid-74raotst> <div class="info-item" data-astro-cid-74raotst> <label class="info-label" data-astro-cid-74raotst>Código</label> <div class="info-value editable" data-field="codigo" data-astro-cid-74raotst>${conjunto.codigo}</div> </div> <div class="info-item" data-astro-cid-74raotst> <label class="info-label" data-astro-cid-74raotst>ID del Sistema</label> <div class="info-value" data-astro-cid-74raotst>${conjunto.id}</div> </div> <div class="info-item" data-astro-cid-74raotst> <label class="info-label" data-astro-cid-74raotst>Obra</label> <div class="info-value" data-astro-cid-74raotst>${conjunto.obras?.nombre || "-"}</div> </div> <div class="info-item" data-astro-cid-74raotst> <label class="info-label" data-astro-cid-74raotst>Fecha de Creación</label> <div class="info-value" data-astro-cid-74raotst>${formatDate(conjunto.created_at)}</div> </div> </div> </div> <div class="detail-section" data-astro-cid-74raotst> <h3 class="section-title" data-astro-cid-74raotst>Estado y Descripción</h3> <div class="info-grid" data-astro-cid-74raotst> <div class="info-item" data-astro-cid-74raotst> <label class="info-label" data-astro-cid-74raotst>Estado</label> <div class="info-value" data-astro-cid-74raotst> <span${addAttribute(`status-badge ${conjunto.is_completed ? "completed" : "pending"}`, "class")} data-astro-cid-74raotst> ${conjunto.is_completed ? "Completado" : "En Progreso"} </span> </div> </div> </div> </div> <div class="detail-section full-width" data-astro-cid-74raotst> <h3 class="section-title" data-astro-cid-74raotst>Descripción</h3> <div class="info-item" data-astro-cid-74raotst> <div class="info-value editable" data-field="descripcion" data-astro-cid-74raotst>${conjunto.descripcion || "Sin descripci\xF3n"}</div> </div> </div> </div> </div> <div slot="progress" class="detail-content" data-astro-cid-74raotst> <div class="progress-section" data-astro-cid-74raotst> <h3 class="section-title" data-astro-cid-74raotst>Estado del Conjunto</h3> <div class="conjunto-overview" data-astro-cid-74raotst> <div class="conjunto-card" data-astro-cid-74raotst> <div class="conjunto-icon status" data-astro-cid-74raotst> <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" data-astro-cid-74raotst> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" data-astro-cid-74raotst></path> </svg> </div> <div class="conjunto-details" data-astro-cid-74raotst> <span class="conjunto-label" data-astro-cid-74raotst>Estado</span> <span class="conjunto-status" data-astro-cid-74raotst>${conjunto.is_completed ? "Completado" : "En Progreso"}</span> </div> </div> <div class="conjunto-card" data-astro-cid-74raotst> <div class="conjunto-icon obra" data-astro-cid-74raotst> <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" data-astro-cid-74raotst> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" data-astro-cid-74raotst></path> </svg> </div> <div class="conjunto-details" data-astro-cid-74raotst> <span class="conjunto-label" data-astro-cid-74raotst>Obra</span> <span class="conjunto-status" data-astro-cid-74raotst>${conjunto.obras?.nombre || "Sin asignar"}</span> </div> </div> </div> </div> </div> <div slot="history" class="detail-content" data-astro-cid-74raotst> <div class="history-section" data-astro-cid-74raotst> <h3 class="section-title" data-astro-cid-74raotst>Historial del Conjunto</h3> <div class="history-items" data-astro-cid-74raotst> <div class="history-item" data-astro-cid-74raotst> <div class="history-avatar" data-astro-cid-74raotst>SYS</div> <div class="history-content" data-astro-cid-74raotst> <div class="history-header" data-astro-cid-74raotst> <strong data-astro-cid-74raotst>Sistema</strong> <span class="history-action" data-astro-cid-74raotst>creó conjunto</span> <span class="history-time" data-astro-cid-74raotst>${formatDate(conjunto.created_at)}</span> </div> <p class="history-description" data-astro-cid-74raotst>Conjunto ${conjunto.codigo} registrado en el sistema</p> </div> </div> </div> </div> </div> <div slot="files" class="detail-content" data-astro-cid-74raotst> <div class="files-section" data-astro-cid-74raotst> <h3 class="section-title" data-astro-cid-74raotst>Documentos del Conjunto</h3> <div class="files-upload" data-astro-cid-74raotst> <button class="btn-upload" data-astro-cid-74raotst> <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" data-astro-cid-74raotst> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" data-astro-cid-74raotst></path> </svg>
+  return renderTemplate`${maybeRenderHead()}<div slot="general" class="detail-content" data-astro-cid-74raotst> <div class="detail-grid" data-astro-cid-74raotst> <div class="detail-section" data-astro-cid-74raotst> <h3 class="section-title" data-astro-cid-74raotst>Información del Conjunto</h3> <div class="info-grid" data-astro-cid-74raotst> <div class="info-item" data-astro-cid-74raotst> <label class="info-label" data-astro-cid-74raotst>Código</label> <div class="info-value editable" data-field="codigo" data-astro-cid-74raotst>${conjunto.codigo}</div> </div> <div class="info-item" data-astro-cid-74raotst> <label class="info-label" data-astro-cid-74raotst>ID del Sistema</label> <div class="info-value" data-astro-cid-74raotst>${conjunto.id}</div> </div> <div class="info-item" data-astro-cid-74raotst> <label class="info-label" data-astro-cid-74raotst>Obra</label> <div class="info-value" data-astro-cid-74raotst>${conjunto.obras?.nombre || "-"}</div> </div> <div class="info-item" data-astro-cid-74raotst> <label class="info-label" data-astro-cid-74raotst>Fecha de Creación</label> <div class="info-value" data-astro-cid-74raotst>${formatDate(conjunto.created_at)}</div> </div> </div> </div> <div class="detail-section" data-astro-cid-74raotst> <h3 class="section-title" data-astro-cid-74raotst>Estado y Descripción</h3> <div class="info-grid" data-astro-cid-74raotst> <div class="info-item" data-astro-cid-74raotst> <label class="info-label" data-astro-cid-74raotst>Estado Actual</label> <div class="info-value" data-astro-cid-74raotst> <span class="estado-actual-badge" data-astro-cid-74raotst> ${conjunto.estados && conjunto.estado_actual !== null ? conjunto.estados[conjunto.estado_actual] : "Sin estado"} </span> </div> </div> <div class="info-item" data-astro-cid-74raotst> <label class="info-label" data-astro-cid-74raotst>Estado</label> <div class="info-value" data-astro-cid-74raotst> <span${addAttribute(`status-badge ${conjunto.is_completed ? "completed" : "pending"}`, "class")} data-astro-cid-74raotst> ${conjunto.is_completed ? "Completado" : "En Progreso"} </span> </div> </div> </div> </div> <div class="detail-section full-width" data-astro-cid-74raotst> <h3 class="section-title" data-astro-cid-74raotst>Descripción</h3> <div class="info-item" data-astro-cid-74raotst> <div class="info-value editable" data-field="descripcion" data-astro-cid-74raotst>${conjunto.descripcion || "Sin descripci\xF3n"}</div> </div> </div> </div> </div> <div slot="progress" class="detail-content" data-astro-cid-74raotst> <div class="progress-section" data-astro-cid-74raotst> <h3 class="section-title" data-astro-cid-74raotst>Estado del Conjunto</h3> <div class="conjunto-overview" data-astro-cid-74raotst> <div class="conjunto-card" data-astro-cid-74raotst> <div class="conjunto-icon status" data-astro-cid-74raotst> <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" data-astro-cid-74raotst> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" data-astro-cid-74raotst></path> </svg> </div> <div class="conjunto-details" data-astro-cid-74raotst> <span class="conjunto-label" data-astro-cid-74raotst>Estado</span> <span class="conjunto-status" data-astro-cid-74raotst>${conjunto.is_completed ? "Completado" : "En Progreso"}</span> </div> </div> <div class="conjunto-card" data-astro-cid-74raotst> <div class="conjunto-icon obra" data-astro-cid-74raotst> <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" data-astro-cid-74raotst> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" data-astro-cid-74raotst></path> </svg> </div> <div class="conjunto-details" data-astro-cid-74raotst> <span class="conjunto-label" data-astro-cid-74raotst>Obra</span> <span class="conjunto-status" data-astro-cid-74raotst>${conjunto.obras?.nombre || "Sin asignar"}</span> </div> </div> </div> </div> </div> <div slot="history" class="detail-content" data-astro-cid-74raotst> <div class="history-section" data-astro-cid-74raotst> <h3 class="section-title" data-astro-cid-74raotst>Historial del Conjunto</h3> <div class="history-items" data-astro-cid-74raotst> <div class="history-item" data-astro-cid-74raotst> <div class="history-avatar" data-astro-cid-74raotst>SYS</div> <div class="history-content" data-astro-cid-74raotst> <div class="history-header" data-astro-cid-74raotst> <strong data-astro-cid-74raotst>Sistema</strong> <span class="history-action" data-astro-cid-74raotst>creó conjunto</span> <span class="history-time" data-astro-cid-74raotst>${formatDate(conjunto.created_at)}</span> </div> <p class="history-description" data-astro-cid-74raotst>Conjunto ${conjunto.codigo} registrado en el sistema</p> </div> </div> </div> </div> </div> <div slot="files" class="detail-content" data-astro-cid-74raotst> <div class="files-section" data-astro-cid-74raotst> <h3 class="section-title" data-astro-cid-74raotst>Documentos del Conjunto</h3> <div class="files-upload" data-astro-cid-74raotst> <button class="btn-upload" data-astro-cid-74raotst> <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" data-astro-cid-74raotst> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" data-astro-cid-74raotst></path> </svg>
 Subir Archivo
 </button> </div> <div class="files-placeholder" data-astro-cid-74raotst> <div class="placeholder-icon" data-astro-cid-74raotst> <svg width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor" data-astro-cid-74raotst> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" data-astro-cid-74raotst></path> </svg> </div> <p data-astro-cid-74raotst>No hay documentos adjuntos</p> <span data-astro-cid-74raotst>Sube planos, especificaciones o documentos relacionados con el conjunto</span> </div> </div> </div> `;
 }, "/Applications/XAMPP/xamppfiles/htdocs/AdminMontaje/src/components/detail/ConjuntoDetail.astro", void 0);

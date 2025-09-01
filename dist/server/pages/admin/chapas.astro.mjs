@@ -1,9 +1,9 @@
-import { e as createComponent, r as renderTemplate, k as renderComponent, m as maybeRenderHead, f as createAstro, h as addAttribute } from '../../chunks/astro/server_BxYUwxS1.mjs';
+import { e as createComponent, r as renderTemplate, k as renderComponent, m as maybeRenderHead, f as createAstro, h as addAttribute } from '../../chunks/astro/server_B5z0SCK9.mjs';
 import 'kleur/colors';
-import { a as $$PageHeader, $ as $$AdminLayout } from '../../chunks/PageHeader_D7LDH3qQ.mjs';
-import { $ as $$FormField, a as $$Modal } from '../../chunks/FormField_D9WOQIop.mjs';
+import { a as $$PageHeader, $ as $$AdminLayout } from '../../chunks/PageHeader_B1Q6qJIn.mjs';
+import { $ as $$FormField, a as $$Modal } from '../../chunks/FormField_CyNQw7Yx.mjs';
 /* empty css                                     */
-import { $ as $$DetailModal } from '../../chunks/DetailModal_DVqDfwI9.mjs';
+import { $ as $$DetailModal } from '../../chunks/DetailModal_CzXwdrlz.mjs';
 import 'clsx';
 import { f as fetchChapas } from '../../chunks/chapa_api_D_TPbLdp.mjs';
 export { renderers } from '../../renderers.mjs';
@@ -236,18 +236,18 @@ const $$TableChapa = createComponent(async ($$result, $$props, $$slots) => {
     }
     
     // Marcar formulario como en modo edici\xF3n
-    const form = document.getElementById('chapas-form');
+        const form = document.getElementById('chapas-form');
     form.setAttribute('data-edit-id', id);
     
     // Cambiar texto del bot\xF3n
     const submitButton = form.querySelector('.btn-submit');
     submitButton.innerHTML = \`
-      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-      </svg>
-      Actualizar Chapa
-    \`;
-    
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            Actualizar Chapa
+          \`;
+          
     // Cargar datos de la chapa
     fetch(\`/api/chapas/\${id}\`)
       .then(response => response.json())
@@ -272,7 +272,7 @@ const $$TableChapa = createComponent(async ($$result, $$props, $$slots) => {
   window.deleteChapa = function(id, codigo) {
     if (confirm(\`\xBFEst\xE1s seguro de que quieres eliminar la chapa #\${codigo}?\`)) {
       fetch(\`/api/chapas/\${id}\`, {
-        method: 'DELETE'
+          method: 'DELETE'
       })
       .then(response => response.json())
       .then(result => {
@@ -295,7 +295,7 @@ const $$TableChapa = createComponent(async ($$result, $$props, $$slots) => {
     if (form) {
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
-
+        
         const formData = new FormData(form);
         const submitButton = form.querySelector('.btn-submit');
         const isEditing = form.hasAttribute('data-edit-id');
@@ -441,18 +441,18 @@ const $$TableChapa = createComponent(async ($$result, $$props, $$slots) => {
     }
     
     // Marcar formulario como en modo edici\xF3n
-    const form = document.getElementById('chapas-form');
+        const form = document.getElementById('chapas-form');
     form.setAttribute('data-edit-id', id);
     
     // Cambiar texto del bot\xF3n
     const submitButton = form.querySelector('.btn-submit');
     submitButton.innerHTML = \\\`
-      <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-      </svg>
-      Actualizar Chapa
-    \\\`;
-    
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            Actualizar Chapa
+          \\\`;
+          
     // Cargar datos de la chapa
     fetch(\\\`/api/chapas/\\\${id}\\\`)
       .then(response => response.json())
@@ -477,7 +477,7 @@ const $$TableChapa = createComponent(async ($$result, $$props, $$slots) => {
   window.deleteChapa = function(id, codigo) {
     if (confirm(\\\`\xBFEst\xE1s seguro de que quieres eliminar la chapa #\\\${codigo}?\\\`)) {
       fetch(\\\`/api/chapas/\\\${id}\\\`, {
-        method: 'DELETE'
+          method: 'DELETE'
       })
       .then(response => response.json())
       .then(result => {
@@ -500,7 +500,7 @@ const $$TableChapa = createComponent(async ($$result, $$props, $$slots) => {
     if (form) {
       form.addEventListener('submit', async (e) => {
         e.preventDefault();
-
+        
         const formData = new FormData(form);
         const submitButton = form.querySelector('.btn-submit');
         const isEditing = form.hasAttribute('data-edit-id');

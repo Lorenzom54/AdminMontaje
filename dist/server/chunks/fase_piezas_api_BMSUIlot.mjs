@@ -1,4 +1,4 @@
-import { s as supabase } from './supabaseClient_CMJLZPZx.mjs';
+import { s as supabase } from './supabaseClient_CTFy9dOP.mjs';
 
 // Obtener todas las fases de piezas
 async function fetchFasePiezas() {

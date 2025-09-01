@@ -34,10 +34,6 @@ function joinPaths(...paths) {
     }
   }).join("/");
 }
-function removeQueryString(path) {
-  const index = path.lastIndexOf("?");
-  return index > 0 ? path.substring(0, index) : path;
-}
 function isRemotePath(src) {
   return /^(?:http|ftp|https|ws):?\/\//.test(src) || src.startsWith("data:");
 }
@@ -53,4 +49,4 @@ function hasFileExtension(path) {
   return WITH_FILE_EXT.test(path);
 }
 
-export { appendForwardSlash as a, removeTrailingForwardSlash as b, collapseDuplicateTrailingSlashes as c, fileExtension as f, hasFileExtension as h, isRemotePath as i, joinPaths as j, prependForwardSlash as p, removeQueryString as r, slash as s, trimSlashes as t };
+export { appendForwardSlash as a, collapseDuplicateTrailingSlashes as c, fileExtension as f, hasFileExtension as h, isRemotePath as i, joinPaths as j, prependForwardSlash as p, removeTrailingForwardSlash as r, slash as s, trimSlashes as t };

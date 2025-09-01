@@ -7,7 +7,7 @@ import DetailModal from '../DetailModal.astro';
 import TablePieza from '../table/TablePieza.astro';
 import PiezaDetail from '../detail/PiezaDetail.astro';
 import Pagination from '../Pagination.astro';
-import { fetchPiezas, fetchPiezasCount, FASES, searchPiezas, searchPiezasCount, fetchChapasForSelect } from '../../lib/pieza_api';
+import { fetchPiezas, fetchPiezasCount, searchPiezas, searchPiezasCount, fetchChapasForSelect } from '../../lib/pieza_api';
 import { fetchObrasForSelect } from '../../lib/conjunto_api';
 
 // Obtener parámetros de paginación de la URL
@@ -26,7 +26,7 @@ const filters = {
 // Aplicar filtros si existen
 let piezas, totalPiezas;
 if (filters.fase || filters.obra_id || filters.chapa_id || filters.search) {
-  const searchFilters = {};
+  const searchFilters: Record<string, any> = {};
   if (filters.fase) searchFilters.fase = filters.fase;
   if (filters.obra_id) searchFilters.obra_id = filters.obra_id;
   if (filters.chapa_id) searchFilters.chapa_id = filters.chapa_id;
@@ -172,7 +172,7 @@ const endItem = Math.min(currentPage * pageSize, totalPiezas || 0);
     <Pagination 
       currentPage={currentPage}
       totalPages={totalPages}
-      totalItems={totalPiezas}
+      totalItems={totalPiezas || 0}
       pageSize={pageSize}
       startItem={startItem}
       endItem={endItem}

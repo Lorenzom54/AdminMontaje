@@ -1,5 +1,59 @@
 import { supabase } from './supabaseClient.js';
 
+// Mapeo estático de fases de piezas (fallback)
+export const FASES = {
+  0: 'Para cortar',
+  1: 'Cortado'
+};
+
+// Caché en memoria para el mapa de fases
+let fasesCache = null;
+let fasesCacheUpdatedAt = 0;
+const FASES_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutos
+
+// Obtener mapa dinámico de fases (índice -> nombre) desde la BD con caché
+export async function getFasesMap() {
+  const now = Date.now();
+  if (fasesCache && (now - fasesCacheUpdatedAt) < FASES_CACHE_TTL_MS) {
+    return fasesCache;
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('fases_piezas')
+      .select('id, fase, created_at')
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      console.error('Error al obtener fases dinámicas de piezas:', error.message);
+      fasesCache = FASES;
+      fasesCacheUpdatedAt = now;
+      return fasesCache;
+    }
+
+    // Construir el mapa por índice ordinal (0..n-1) según el orden de creación
+    const map = {};
+    (data || []).forEach((row, index) => {
+      map[index] = row.fase;
+    });
+
+    fasesCache = Object.keys(map).length > 0 ? map : FASES;
+    fasesCacheUpdatedAt = now;
+    return fasesCache;
+  } catch (err) {
+    console.error('Error inesperado al construir mapa de fases:', err);
+    fasesCache = FASES;
+    fasesCacheUpdatedAt = now;
+    return fasesCache;
+  }
+}
+
+// Helper: obtener etiqueta de fase por índice
+export async function getFaseLabel(faseIndex) {
+  const map = await getFasesMap();
+  return map?.[faseIndex] ?? `Fase ${faseIndex}`;
+}
+
 // Función para obtener el nombre de la fase desde la base de datos
 export async function getFaseName(faseId) {
   const { data, error } = await supabase

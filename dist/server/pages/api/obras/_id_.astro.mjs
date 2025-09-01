@@ -1,14 +1,13 @@
-import { f as fetchObraById, u as updateObra, d as deleteObra } from '../../../chunks/obra_api_DPwG3jSY.mjs';
+import { fetchObraByIdWithFases, updateObraWithFases, deleteObra } from '../../../chunks/obra_api_D3QhXp__.mjs';
 export { renderers } from '../../../renderers.mjs';
 
 const prerender = false;
 
-// GET - Obtener obra por ID
 async function GET({ params }) {
   try {
     const { id } = params;
-    const obra = await fetchObraById(id);
-
+    const obra = await fetchObraByIdWithFases(id);
+    
     if (!obra) {
       return new Response(JSON.stringify({ success: false, error: 'Obra no encontrada' }), {
         status: 404,
@@ -16,7 +15,7 @@ async function GET({ params }) {
       });
     }
 
-    return new Response(JSON.stringify({ success: true, data: obra }), {
+    return new Response(JSON.stringify(obra), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
@@ -30,13 +29,45 @@ async function GET({ params }) {
   }
 }
 
-// PUT - Actualizar obra
 async function PUT({ params, request }) {
   try {
     const { id } = params;
-    const updates = await request.json();
+    const body = await request.json();
 
-    const result = await updateObra(id, updates);
+    const { 
+      nombre, 
+      estado, 
+      fecha_inicio, 
+      fecha_fin, 
+      ubicacion, 
+      responsable, 
+      descripcion,
+      fases_piezas = [],
+      fases_conjuntos = []
+    } = body;
+
+    // Validaciones básicas
+    if (!nombre || !estado || !fecha_inicio) {
+      return new Response(JSON.stringify({ 
+        success: false, 
+        error: 'Los campos nombre, estado, fecha de inicio son obligatorios' 
+      }), {
+        status: 400,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    const updates = {
+      nombre,
+      estado,
+      fecha_inicio,
+      fecha_fin,
+      ubicacion,
+      responsable,
+      descripcion
+    };
+
+    const result = await updateObraWithFases(id, updates, fases_piezas, fases_conjuntos);
 
     if (!result.success) {
       return new Response(JSON.stringify(result), {
@@ -59,27 +90,37 @@ async function PUT({ params, request }) {
   }
 }
 
-// DELETE - Eliminar obra
-async function DELETE({ params }) {
+async function POST({ params, request }) {
   try {
     const { id } = params;
-    const result = await deleteObra(id);
+    const body = await request.json();
+    
+    // Si el body contiene action: 'delete', entonces eliminar
+    if (body.action === 'delete') {
+      const result = await deleteObra(id);
 
-    if (!result.success) {
-      return new Response(JSON.stringify(result), {
-        status: 400,
+      if (!result.success) {
+        return new Response(JSON.stringify(result), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+
+      return new Response(JSON.stringify({ success: true, message: 'Obra eliminada correctamente' }), {
+        status: 200,
         headers: { 'Content-Type': 'application/json' },
       });
     }
-
-    return new Response(JSON.stringify(result), {
-      status: 200,
+    
+    // Si no es delete, devolver error
+    return new Response(JSON.stringify({ success: false, error: 'Acción no válida' }), {
+      status: 400,
       headers: { 'Content-Type': 'application/json' },
     });
 
   } catch (error) {
-    console.error('Error en DELETE /api/obras/[id]:', error);
-    return new Response(JSON.stringify({ success: false, error: 'Error al eliminar la obra' }), {
+    console.error('Error en POST /api/obras/[id]:', error);
+    return new Response(JSON.stringify({ success: false, error: 'Error al procesar la solicitud' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
     });
@@ -88,8 +129,8 @@ async function DELETE({ params }) {
 
 const _page = /*#__PURE__*/Object.freeze(/*#__PURE__*/Object.defineProperty({
   __proto__: null,
-  DELETE,
   GET,
+  POST,
   PUT,
   prerender
 }, Symbol.toStringTag, { value: 'Module' }));

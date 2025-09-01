@@ -80,7 +80,7 @@ export async function POST({ request }) {
                 obra_id: parseInt(selectedObraId),
                 estado_actual: estadoPorDefecto, // Estado por defecto dinámico
                 is_completed: false,
-                descripcion: `Conjunto ${conjuntoCodigo} - Importado desde CSV`
+                descripcion: `Conjunto ${conjuntoCodigo}`
               });
               
               if (!conjuntoResult.success) {

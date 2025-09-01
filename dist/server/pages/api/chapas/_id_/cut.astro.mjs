@@ -1,4 +1,4 @@
-import { m as markPiezasCortadasByChapaId } from '../../../../chunks/pieza_api_CnJ_1FmQ.mjs';
+import { m as markPiezasCortadasByChapaId } from '../../../../chunks/pieza_api_DW6qEyk6.mjs';
 export { renderers } from '../../../../renderers.mjs';
 
 const prerender = false;
