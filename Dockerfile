@@ -1,23 +1,14 @@
-# Imagen base ligera con Node.js
-FROM node:20-slim
+# Imagen base con Nginx
+FROM nginx:alpine
 
-# Crear directorio de trabajo
-WORKDIR /app
+# Copiar build estático de Astro al directorio que Nginx sirve
+COPY dist/ /usr/share/nginx/html
 
-# Copiar package.json y package-lock.json primero (para cachear dependencias)
-COPY package*.json ./
+# Copiar configuración personalizada de Nginx (opcional)
+# COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Instalar dependencias de producción
-RUN npm install --production
+# Exponer puerto 80
+EXPOSE 80
 
-# Copiar todo el código del proyecto
-COPY . .
-
-# Compilar Astro
-RUN npm run build
-
-# Exponer el puerto
-EXPOSE 3000
-
-# Lanzar la app
-CMD ["npm", "run", "start"]
+# Arrancar Nginx en primer plano
+CMD ["nginx", "-g", "daemon off;"]
