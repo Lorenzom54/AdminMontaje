@@ -1,4 +1,4 @@
-import { h as addPieza } from '../../../chunks/pieza_api_DW6qEyk6.mjs';
+import { h as addPieza } from '../../../chunks/pieza_api_CWN9-kdm.mjs';
 import { h as fetchConjuntoByCodigo, c as addConjunto } from '../../../chunks/conjunto_api_DdlW2uM9.mjs';
 import { b as fetchFaseConjuntosForSelect } from '../../../chunks/fase_conjuntos_api_CA1fKWH4.mjs';
 export { renderers } from '../../../renderers.mjs';

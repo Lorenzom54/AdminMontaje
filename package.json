@@ -18,7 +18,8 @@
     "@astrojs/node": "^9.4.2",
     "@supabase/supabase-js": "^2.50.3",
     "astro": "^5.2.5",
-    "supabase": "^2.30.4"
+    "supabase": "^2.30.4",
+    "tabulator-tables": "^6.3.1"
   },
   "devDependencies": {
     "@astrojs/netlify": "^6.5.7",

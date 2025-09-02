@@ -287,7 +287,6 @@ async function searchPiezas(filters = {}, page = 1, pageSize = 20) {
   if (filters.obra_id && filters.obra_id !== '') {
     // Filtrar por obra_id a través de la relación con conjuntos
     query = query.not('conjunto_id', 'is', null);
-    // Necesitamos hacer un join más específico para filtrar por obra
     query = query.eq('conjuntos.obra_id', parseInt(filters.obra_id));
   }
 
@@ -311,12 +310,17 @@ async function searchPiezasCount(filters = {}) {
     query = query.ilike('tipo_material', `%${filters.tipo_material}%`);
   }
 
-  if (filters.codigo) {
-    query = query.ilike('codigo', `%${filters.codigo}%`);
-  }
-
-  if (filters.colada) {
-    query = query.ilike('colada', `%${filters.colada}%`);
+  if (filters.search) {
+    // Buscar en código o colada usando OR
+    query = query.or(`codigo.ilike.%${filters.search}%,colada.ilike.%${filters.search}%`);
+  } else {
+    // Si no hay búsqueda general, aplicar filtros específicos
+    if (filters.codigo) {
+      query = query.ilike('codigo', `%${filters.codigo}%`);
+    }
+    if (filters.colada) {
+      query = query.ilike('colada', `%${filters.colada}%`);
+    }
   }
 
   if (filters.fase !== undefined && filters.fase !== '') {
@@ -338,18 +342,15 @@ async function searchPiezasCount(filters = {}) {
       // Aplicar otros filtros sobre estos resultados
       let filteredIds = piezasWithObra.map(p => p.id);
       
-      if (filters.tipo_material || filters.codigo || filters.colada || (filters.fase !== undefined && filters.fase !== '') || filters.chapa_id) {
+      if (filters.tipo_material || filters.search || (filters.fase !== undefined && filters.fase !== '') || filters.chapa_id) {
         let countQuery = supabase.from('piezas').select('*', { count: 'exact', head: true });
         countQuery = countQuery.in('id', filteredIds);
         
         if (filters.tipo_material) {
           countQuery = countQuery.ilike('tipo_material', `%${filters.tipo_material}%`);
         }
-        if (filters.codigo) {
-          countQuery = countQuery.ilike('codigo', `%${filters.codigo}%`);
-        }
-        if (filters.colada) {
-          countQuery = countQuery.ilike('colada', `%${filters.colada}%`);
+        if (filters.search) {
+          countQuery = countQuery.or(`codigo.ilike.%${filters.search}%,colada.ilike.%${filters.search}%`);
         }
         if (filters.fase !== undefined && filters.fase !== '') {
           countQuery = countQuery.eq('fase', parseInt(filters.fase));

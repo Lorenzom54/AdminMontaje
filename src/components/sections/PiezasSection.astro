@@ -31,8 +31,8 @@ if (filters.fase || filters.obra_id || filters.chapa_id || filters.search) {
   if (filters.obra_id) searchFilters.obra_id = filters.obra_id;
   if (filters.chapa_id) searchFilters.chapa_id = filters.chapa_id;
   if (filters.search) {
-    searchFilters.codigo = filters.search;
-    searchFilters.colada = filters.search;
+    // Buscar en código o colada usando el parámetro search
+    searchFilters.search = filters.search;
   }
   
   piezas = await searchPiezas(searchFilters, currentPage, pageSize);
@@ -139,6 +139,19 @@ const endItem = Math.min(currentPage * pageSize, totalPiezas || 0);
     <div class="table-header">
       <h3>Piezas Registradas</h3>
       <div class="table-filters">
+        <div class="filters-info" id="filters-info" style="display: none;">
+          <span class="filters-badge">Filtros activos</span>
+        </div>
+        {filters.search && (
+          <div class="search-results-info">
+            <span class="search-badge">
+              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              {totalPiezas} resultado{filters.search && totalPiezas !== 1 ? 's' : ''} para "{filters.search}"
+            </span>
+          </div>
+        )}
         <select class="filter-select" id="fase-filter">
           <option value="">Todas las fases</option>
           <option value="0" selected={filters.fase === '0'}>Para cortar</option>
@@ -154,9 +167,15 @@ const endItem = Math.min(currentPage * pageSize, totalPiezas || 0);
           type="text" 
           class="filter-input" 
           id="search-input"
-          placeholder="Buscar por código o colada..."
+          placeholder="Buscar por código de pieza o colada..."
           value={filters.search || ''}
+          title="Escribe el código de la pieza o número de colada para buscar"
         />
+        <button class="btn-clear-filters" id="clear-filters-btn" title="Limpiar todos los filtros">
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
         <button class="btn-import" onclick="openModal('modal-import-csv')">
           <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
@@ -345,6 +364,61 @@ const endItem = Math.min(currentPage * pageSize, totalPiezas || 0);
 
   .filter-input {
     min-width: 200px;
+  }
+
+  .filters-info {
+    display: flex;
+    align-items: center;
+    margin-right: 12px;
+  }
+
+  .filters-badge {
+    background: #3b82f6;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+  }
+
+  .search-results-info {
+    display: flex;
+    align-items: center;
+    margin-right: 12px;
+  }
+
+  .search-badge {
+    background: #10b981;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .btn-clear-filters {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: #f3f4f6;
+    color: #6b7280;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btn-clear-filters:hover {
+    background: #e5e7eb;
+    color: #374151;
+    border-color: #9ca3af;
   }
 
   .btn-import {
@@ -645,9 +719,10 @@ const endItem = Math.min(currentPage * pageSize, totalPiezas || 0);
   // Filtros en tiempo real
   document.addEventListener('DOMContentLoaded', function() {
     const faseFilter = document.getElementById('fase-filter');
-    const obraFilter = document.getElementById('obra-filter');
+    const activeProjectFilter = document.getElementById('active-project-filter');
     const chapaFilter = document.getElementById('chapa-filter');
     const searchInput = document.getElementById('search-input');
+    const clearFiltersBtn = document.getElementById('clear-filters-btn');
     
     // Estado de paginación
     let currentPage = parseInt(new URLSearchParams(window.location.search).get('page') || '1');
@@ -664,9 +739,6 @@ const endItem = Math.min(currentPage * pageSize, totalPiezas || 0);
     if (currentFilters.chapa_id) chapaFilter.value = currentFilters.chapa_id;
     if (currentFilters.search) searchInput.value = currentFilters.search;
 
-    // Manejar filtro de proyecto persistente
-    const activeProjectFilter = document.getElementById('active-project-filter');
-    
     // Restaurar proyecto activo desde localStorage o URL
     const savedProjectId = localStorage.getItem('activeProjectId');
     const urlProjectId = currentFilters.obra_id;
@@ -681,6 +753,18 @@ const endItem = Math.min(currentPage * pageSize, totalPiezas || 0);
       activeProjectFilter.value = savedProjectId;
       currentFilters.obra_id = savedProjectId;
     }
+
+    // Función para actualizar el indicador de filtros activos
+    function updateFiltersIndicator() {
+      const hasActiveFilters = currentFilters.fase || currentFilters.obra_id || currentFilters.chapa_id || currentFilters.search;
+      const filtersInfo = document.getElementById('filters-info');
+      if (filtersInfo) {
+        filtersInfo.style.display = hasActiveFilters ? 'flex' : 'none';
+      }
+    }
+    
+    // Actualizar indicador inicial
+    updateFiltersIndicator();
 
     function updateURL() {
       const params = new URLSearchParams();
@@ -704,6 +788,7 @@ const endItem = Math.min(currentPage * pageSize, totalPiezas || 0);
       currentFilters.chapa_id = chapaFilter.value;
       currentFilters.search = searchInput.value;
       currentPage = 1; // Resetear a la primera página cuando se aplican filtros
+      updateFiltersIndicator();
       updateURL();
     }
 
@@ -725,6 +810,7 @@ const endItem = Math.min(currentPage * pageSize, totalPiezas || 0);
       // Actualizar filtros y recargar
       currentFilters.obra_id = selectedProjectId;
       currentPage = 1;
+      updateFiltersIndicator();
       updateURL();
     });
     
@@ -733,6 +819,20 @@ const endItem = Math.min(currentPage * pageSize, totalPiezas || 0);
     searchInput.addEventListener('input', () => {
       clearTimeout(searchTimeout);
       searchTimeout = setTimeout(applyFilters, 500);
+    });
+
+    // Event listener para limpiar filtros
+    clearFiltersBtn.addEventListener('click', () => {
+      faseFilter.value = '';
+      activeProjectFilter.value = '';
+      chapaFilter.value = '';
+      searchInput.value = '';
+      currentFilters.fase = '';
+      currentFilters.obra_id = '';
+      currentFilters.chapa_id = '';
+      currentFilters.search = '';
+      updateFiltersIndicator();
+      updateURL();
     });
     
     // Event listeners para paginación

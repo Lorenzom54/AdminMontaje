@@ -1,4 +1,4 @@
-import { i as fetchPiezaById, j as updatePieza, k as deletePieza } from '../../../chunks/pieza_api_DW6qEyk6.mjs';
+import { i as fetchPiezaById, j as updatePieza, k as deletePieza } from '../../../chunks/pieza_api_CWN9-kdm.mjs';
 export { renderers } from '../../../renderers.mjs';
 
 const prerender = false;

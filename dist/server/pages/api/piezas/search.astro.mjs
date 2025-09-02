@@ -1,4 +1,4 @@
-import { s as searchPiezas, c as searchPiezasCount } from '../../../chunks/pieza_api_DW6qEyk6.mjs';
+import { s as searchPiezas, c as searchPiezasCount } from '../../../chunks/pieza_api_CWN9-kdm.mjs';
 export { renderers } from '../../../renderers.mjs';
 
 const prerender = false;
