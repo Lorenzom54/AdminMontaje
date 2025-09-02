@@ -1,10 +1,10 @@
-import { e as createComponent, r as renderTemplate, h as addAttribute, k as renderComponent, m as maybeRenderHead, f as createAstro } from '../../chunks/astro/server_B5z0SCK9.mjs';
+import { e as createComponent, r as renderTemplate, h as addAttribute, k as renderComponent, m as maybeRenderHead, f as createAstro } from '../../chunks/astro/server_Bi__Z7-M.mjs';
 import 'kleur/colors';
-import { a as $$PageHeader, $ as $$AdminLayout } from '../../chunks/PageHeader_B1Q6qJIn.mjs';
-import { $ as $$FormField, a as $$Modal } from '../../chunks/FormField_CyNQw7Yx.mjs';
+import { a as $$PageHeader, $ as $$AdminLayout } from '../../chunks/PageHeader_Brl_MUMp.mjs';
+import { $ as $$FormField, a as $$Modal } from '../../chunks/FormField_BixoaIOJ.mjs';
 import { f as fetchObrasForSelect, a as fetchFaseConjuntosForSelect, b as fetchConjuntos } from '../../chunks/conjunto_api_DdlW2uM9.mjs';
 /* empty css                                        */
-import { $ as $$DetailModal } from '../../chunks/DetailModal_CzXwdrlz.mjs';
+import { $ as $$DetailModal } from '../../chunks/DetailModal_NkGyXgeE.mjs';
 import 'clsx';
 export { renderers } from '../../renderers.mjs';
 

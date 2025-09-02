@@ -25,11 +25,9 @@ const filters = {
 
 // Aplicar filtros si existen
 let piezas, totalPiezas;
-if (filters.fase || filters.obra_id || filters.chapa_id || filters.search) {
+if (filters.obra_id || filters.search) {
   const searchFilters: Record<string, any> = {};
-  if (filters.fase) searchFilters.fase = filters.fase;
   if (filters.obra_id) searchFilters.obra_id = filters.obra_id;
-  if (filters.chapa_id) searchFilters.chapa_id = filters.chapa_id;
   if (filters.search) {
     // Buscar en código o colada usando el parámetro search
     searchFilters.search = filters.search;
@@ -152,17 +150,7 @@ const endItem = Math.min(currentPage * pageSize, totalPiezas || 0);
             </span>
           </div>
         )}
-        <select class="filter-select" id="fase-filter">
-          <option value="">Todas las fases</option>
-          <option value="0" selected={filters.fase === '0'}>Para cortar</option>
-          <option value="1" selected={filters.fase === '1'}>Cortado</option>
-        </select>
-        <select class="filter-select" id="chapa-filter">
-          <option value="">Todas las chapas</option>
-          {chapaOptions.map(chapa => (
-            <option value={chapa.value} selected={filters.chapa_id === chapa.value}>{chapa.label}</option>
-          ))}
-        </select>
+
         <input 
           type="text" 
           class="filter-input" 
@@ -182,10 +170,29 @@ const endItem = Math.min(currentPage * pageSize, totalPiezas || 0);
           </svg>
           Importar CSV
         </button>
+        <div class="export-buttons">
+          <button class="btn-export" onclick="exportTableData('csv')" title="Exportar a CSV">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            CSV
+          </button>
+          <button class="btn-export" onclick="exportTableData('xlsx')" title="Exportar a Excel">
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            Excel
+          </button>
+        </div>
       </div>
     </div>
     
     <TablePieza piezas={piezas} />
+    
+    <!-- Script para hacer los datos disponibles para Tabulator -->
+    <script define:vars={{ piezas: piezas }}>
+      window.piezasData = piezas;
+    </script>
     
     <!-- Paginación -->
     <Pagination 
@@ -440,6 +447,38 @@ const endItem = Math.min(currentPage * pageSize, totalPiezas || 0);
     background: #059669;
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  }
+
+  .export-buttons {
+    display: flex;
+    gap: 8px;
+    margin-left: 12px;
+  }
+
+  .btn-export {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    background: #6366f1;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btn-export:hover {
+    background: #4f46e5;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+  }
+
+  .btn-export svg {
+    width: 14px;
+    height: 14px;
   }
 
   /* Estilos para la barra de filtro de proyecto */
@@ -718,9 +757,7 @@ const endItem = Math.min(currentPage * pageSize, totalPiezas || 0);
 <script type="module">
   // Filtros en tiempo real
   document.addEventListener('DOMContentLoaded', function() {
-    const faseFilter = document.getElementById('fase-filter');
     const activeProjectFilter = document.getElementById('active-project-filter');
-    const chapaFilter = document.getElementById('chapa-filter');
     const searchInput = document.getElementById('search-input');
     const clearFiltersBtn = document.getElementById('clear-filters-btn');
     
@@ -728,15 +765,11 @@ const endItem = Math.min(currentPage * pageSize, totalPiezas || 0);
     let currentPage = parseInt(new URLSearchParams(window.location.search).get('page') || '1');
     let currentPageSize = parseInt(new URLSearchParams(window.location.search).get('pageSize') || '20');
     let currentFilters = {
-      fase: new URLSearchParams(window.location.search).get('fase') || '',
       obra_id: new URLSearchParams(window.location.search).get('obra_id') || '',
-      chapa_id: new URLSearchParams(window.location.search).get('chapa_id') || '',
       search: new URLSearchParams(window.location.search).get('search') || ''
     };
     
     // Aplicar filtros iniciales
-    if (currentFilters.fase) faseFilter.value = currentFilters.fase;
-    if (currentFilters.chapa_id) chapaFilter.value = currentFilters.chapa_id;
     if (currentFilters.search) searchInput.value = currentFilters.search;
 
     // Restaurar proyecto activo desde localStorage o URL
@@ -756,7 +789,7 @@ const endItem = Math.min(currentPage * pageSize, totalPiezas || 0);
 
     // Función para actualizar el indicador de filtros activos
     function updateFiltersIndicator() {
-      const hasActiveFilters = currentFilters.fase || currentFilters.obra_id || currentFilters.chapa_id || currentFilters.search;
+      const hasActiveFilters = currentFilters.obra_id || currentFilters.search;
       const filtersInfo = document.getElementById('filters-info');
       if (filtersInfo) {
         filtersInfo.style.display = hasActiveFilters ? 'flex' : 'none';
@@ -771,9 +804,7 @@ const endItem = Math.min(currentPage * pageSize, totalPiezas || 0);
       params.set('page', currentPage.toString());
       params.set('pageSize', currentPageSize.toString());
       
-      if (currentFilters.fase) params.set('fase', currentFilters.fase);
       if (currentFilters.obra_id) params.set('obra_id', currentFilters.obra_id);
-      if (currentFilters.chapa_id) params.set('chapa_id', currentFilters.chapa_id);
       if (currentFilters.search) params.set('search', currentFilters.search);
       
       const newURL = `${window.location.pathname}?${params.toString()}`;
@@ -784,8 +815,6 @@ const endItem = Math.min(currentPage * pageSize, totalPiezas || 0);
     }
 
     function applyFilters() {
-      currentFilters.fase = faseFilter.value;
-      currentFilters.chapa_id = chapaFilter.value;
       currentFilters.search = searchInput.value;
       currentPage = 1; // Resetear a la primera página cuando se aplican filtros
       updateFiltersIndicator();
@@ -793,8 +822,6 @@ const endItem = Math.min(currentPage * pageSize, totalPiezas || 0);
     }
 
     // Event listeners para filtros
-    faseFilter.addEventListener('change', applyFilters);
-    chapaFilter.addEventListener('change', applyFilters);
     
     // Event listener para filtro de proyecto persistente
     activeProjectFilter.addEventListener('change', function() {
@@ -823,13 +850,9 @@ const endItem = Math.min(currentPage * pageSize, totalPiezas || 0);
 
     // Event listener para limpiar filtros
     clearFiltersBtn.addEventListener('click', () => {
-      faseFilter.value = '';
       activeProjectFilter.value = '';
-      chapaFilter.value = '';
       searchInput.value = '';
-      currentFilters.fase = '';
       currentFilters.obra_id = '';
-      currentFilters.chapa_id = '';
       currentFilters.search = '';
       updateFiltersIndicator();
       updateURL();

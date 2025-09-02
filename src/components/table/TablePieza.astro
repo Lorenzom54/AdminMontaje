@@ -24,115 +24,103 @@ function formatDate(dateString: string) {
 ---
 
 <div class="table-container">
-  <table class="data-table">
-    <thead>
-      <tr>
-        <th>Código</th>
-        <th>Tipo Material</th>
-        <th>Fase</th>
-        <th>Conjunto</th>
-        <th>Obra</th>
-        <th>Chapa</th>
-        <th>Colada</th>
-        <th>Fecha Creación</th>
-        <th>Acciones</th>
-      </tr>
-    </thead>
-    <tbody>
-      {piezas.map((pieza) => (
-        <tr>
-          <td>
-            <div class="pieza-info">
-              <strong>{pieza.codigo}</strong>
-              <span class="pieza-id">ID: {pieza.id}</span>
-            </div>
-          </td>
-          <td>
-            <span class="material-badge">
-              {pieza.tipo_material || '-'}
-            </span>
-          </td>
-          <td>
-            <span class="fase-badge">
-              {pieza.fase === 0 ? 'Para cortar' : pieza.fase === 1 ? 'Cortado' : `Fase ${pieza.fase}`}
-            </span>
-          </td>
-          <td>
-            <div class="conjunto-info">
-              <span>{pieza.conjuntos?.codigo || '-'}</span>
-            </div>
-          </td>
-          <td>
-            <div class="obra-info">
-              <span>{pieza.conjuntos?.obras?.nombre || '-'}</span>
-            </div>
-          </td>
-          <td>
-            <div class="chapa-info">
-              <span>{pieza.chapas?.codigo ? `#${pieza.chapas.codigo}` : '-'}</span>
-            </div>
-          </td>
-          <td>
-            <div class="colada-info">
-              <span>{pieza.colada || '-'}</span>
-            </div>
-          </td>
-          <td>{formatDate(pieza.created_at)}</td>
-          <td>
-            <div class="action-buttons">
-              <button class="btn-icon" title="Ver detalles" onclick={`openModal('detail-pieza-${pieza.id}')`}>
-                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                </svg>
-              </button>
-              <button class="btn-icon" title="Editar" onclick={`editPieza('${pieza.id}')`}>
-                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                </svg>
-              </button>
-              <button class="btn-icon btn-delete" title="Eliminar" onclick={`deletePieza('${pieza.id}', '${pieza.codigo}')`}>
-                <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-              </button>
-            </div>
-          </td>
-        </tr>
-      ))}
-    </tbody>
-  </table>
+  <div id="piezas-table"></div>
 </div>
 
 <style>
   .table-container {
-    overflow-x: auto;
+    padding: 20px;
   }
 
-  .data-table {
-    width: 100%;
-    border-collapse: collapse;
+  /* Personalización de Tabulator */
+  :global(.tabulator) {
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
   }
 
-  .data-table th,
-  .data-table td {
-    padding: 12px 16px;
-    text-align: left;
-    border-bottom: 1px solid #e5e7eb;
+  :global(.tabulator-header) {
+    background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+    border-bottom: 2px solid #e2e8f0;
   }
 
-  .data-table th {
-    background: #f9fafb;
-    font-weight: 600;
+  :global(.tabulator-col) {
+    background: transparent !important;
+    border-right: 1px solid #e2e8f0;
     color: #374151;
+    font-weight: 600;
     font-size: 14px;
+    padding: 12px 16px;
   }
 
-  .data-table td {
+  :global(.tabulator-row) {
+    border-bottom: 1px solid #f1f5f9;
+    transition: all 0.2s ease;
+  }
+
+  :global(.tabulator-row:hover) {
+    background: #f8fafc !important;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  :global(.tabulator-cell) {
+    padding: 12px 16px;
+    border-right: 1px solid #f1f5f9;
     color: #111827;
     font-size: 14px;
   }
 
+  :global(.tabulator-row.tabulator-row-even) {
+    background: #fafafa;
+  }
+
+  :global(.tabulator-row.tabulator-row-odd) {
+    background: white;
+  }
+
+  :global(.tabulator-footer) {
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    padding: 12px 16px;
+  }
+
+  :global(.tabulator-paginator) {
+    background: transparent;
+    border: none;
+    color: #6b7280;
+  }
+
+  :global(.tabulator-page) {
+    background: white;
+    border: 1px solid #d1d5db;
+    color: #374151;
+    padding: 8px 12px;
+    margin: 0 2px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  :global(.tabulator-page:hover) {
+    background: #f3f4f6;
+    border-color: #9ca3af;
+  }
+
+  :global(.tabulator-page.tabulator-page-active) {
+    background: #3b82f6;
+    color: white;
+    border-color: #3b82f6;
+  }
+
+  :global(.tabulator-page.tabulator-page-disabled) {
+    background: #f3f4f6;
+    color: #9ca3af;
+    cursor: not-allowed;
+  }
+
+  /* Estilos para badges y elementos especiales */
   .pieza-info {
     display: flex;
     flex-direction: column;
@@ -169,13 +157,6 @@ function formatDate(dateString: string) {
     font-weight: 500;
   }
 
-  .conjunto-info,
-  .obra-info,
-  .chapa-info,
-  .colada-info {
-    color: #374151;
-  }
-
   .action-buttons {
     display: flex;
     gap: 8px;
@@ -210,14 +191,36 @@ function formatDate(dateString: string) {
     border-color: #f87171;
   }
 
+  /* Responsive */
   @media (max-width: 768px) {
     .action-buttons {
       flex-direction: column;
+    }
+    
+    :global(.tabulator) {
+      font-size: 12px;
+    }
+    
+    :global(.tabulator-cell) {
+      padding: 8px 12px;
     }
   }
 </style>
 
 <script type="module">
+  // Función para formatear fechas
+  function formatDate(dateString) {
+    if (!dateString) return '-';
+    return new Date(dateString).toLocaleDateString('es-ES');
+  }
+
+  // Función para obtener el nombre de la fase
+  function getFaseName(fase) {
+    if (fase === 0) return 'Para cortar';
+    if (fase === 1) return 'Cortado';
+    return `Fase ${fase}`;
+  }
+
   // Función para editar pieza
   window.editPieza = async function(piezaId) {
     try {
@@ -285,6 +288,233 @@ function formatDate(dateString: string) {
       }
     }
   };
+
+  // Inicializar Tabulator cuando el DOM esté listo
+  document.addEventListener('DOMContentLoaded', function() {
+    // Esperar a que Tabulator esté disponible
+    if (typeof Tabulator === 'undefined') {
+      console.error('Tabulator no está disponible');
+      return;
+    }
+
+    // Preparar los datos para Tabulator
+    const tableData = window.piezasData || [];
+    
+    // Configuración de Tabulator
+    const table = new Tabulator('#piezas-table', {
+      data: tableData,
+      layout: 'fitDataFill',
+      pagination: true,
+      paginationSize: 20,
+      paginationSizeSelector: [10, 20, 50, 100],
+      paginationButtonCount: 5,
+      paginationCounter: 'rows',
+      movableColumns: true,
+      resizableRows: true,
+      selectable: true,
+      sortable: true,
+      filterable: true,
+      height: 'auto',
+      maxHeight: '600px',
+      locale: 'es',
+      langs: {
+        es: {
+          'pagination': {
+            'first': 'Primera',
+            'first_title': 'Primera página',
+            'last': 'Última',
+            'last_title': 'Última página',
+            'prev': 'Anterior',
+            'prev_title': 'Página anterior',
+            'next': 'Siguiente',
+            'next_title': 'Página siguiente',
+            'all': 'Todas',
+            'counter': {
+              'showing': 'Mostrando',
+              'of': 'de',
+              'rows': 'filas',
+              'pages': 'páginas'
+            }
+          }
+        }
+      },
+      columns: [
+        {
+          title: 'Código',
+          field: 'codigo',
+          headerFilter: 'input',
+          headerFilterPlaceholder: 'Buscar código...',
+          formatter: function(cell) {
+            const pieza = cell.getRow().getData();
+            return `
+              <div class="pieza-info">
+                <strong>${pieza.codigo}</strong>
+                <span class="pieza-id">ID: ${pieza.id}</span>
+              </div>
+            `;
+          },
+          sorter: 'string',
+          width: 150
+        },
+        {
+          title: 'Tipo Material',
+          field: 'tipo_material',
+          headerFilter: 'input',
+          headerFilterPlaceholder: 'Buscar material...',
+          formatter: function(cell) {
+            const material = cell.getValue() || '-';
+            return `<span class="material-badge">${material}</span>`;
+          },
+          sorter: 'string',
+          width: 140
+        },
+        {
+          title: 'Fase',
+          field: 'fase',
+          headerFilter: 'select',
+          headerFilterOptions: [
+            { label: 'Todas', value: '' },
+            { label: 'Para cortar', value: '0' },
+            { label: 'Cortado', value: '1' }
+          ],
+          formatter: function(cell) {
+            const fase = cell.getValue();
+            const faseName = getFaseName(fase);
+            return `<span class="fase-badge">${faseName}</span>`;
+          },
+          sorter: 'number',
+          width: 120
+        },
+        {
+          title: 'Conjunto',
+          field: 'conjuntos.codigo',
+          headerFilter: 'input',
+          headerFilterPlaceholder: 'Buscar conjunto...',
+          formatter: function(cell) {
+            const conjunto = cell.getValue() || '-';
+            return `<div class="conjunto-info"><span>${conjunto}</span></div>`;
+          },
+          sorter: 'string',
+          width: 120
+        },
+        {
+          title: 'Obra',
+          field: 'conjuntos.obras.nombre',
+          headerFilter: 'input',
+          headerFilterPlaceholder: 'Buscar obra...',
+          formatter: function(cell) {
+            const obra = cell.getValue() || '-';
+            return `<div class="obra-info"><span>${obra}</span></div>`;
+          },
+          sorter: 'string',
+          width: 150
+        },
+        {
+          title: 'Chapa',
+          field: 'chapas.codigo',
+          headerFilter: 'input',
+          headerFilterPlaceholder: 'Buscar chapa...',
+          formatter: function(cell) {
+            const chapa = cell.getValue();
+            const chapaDisplay = chapa ? `#${chapa}` : '-';
+            return `<div class="chapa-info"><span>${chapaDisplay}</span></div>`;
+          },
+          sorter: 'number',
+          width: 100
+        },
+        {
+          title: 'Colada',
+          field: 'colada',
+          headerFilter: 'input',
+          headerFilterPlaceholder: 'Buscar colada...',
+          formatter: function(cell) {
+            const colada = cell.getValue() || '-';
+            return `<div class="colada-info"><span>${colada}</span></div>`;
+          },
+          sorter: 'string',
+          width: 120
+        },
+        {
+          title: 'Fecha Creación',
+          field: 'created_at',
+          headerFilter: 'input',
+          headerFilterPlaceholder: 'Buscar fecha...',
+          formatter: function(cell) {
+            const date = cell.getValue();
+            return formatDate(date);
+          },
+          sorter: 'datetime',
+          width: 130
+        },
+        {
+          title: 'Acciones',
+          field: 'id',
+          headerSort: false,
+          formatter: function(cell) {
+            const pieza = cell.getRow().getData();
+            return `
+              <div class="action-buttons">
+                <button class="btn-icon" title="Ver detalles" onclick="openModal('detail-pieza-${pieza.id}')">
+                  <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                </button>
+                <button class="btn-icon" title="Editar" onclick="editPieza('${pieza.id}')">
+                  <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                </button>
+                <button class="btn-icon btn-delete" title="Eliminar" onclick="deletePieza('${pieza.id}', '${pieza.codigo}')">
+                  <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              </div>
+            `;
+          },
+          width: 120
+        }
+      ],
+      rowFormatter: function(row) {
+        // Agregar clases CSS personalizadas
+        const data = row.getData();
+        if (data.fase === 0) {
+          row.getElement().classList.add('fase-pendiente');
+        } else if (data.fase === 1) {
+          row.getElement().classList.add('fase-completada');
+        }
+      }
+    });
+
+    // Hacer la tabla disponible globalmente para debugging
+    window.piezasTable = table;
+
+    // Eventos de la tabla
+    table.on('tableBuilt', function() {
+      console.log('Tabla de piezas construida con éxito');
+    });
+
+    table.on('dataLoaded', function(data) {
+      console.log(`Datos cargados: ${data.length} piezas`);
+    });
+
+    table.on('rowClick', function(e, row) {
+      // Opcional: hacer las filas clickeables
+      console.log('Fila clickeada:', row.getData());
+    });
+
+    // Exportar datos
+    window.exportTableData = function(format = 'csv') {
+      if (format === 'csv') {
+        table.download('csv', 'piezas.csv');
+      } else if (format === 'xlsx') {
+        table.download('xlsx', 'piezas.xlsx');
+      } else if (format === 'pdf') {
+        table.download('pdf', 'piezas.pdf');
+      }
+    };
+  });
 
   // Modificar el comportamiento del formulario para manejar edición
   document.addEventListener('DOMContentLoaded', function() {
@@ -379,29 +609,29 @@ function formatDate(dateString: string) {
         }
       });
     }
-  });
 
-  // Limpiar formulario cuando se cierra el modal
-  document.addEventListener('click', function(e) {
-    if (e.target.matches('[data-close-modal="modal-nueva-pieza"]')) {
-      const form = document.getElementById('piezas-form');
-      if (form) {
-        form.reset();
-        form.removeAttribute('data-edit-id');
-        form.querySelector('.btn-submit').innerHTML = `
-          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-          </svg>
-          Crear Pieza
-        `;
-        
-        // Restaurar título del modal
-        const modal = document.getElementById('modal-nueva-pieza');
-        const title = modal.querySelector('.modal-title');
-        if (title) {
-          title.textContent = 'Nueva Pieza';
+    // Limpiar formulario cuando se cierra el modal
+    document.addEventListener('click', function(e) {
+      if (e.target.matches('[data-close-modal="modal-nueva-pieza"]')) {
+        const form = document.getElementById('piezas-form');
+        if (form) {
+          form.reset();
+          form.removeAttribute('data-edit-id');
+          form.querySelector('.btn-submit').innerHTML = `
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            Crear Pieza
+          `;
+          
+          // Restaurar título del modal
+          const modal = document.getElementById('modal-nueva-pieza');
+          const title = modal.querySelector('.modal-title');
+          if (title) {
+            title.textContent = 'Nueva Pieza';
+          }
         }
       }
-    }
+    });
   });
 </script>

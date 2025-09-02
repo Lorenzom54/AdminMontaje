@@ -1,10 +1,10 @@
-import { e as createComponent, r as renderTemplate, k as renderComponent, m as maybeRenderHead, f as createAstro, h as addAttribute } from '../../chunks/astro/server_B5z0SCK9.mjs';
+import { e as createComponent, r as renderTemplate, k as renderComponent, m as maybeRenderHead, f as createAstro, h as addAttribute, l as defineScriptVars } from '../../chunks/astro/server_Bi__Z7-M.mjs';
 import 'kleur/colors';
-import { a as $$PageHeader, $ as $$AdminLayout } from '../../chunks/PageHeader_B1Q6qJIn.mjs';
-import { $ as $$FormField, a as $$Modal } from '../../chunks/FormField_CyNQw7Yx.mjs';
+import { a as $$PageHeader, $ as $$AdminLayout } from '../../chunks/PageHeader_Brl_MUMp.mjs';
+import { $ as $$FormField, a as $$Modal } from '../../chunks/FormField_BixoaIOJ.mjs';
 import { f as fetchConjuntosForSelect, a as fetchChapasForSelect, b as fetchFasePiezasForSelect, g as getFasesMap, s as searchPiezas, c as searchPiezasCount, d as fetchPiezas, e as fetchPiezasCount } from '../../chunks/pieza_api_CWN9-kdm.mjs';
 /* empty css                                     */
-import { $ as $$DetailModal } from '../../chunks/DetailModal_CzXwdrlz.mjs';
+import { $ as $$DetailModal } from '../../chunks/DetailModal_NkGyXgeE.mjs';
 import 'clsx';
 import { f as fetchObrasForSelect } from '../../chunks/conjunto_api_DdlW2uM9.mjs';
 export { renderers } from '../../renderers.mjs';
@@ -200,11 +200,20 @@ const $$TablePieza = createComponent(async ($$result, $$props, $$slots) => {
   const Astro2 = $$result.createAstro($$Astro$3, $$props, $$slots);
   Astro2.self = $$TablePieza;
   const { piezas } = Astro2.props;
+  return renderTemplate(_a$1 || (_a$1 = __template$1(["", `<div class="table-container" data-astro-cid-aaagcoq6> <div id="piezas-table" data-astro-cid-aaagcoq6></div> </div>  <script type="module">
+  // Funci\xF3n para formatear fechas
   function formatDate(dateString) {
-    if (!dateString) return "-";
-    return new Date(dateString).toLocaleDateString("es-ES");
+    if (!dateString) return '-';
+    return new Date(dateString).toLocaleDateString('es-ES');
   }
-  return renderTemplate(_a$1 || (_a$1 = __template$1(["", '<div class="table-container" data-astro-cid-aaagcoq6> <table class="data-table" data-astro-cid-aaagcoq6> <thead data-astro-cid-aaagcoq6> <tr data-astro-cid-aaagcoq6> <th data-astro-cid-aaagcoq6>C\xF3digo</th> <th data-astro-cid-aaagcoq6>Tipo Material</th> <th data-astro-cid-aaagcoq6>Fase</th> <th data-astro-cid-aaagcoq6>Conjunto</th> <th data-astro-cid-aaagcoq6>Obra</th> <th data-astro-cid-aaagcoq6>Chapa</th> <th data-astro-cid-aaagcoq6>Colada</th> <th data-astro-cid-aaagcoq6>Fecha Creaci\xF3n</th> <th data-astro-cid-aaagcoq6>Acciones</th> </tr> </thead> <tbody data-astro-cid-aaagcoq6> ', ` </tbody> </table> </div>  <script type="module">
+
+  // Funci\xF3n para obtener el nombre de la fase
+  function getFaseName(fase) {
+    if (fase === 0) return 'Para cortar';
+    if (fase === 1) return 'Cortado';
+    return \`Fase \${fase}\`;
+  }
+
   // Funci\xF3n para editar pieza
   window.editPieza = async function(piezaId) {
     try {
@@ -272,6 +281,233 @@ const $$TablePieza = createComponent(async ($$result, $$props, $$slots) => {
       }
     }
   };
+
+  // Inicializar Tabulator cuando el DOM est\xE9 listo
+  document.addEventListener('DOMContentLoaded', function() {
+    // Esperar a que Tabulator est\xE9 disponible
+    if (typeof Tabulator === 'undefined') {
+      console.error('Tabulator no est\xE1 disponible');
+      return;
+    }
+
+    // Preparar los datos para Tabulator
+    const tableData = window.piezasData || [];
+    
+    // Configuraci\xF3n de Tabulator
+    const table = new Tabulator('#piezas-table', {
+      data: tableData,
+      layout: 'fitDataFill',
+      pagination: true,
+      paginationSize: 20,
+      paginationSizeSelector: [10, 20, 50, 100],
+      paginationButtonCount: 5,
+      paginationCounter: 'rows',
+      movableColumns: true,
+      resizableRows: true,
+      selectable: true,
+      sortable: true,
+      filterable: true,
+      height: 'auto',
+      maxHeight: '600px',
+      locale: 'es',
+      langs: {
+        es: {
+          'pagination': {
+            'first': 'Primera',
+            'first_title': 'Primera p\xE1gina',
+            'last': '\xDAltima',
+            'last_title': '\xDAltima p\xE1gina',
+            'prev': 'Anterior',
+            'prev_title': 'P\xE1gina anterior',
+            'next': 'Siguiente',
+            'next_title': 'P\xE1gina siguiente',
+            'all': 'Todas',
+            'counter': {
+              'showing': 'Mostrando',
+              'of': 'de',
+              'rows': 'filas',
+              'pages': 'p\xE1ginas'
+            }
+          }
+        }
+      },
+      columns: [
+        {
+          title: 'C\xF3digo',
+          field: 'codigo',
+          headerFilter: 'input',
+          headerFilterPlaceholder: 'Buscar c\xF3digo...',
+          formatter: function(cell) {
+            const pieza = cell.getRow().getData();
+            return \`
+              <div class="pieza-info">
+                <strong>\${pieza.codigo}</strong>
+                <span class="pieza-id">ID: \${pieza.id}</span>
+              </div>
+            \`;
+          },
+          sorter: 'string',
+          width: 150
+        },
+        {
+          title: 'Tipo Material',
+          field: 'tipo_material',
+          headerFilter: 'input',
+          headerFilterPlaceholder: 'Buscar material...',
+          formatter: function(cell) {
+            const material = cell.getValue() || '-';
+            return \`<span class="material-badge">\${material}</span>\`;
+          },
+          sorter: 'string',
+          width: 140
+        },
+        {
+          title: 'Fase',
+          field: 'fase',
+          headerFilter: 'select',
+          headerFilterOptions: [
+            { label: 'Todas', value: '' },
+            { label: 'Para cortar', value: '0' },
+            { label: 'Cortado', value: '1' }
+          ],
+          formatter: function(cell) {
+            const fase = cell.getValue();
+            const faseName = getFaseName(fase);
+            return \`<span class="fase-badge">\${faseName}</span>\`;
+          },
+          sorter: 'number',
+          width: 120
+        },
+        {
+          title: 'Conjunto',
+          field: 'conjuntos.codigo',
+          headerFilter: 'input',
+          headerFilterPlaceholder: 'Buscar conjunto...',
+          formatter: function(cell) {
+            const conjunto = cell.getValue() || '-';
+            return \`<div class="conjunto-info"><span>\${conjunto}</span></div>\`;
+          },
+          sorter: 'string',
+          width: 120
+        },
+        {
+          title: 'Obra',
+          field: 'conjuntos.obras.nombre',
+          headerFilter: 'input',
+          headerFilterPlaceholder: 'Buscar obra...',
+          formatter: function(cell) {
+            const obra = cell.getValue() || '-';
+            return \`<div class="obra-info"><span>\${obra}</span></div>\`;
+          },
+          sorter: 'string',
+          width: 150
+        },
+        {
+          title: 'Chapa',
+          field: 'chapas.codigo',
+          headerFilter: 'input',
+          headerFilterPlaceholder: 'Buscar chapa...',
+          formatter: function(cell) {
+            const chapa = cell.getValue();
+            const chapaDisplay = chapa ? \`#\${chapa}\` : '-';
+            return \`<div class="chapa-info"><span>\${chapaDisplay}</span></div>\`;
+          },
+          sorter: 'number',
+          width: 100
+        },
+        {
+          title: 'Colada',
+          field: 'colada',
+          headerFilter: 'input',
+          headerFilterPlaceholder: 'Buscar colada...',
+          formatter: function(cell) {
+            const colada = cell.getValue() || '-';
+            return \`<div class="colada-info"><span>\${colada}</span></div>\`;
+          },
+          sorter: 'string',
+          width: 120
+        },
+        {
+          title: 'Fecha Creaci\xF3n',
+          field: 'created_at',
+          headerFilter: 'input',
+          headerFilterPlaceholder: 'Buscar fecha...',
+          formatter: function(cell) {
+            const date = cell.getValue();
+            return formatDate(date);
+          },
+          sorter: 'datetime',
+          width: 130
+        },
+        {
+          title: 'Acciones',
+          field: 'id',
+          headerSort: false,
+          formatter: function(cell) {
+            const pieza = cell.getRow().getData();
+            return \`
+              <div class="action-buttons">
+                <button class="btn-icon" title="Ver detalles" onclick="openModal('detail-pieza-\${pieza.id}')">
+                  <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                </button>
+                <button class="btn-icon" title="Editar" onclick="editPieza('\${pieza.id}')">
+                  <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                </button>
+                <button class="btn-icon btn-delete" title="Eliminar" onclick="deletePieza('\${pieza.id}', '\${pieza.codigo}')">
+                  <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              </div>
+            \`;
+          },
+          width: 120
+        }
+      ],
+      rowFormatter: function(row) {
+        // Agregar clases CSS personalizadas
+        const data = row.getData();
+        if (data.fase === 0) {
+          row.getElement().classList.add('fase-pendiente');
+        } else if (data.fase === 1) {
+          row.getElement().classList.add('fase-completada');
+        }
+      }
+    });
+
+    // Hacer la tabla disponible globalmente para debugging
+    window.piezasTable = table;
+
+    // Eventos de la tabla
+    table.on('tableBuilt', function() {
+      console.log('Tabla de piezas construida con \xE9xito');
+    });
+
+    table.on('dataLoaded', function(data) {
+      console.log(\`Datos cargados: \${data.length} piezas\`);
+    });
+
+    table.on('rowClick', function(e, row) {
+      // Opcional: hacer las filas clickeables
+      console.log('Fila clickeada:', row.getData());
+    });
+
+    // Exportar datos
+    window.exportTableData = function(format = 'csv') {
+      if (format === 'csv') {
+        table.download('csv', 'piezas.csv');
+      } else if (format === 'xlsx') {
+        table.download('xlsx', 'piezas.xlsx');
+      } else if (format === 'pdf') {
+        table.download('pdf', 'piezas.pdf');
+      }
+    };
+  });
 
   // Modificar el comportamiento del formulario para manejar edici\xF3n
   document.addEventListener('DOMContentLoaded', function() {
@@ -366,32 +602,45 @@ const $$TablePieza = createComponent(async ($$result, $$props, $$slots) => {
         }
       });
     }
-  });
 
-  // Limpiar formulario cuando se cierra el modal
-  document.addEventListener('click', function(e) {
-    if (e.target.matches('[data-close-modal="modal-nueva-pieza"]')) {
-      const form = document.getElementById('piezas-form');
-      if (form) {
-        form.reset();
-        form.removeAttribute('data-edit-id');
-        form.querySelector('.btn-submit').innerHTML = \`
-          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-          </svg>
-          Crear Pieza
-        \`;
-        
-        // Restaurar t\xEDtulo del modal
-        const modal = document.getElementById('modal-nueva-pieza');
-        const title = modal.querySelector('.modal-title');
-        if (title) {
-          title.textContent = 'Nueva Pieza';
+    // Limpiar formulario cuando se cierra el modal
+    document.addEventListener('click', function(e) {
+      if (e.target.matches('[data-close-modal="modal-nueva-pieza"]')) {
+        const form = document.getElementById('piezas-form');
+        if (form) {
+          form.reset();
+          form.removeAttribute('data-edit-id');
+          form.querySelector('.btn-submit').innerHTML = \`
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            Crear Pieza
+          \`;
+          
+          // Restaurar t\xEDtulo del modal
+          const modal = document.getElementById('modal-nueva-pieza');
+          const title = modal.querySelector('.modal-title');
+          if (title) {
+            title.textContent = 'Nueva Pieza';
+          }
         }
       }
-    }
+    });
   });
-<\/script>`], ["", '<div class="table-container" data-astro-cid-aaagcoq6> <table class="data-table" data-astro-cid-aaagcoq6> <thead data-astro-cid-aaagcoq6> <tr data-astro-cid-aaagcoq6> <th data-astro-cid-aaagcoq6>C\xF3digo</th> <th data-astro-cid-aaagcoq6>Tipo Material</th> <th data-astro-cid-aaagcoq6>Fase</th> <th data-astro-cid-aaagcoq6>Conjunto</th> <th data-astro-cid-aaagcoq6>Obra</th> <th data-astro-cid-aaagcoq6>Chapa</th> <th data-astro-cid-aaagcoq6>Colada</th> <th data-astro-cid-aaagcoq6>Fecha Creaci\xF3n</th> <th data-astro-cid-aaagcoq6>Acciones</th> </tr> </thead> <tbody data-astro-cid-aaagcoq6> ', ` </tbody> </table> </div>  <script type="module">
+<\/script>`], ["", `<div class="table-container" data-astro-cid-aaagcoq6> <div id="piezas-table" data-astro-cid-aaagcoq6></div> </div>  <script type="module">
+  // Funci\xF3n para formatear fechas
+  function formatDate(dateString) {
+    if (!dateString) return '-';
+    return new Date(dateString).toLocaleDateString('es-ES');
+  }
+
+  // Funci\xF3n para obtener el nombre de la fase
+  function getFaseName(fase) {
+    if (fase === 0) return 'Para cortar';
+    if (fase === 1) return 'Cortado';
+    return \\\`Fase \\\${fase}\\\`;
+  }
+
   // Funci\xF3n para editar pieza
   window.editPieza = async function(piezaId) {
     try {
@@ -459,6 +708,233 @@ const $$TablePieza = createComponent(async ($$result, $$props, $$slots) => {
       }
     }
   };
+
+  // Inicializar Tabulator cuando el DOM est\xE9 listo
+  document.addEventListener('DOMContentLoaded', function() {
+    // Esperar a que Tabulator est\xE9 disponible
+    if (typeof Tabulator === 'undefined') {
+      console.error('Tabulator no est\xE1 disponible');
+      return;
+    }
+
+    // Preparar los datos para Tabulator
+    const tableData = window.piezasData || [];
+    
+    // Configuraci\xF3n de Tabulator
+    const table = new Tabulator('#piezas-table', {
+      data: tableData,
+      layout: 'fitDataFill',
+      pagination: true,
+      paginationSize: 20,
+      paginationSizeSelector: [10, 20, 50, 100],
+      paginationButtonCount: 5,
+      paginationCounter: 'rows',
+      movableColumns: true,
+      resizableRows: true,
+      selectable: true,
+      sortable: true,
+      filterable: true,
+      height: 'auto',
+      maxHeight: '600px',
+      locale: 'es',
+      langs: {
+        es: {
+          'pagination': {
+            'first': 'Primera',
+            'first_title': 'Primera p\xE1gina',
+            'last': '\xDAltima',
+            'last_title': '\xDAltima p\xE1gina',
+            'prev': 'Anterior',
+            'prev_title': 'P\xE1gina anterior',
+            'next': 'Siguiente',
+            'next_title': 'P\xE1gina siguiente',
+            'all': 'Todas',
+            'counter': {
+              'showing': 'Mostrando',
+              'of': 'de',
+              'rows': 'filas',
+              'pages': 'p\xE1ginas'
+            }
+          }
+        }
+      },
+      columns: [
+        {
+          title: 'C\xF3digo',
+          field: 'codigo',
+          headerFilter: 'input',
+          headerFilterPlaceholder: 'Buscar c\xF3digo...',
+          formatter: function(cell) {
+            const pieza = cell.getRow().getData();
+            return \\\`
+              <div class="pieza-info">
+                <strong>\\\${pieza.codigo}</strong>
+                <span class="pieza-id">ID: \\\${pieza.id}</span>
+              </div>
+            \\\`;
+          },
+          sorter: 'string',
+          width: 150
+        },
+        {
+          title: 'Tipo Material',
+          field: 'tipo_material',
+          headerFilter: 'input',
+          headerFilterPlaceholder: 'Buscar material...',
+          formatter: function(cell) {
+            const material = cell.getValue() || '-';
+            return \\\`<span class="material-badge">\\\${material}</span>\\\`;
+          },
+          sorter: 'string',
+          width: 140
+        },
+        {
+          title: 'Fase',
+          field: 'fase',
+          headerFilter: 'select',
+          headerFilterOptions: [
+            { label: 'Todas', value: '' },
+            { label: 'Para cortar', value: '0' },
+            { label: 'Cortado', value: '1' }
+          ],
+          formatter: function(cell) {
+            const fase = cell.getValue();
+            const faseName = getFaseName(fase);
+            return \\\`<span class="fase-badge">\\\${faseName}</span>\\\`;
+          },
+          sorter: 'number',
+          width: 120
+        },
+        {
+          title: 'Conjunto',
+          field: 'conjuntos.codigo',
+          headerFilter: 'input',
+          headerFilterPlaceholder: 'Buscar conjunto...',
+          formatter: function(cell) {
+            const conjunto = cell.getValue() || '-';
+            return \\\`<div class="conjunto-info"><span>\\\${conjunto}</span></div>\\\`;
+          },
+          sorter: 'string',
+          width: 120
+        },
+        {
+          title: 'Obra',
+          field: 'conjuntos.obras.nombre',
+          headerFilter: 'input',
+          headerFilterPlaceholder: 'Buscar obra...',
+          formatter: function(cell) {
+            const obra = cell.getValue() || '-';
+            return \\\`<div class="obra-info"><span>\\\${obra}</span></div>\\\`;
+          },
+          sorter: 'string',
+          width: 150
+        },
+        {
+          title: 'Chapa',
+          field: 'chapas.codigo',
+          headerFilter: 'input',
+          headerFilterPlaceholder: 'Buscar chapa...',
+          formatter: function(cell) {
+            const chapa = cell.getValue();
+            const chapaDisplay = chapa ? \\\`#\\\${chapa}\\\` : '-';
+            return \\\`<div class="chapa-info"><span>\\\${chapaDisplay}</span></div>\\\`;
+          },
+          sorter: 'number',
+          width: 100
+        },
+        {
+          title: 'Colada',
+          field: 'colada',
+          headerFilter: 'input',
+          headerFilterPlaceholder: 'Buscar colada...',
+          formatter: function(cell) {
+            const colada = cell.getValue() || '-';
+            return \\\`<div class="colada-info"><span>\\\${colada}</span></div>\\\`;
+          },
+          sorter: 'string',
+          width: 120
+        },
+        {
+          title: 'Fecha Creaci\xF3n',
+          field: 'created_at',
+          headerFilter: 'input',
+          headerFilterPlaceholder: 'Buscar fecha...',
+          formatter: function(cell) {
+            const date = cell.getValue();
+            return formatDate(date);
+          },
+          sorter: 'datetime',
+          width: 130
+        },
+        {
+          title: 'Acciones',
+          field: 'id',
+          headerSort: false,
+          formatter: function(cell) {
+            const pieza = cell.getRow().getData();
+            return \\\`
+              <div class="action-buttons">
+                <button class="btn-icon" title="Ver detalles" onclick="openModal('detail-pieza-\\\${pieza.id}')">
+                  <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                  </svg>
+                </button>
+                <button class="btn-icon" title="Editar" onclick="editPieza('\\\${pieza.id}')">
+                  <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                </button>
+                <button class="btn-icon btn-delete" title="Eliminar" onclick="deletePieza('\\\${pieza.id}', '\\\${pieza.codigo}')">
+                  <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              </div>
+            \\\`;
+          },
+          width: 120
+        }
+      ],
+      rowFormatter: function(row) {
+        // Agregar clases CSS personalizadas
+        const data = row.getData();
+        if (data.fase === 0) {
+          row.getElement().classList.add('fase-pendiente');
+        } else if (data.fase === 1) {
+          row.getElement().classList.add('fase-completada');
+        }
+      }
+    });
+
+    // Hacer la tabla disponible globalmente para debugging
+    window.piezasTable = table;
+
+    // Eventos de la tabla
+    table.on('tableBuilt', function() {
+      console.log('Tabla de piezas construida con \xE9xito');
+    });
+
+    table.on('dataLoaded', function(data) {
+      console.log(\\\`Datos cargados: \\\${data.length} piezas\\\`);
+    });
+
+    table.on('rowClick', function(e, row) {
+      // Opcional: hacer las filas clickeables
+      console.log('Fila clickeada:', row.getData());
+    });
+
+    // Exportar datos
+    window.exportTableData = function(format = 'csv') {
+      if (format === 'csv') {
+        table.download('csv', 'piezas.csv');
+      } else if (format === 'xlsx') {
+        table.download('xlsx', 'piezas.xlsx');
+      } else if (format === 'pdf') {
+        table.download('pdf', 'piezas.pdf');
+      }
+    };
+  });
 
   // Modificar el comportamiento del formulario para manejar edici\xF3n
   document.addEventListener('DOMContentLoaded', function() {
@@ -553,32 +1029,32 @@ const $$TablePieza = createComponent(async ($$result, $$props, $$slots) => {
         }
       });
     }
-  });
 
-  // Limpiar formulario cuando se cierra el modal
-  document.addEventListener('click', function(e) {
-    if (e.target.matches('[data-close-modal="modal-nueva-pieza"]')) {
-      const form = document.getElementById('piezas-form');
-      if (form) {
-        form.reset();
-        form.removeAttribute('data-edit-id');
-        form.querySelector('.btn-submit').innerHTML = \\\`
-          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-          </svg>
-          Crear Pieza
-        \\\`;
-        
-        // Restaurar t\xEDtulo del modal
-        const modal = document.getElementById('modal-nueva-pieza');
-        const title = modal.querySelector('.modal-title');
-        if (title) {
-          title.textContent = 'Nueva Pieza';
+    // Limpiar formulario cuando se cierra el modal
+    document.addEventListener('click', function(e) {
+      if (e.target.matches('[data-close-modal="modal-nueva-pieza"]')) {
+        const form = document.getElementById('piezas-form');
+        if (form) {
+          form.reset();
+          form.removeAttribute('data-edit-id');
+          form.querySelector('.btn-submit').innerHTML = \\\`
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+            </svg>
+            Crear Pieza
+          \\\`;
+          
+          // Restaurar t\xEDtulo del modal
+          const modal = document.getElementById('modal-nueva-pieza');
+          const title = modal.querySelector('.modal-title');
+          if (title) {
+            title.textContent = 'Nueva Pieza';
+          }
         }
       }
-    }
+    });
   });
-<\/script>`])), maybeRenderHead(), piezas.map((pieza) => renderTemplate`<tr data-astro-cid-aaagcoq6> <td data-astro-cid-aaagcoq6> <div class="pieza-info" data-astro-cid-aaagcoq6> <strong data-astro-cid-aaagcoq6>${pieza.codigo}</strong> <span class="pieza-id" data-astro-cid-aaagcoq6>ID: ${pieza.id}</span> </div> </td> <td data-astro-cid-aaagcoq6> <span class="material-badge" data-astro-cid-aaagcoq6> ${pieza.tipo_material || "-"} </span> </td> <td data-astro-cid-aaagcoq6> <span class="fase-badge" data-astro-cid-aaagcoq6> ${pieza.fase === 0 ? "Para cortar" : pieza.fase === 1 ? "Cortado" : `Fase ${pieza.fase}`} </span> </td> <td data-astro-cid-aaagcoq6> <div class="conjunto-info" data-astro-cid-aaagcoq6> <span data-astro-cid-aaagcoq6>${pieza.conjuntos?.codigo || "-"}</span> </div> </td> <td data-astro-cid-aaagcoq6> <div class="obra-info" data-astro-cid-aaagcoq6> <span data-astro-cid-aaagcoq6>${pieza.conjuntos?.obras?.nombre || "-"}</span> </div> </td> <td data-astro-cid-aaagcoq6> <div class="chapa-info" data-astro-cid-aaagcoq6> <span data-astro-cid-aaagcoq6>${pieza.chapas?.codigo ? `#${pieza.chapas.codigo}` : "-"}</span> </div> </td> <td data-astro-cid-aaagcoq6> <div class="colada-info" data-astro-cid-aaagcoq6> <span data-astro-cid-aaagcoq6>${pieza.colada || "-"}</span> </div> </td> <td data-astro-cid-aaagcoq6>${formatDate(pieza.created_at)}</td> <td data-astro-cid-aaagcoq6> <div class="action-buttons" data-astro-cid-aaagcoq6> <button class="btn-icon" title="Ver detalles"${addAttribute(`openModal('detail-pieza-${pieza.id}')`, "onclick")} data-astro-cid-aaagcoq6> <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" data-astro-cid-aaagcoq6> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" data-astro-cid-aaagcoq6></path> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" data-astro-cid-aaagcoq6></path> </svg> </button> <button class="btn-icon" title="Editar"${addAttribute(`editPieza('${pieza.id}')`, "onclick")} data-astro-cid-aaagcoq6> <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" data-astro-cid-aaagcoq6> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" data-astro-cid-aaagcoq6></path> </svg> </button> <button class="btn-icon btn-delete" title="Eliminar"${addAttribute(`deletePieza('${pieza.id}', '${pieza.codigo}')`, "onclick")} data-astro-cid-aaagcoq6> <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" data-astro-cid-aaagcoq6> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" data-astro-cid-aaagcoq6></path> </svg> </button> </div> </td> </tr>`));
+<\/script>`])), maybeRenderHead());
 }, "/Applications/XAMPP/xamppfiles/htdocs/AdminMontaje/src/components/table/TablePieza.astro", void 0);
 
 const $$Astro$2 = createAstro();
@@ -655,11 +1131,9 @@ const $$PiezasSection = createComponent(async ($$result, $$props, $$slots) => {
     search: url.searchParams.get("search")
   };
   let piezas, totalPiezas;
-  if (filters.fase || filters.obra_id || filters.chapa_id || filters.search) {
+  if (filters.obra_id || filters.search) {
     const searchFilters = {};
-    if (filters.fase) searchFilters.fase = filters.fase;
     if (filters.obra_id) searchFilters.obra_id = filters.obra_id;
-    if (filters.chapa_id) searchFilters.chapa_id = filters.chapa_id;
     if (filters.search) {
       searchFilters.search = filters.search;
     }
@@ -675,7 +1149,7 @@ const $$PiezasSection = createComponent(async ($$result, $$props, $$slots) => {
     value: obra.id.toString(),
     label: obra.nombre
   }));
-  const chapaOptions = (chapas || []).map((chapa) => ({
+  (chapas || []).map((chapa) => ({
     value: chapa.id.toString(),
     label: `#${chapa.codigo}`
   }));
@@ -687,14 +1161,16 @@ const $$PiezasSection = createComponent(async ($$result, $$props, $$slots) => {
   const totalPages = Math.ceil((totalPiezas || 0) / pageSize);
   const startItem = (totalPiezas || 0) > 0 ? (currentPage - 1) * pageSize + 1 : 0;
   const endItem = Math.min(currentPage * pageSize, totalPiezas || 0);
-  return renderTemplate(_a || (_a = __template(["", " <!-- Barra de filtro de proyecto persistente --> ", '<div class="project-filter-bar" data-astro-cid-vag3ingl> <div class="filter-container" data-astro-cid-vag3ingl> <div class="filter-label" data-astro-cid-vag3ingl> <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" data-astro-cid-vag3ingl> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" data-astro-cid-vag3ingl></path> </svg> <span data-astro-cid-vag3ingl>Proyecto Activo:</span> </div> <select class="project-filter-select" id="active-project-filter" data-astro-cid-vag3ingl> <option value="" data-astro-cid-vag3ingl>Todos los proyectos</option> ', ' </select> <div class="filter-info" data-astro-cid-vag3ingl> <span class="text-sm text-gray-500" data-astro-cid-vag3ingl>Esta selecci\xF3n se mantendr\xE1 activa en futuras visitas</span> </div> </div> </div> <div class="piezas-section" data-astro-cid-vag3ingl> <div class="stats-grid" data-astro-cid-vag3ingl> <div class="stat-card" data-astro-cid-vag3ingl> <div class="stat-icon inventory" data-astro-cid-vag3ingl> <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" data-astro-cid-vag3ingl> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" data-astro-cid-vag3ingl></path> </svg> </div> <div class="stat-content" data-astro-cid-vag3ingl> <div class="stat-number" data-astro-cid-vag3ingl>', '</div> <div class="stat-label" data-astro-cid-vag3ingl>Total Piezas</div> </div> </div> <div class="stat-card" data-astro-cid-vag3ingl> <div class="stat-icon fabrication" data-astro-cid-vag3ingl> <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" data-astro-cid-vag3ingl> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" data-astro-cid-vag3ingl></path> </svg> </div> <div class="stat-content" data-astro-cid-vag3ingl> <div class="stat-number" data-astro-cid-vag3ingl>', '</div> <div class="stat-label" data-astro-cid-vag3ingl>Para cortar</div> </div> </div> <div class="stat-card" data-astro-cid-vag3ingl> <div class="stat-icon ready" data-astro-cid-vag3ingl> <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" data-astro-cid-vag3ingl> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" data-astro-cid-vag3ingl></path> </svg> </div> <div class="stat-content" data-astro-cid-vag3ingl> <div class="stat-number" data-astro-cid-vag3ingl>', '</div> <div class="stat-label" data-astro-cid-vag3ingl>Cortado</div> </div> </div> </div> <div class="piezas-table" data-astro-cid-vag3ingl> <div class="table-header" data-astro-cid-vag3ingl> <h3 data-astro-cid-vag3ingl>Piezas Registradas</h3> <div class="table-filters" data-astro-cid-vag3ingl> <div class="filters-info" id="filters-info" style="display: none;" data-astro-cid-vag3ingl> <span class="filters-badge" data-astro-cid-vag3ingl>Filtros activos</span> </div> ', ' <select class="filter-select" id="fase-filter" data-astro-cid-vag3ingl> <option value="" data-astro-cid-vag3ingl>Todas las fases</option> <option value="0"', ' data-astro-cid-vag3ingl>Para cortar</option> <option value="1"', ' data-astro-cid-vag3ingl>Cortado</option> </select> <select class="filter-select" id="chapa-filter" data-astro-cid-vag3ingl> <option value="" data-astro-cid-vag3ingl>Todas las chapas</option> ', ' </select> <input type="text" class="filter-input" id="search-input" placeholder="Buscar por c\xF3digo de pieza o colada..."', ` title="Escribe el c\xF3digo de la pieza o n\xFAmero de colada para buscar" data-astro-cid-vag3ingl> <button class="btn-clear-filters" id="clear-filters-btn" title="Limpiar todos los filtros" data-astro-cid-vag3ingl> <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" data-astro-cid-vag3ingl> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" data-astro-cid-vag3ingl></path> </svg> </button> <button class="btn-import" onclick="openModal('modal-import-csv')" data-astro-cid-vag3ingl> <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" data-astro-cid-vag3ingl> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" data-astro-cid-vag3ingl></path> </svg>
+  return renderTemplate(_a || (_a = __template(["", " <!-- Barra de filtro de proyecto persistente --> ", '<div class="project-filter-bar" data-astro-cid-vag3ingl> <div class="filter-container" data-astro-cid-vag3ingl> <div class="filter-label" data-astro-cid-vag3ingl> <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" data-astro-cid-vag3ingl> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" data-astro-cid-vag3ingl></path> </svg> <span data-astro-cid-vag3ingl>Proyecto Activo:</span> </div> <select class="project-filter-select" id="active-project-filter" data-astro-cid-vag3ingl> <option value="" data-astro-cid-vag3ingl>Todos los proyectos</option> ', ' </select> <div class="filter-info" data-astro-cid-vag3ingl> <span class="text-sm text-gray-500" data-astro-cid-vag3ingl>Esta selecci\xF3n se mantendr\xE1 activa en futuras visitas</span> </div> </div> </div> <div class="piezas-section" data-astro-cid-vag3ingl> <div class="stats-grid" data-astro-cid-vag3ingl> <div class="stat-card" data-astro-cid-vag3ingl> <div class="stat-icon inventory" data-astro-cid-vag3ingl> <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" data-astro-cid-vag3ingl> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" data-astro-cid-vag3ingl></path> </svg> </div> <div class="stat-content" data-astro-cid-vag3ingl> <div class="stat-number" data-astro-cid-vag3ingl>', '</div> <div class="stat-label" data-astro-cid-vag3ingl>Total Piezas</div> </div> </div> <div class="stat-card" data-astro-cid-vag3ingl> <div class="stat-icon fabrication" data-astro-cid-vag3ingl> <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" data-astro-cid-vag3ingl> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" data-astro-cid-vag3ingl></path> </svg> </div> <div class="stat-content" data-astro-cid-vag3ingl> <div class="stat-number" data-astro-cid-vag3ingl>', '</div> <div class="stat-label" data-astro-cid-vag3ingl>Para cortar</div> </div> </div> <div class="stat-card" data-astro-cid-vag3ingl> <div class="stat-icon ready" data-astro-cid-vag3ingl> <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" data-astro-cid-vag3ingl> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" data-astro-cid-vag3ingl></path> </svg> </div> <div class="stat-content" data-astro-cid-vag3ingl> <div class="stat-number" data-astro-cid-vag3ingl>', '</div> <div class="stat-label" data-astro-cid-vag3ingl>Cortado</div> </div> </div> </div> <div class="piezas-table" data-astro-cid-vag3ingl> <div class="table-header" data-astro-cid-vag3ingl> <h3 data-astro-cid-vag3ingl>Piezas Registradas</h3> <div class="table-filters" data-astro-cid-vag3ingl> <div class="filters-info" id="filters-info" style="display: none;" data-astro-cid-vag3ingl> <span class="filters-badge" data-astro-cid-vag3ingl>Filtros activos</span> </div> ', ' <input type="text" class="filter-input" id="search-input" placeholder="Buscar por c\xF3digo de pieza o colada..."', ` title="Escribe el c\xF3digo de la pieza o n\xFAmero de colada para buscar" data-astro-cid-vag3ingl> <button class="btn-clear-filters" id="clear-filters-btn" title="Limpiar todos los filtros" data-astro-cid-vag3ingl> <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" data-astro-cid-vag3ingl> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" data-astro-cid-vag3ingl></path> </svg> </button> <button class="btn-import" onclick="openModal('modal-import-csv')" data-astro-cid-vag3ingl> <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" data-astro-cid-vag3ingl> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" data-astro-cid-vag3ingl></path> </svg>
 Importar CSV
-</button> </div> </div> `, " <!-- Paginaci\xF3n --> ", " </div> </div> <!-- Modal para Nueva Pieza --> ", " <!-- Modal para Importar CSV --> ", " <!-- Modales de Detalles din\xE1micos --> ", `  <script type="module">
+</button> <div class="export-buttons" data-astro-cid-vag3ingl> <button class="btn-export" onclick="exportTableData('csv')" title="Exportar a CSV" data-astro-cid-vag3ingl> <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" data-astro-cid-vag3ingl> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" data-astro-cid-vag3ingl></path> </svg>
+CSV
+</button> <button class="btn-export" onclick="exportTableData('xlsx')" title="Exportar a Excel" data-astro-cid-vag3ingl> <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" data-astro-cid-vag3ingl> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" data-astro-cid-vag3ingl></path> </svg>
+Excel
+</button> </div> </div> </div> `, " <!-- Script para hacer los datos disponibles para Tabulator --> <script>(function(){", "\n      window.piezasData = piezas;\n    })();<\/script> <!-- Paginaci\xF3n --> ", " </div> </div> <!-- Modal para Nueva Pieza --> ", " <!-- Modal para Importar CSV --> ", " <!-- Modales de Detalles din\xE1micos --> ", `  <script type="module">
   // Filtros en tiempo real
   document.addEventListener('DOMContentLoaded', function() {
-    const faseFilter = document.getElementById('fase-filter');
     const activeProjectFilter = document.getElementById('active-project-filter');
-    const chapaFilter = document.getElementById('chapa-filter');
     const searchInput = document.getElementById('search-input');
     const clearFiltersBtn = document.getElementById('clear-filters-btn');
     
@@ -702,15 +1178,11 @@ Importar CSV
     let currentPage = parseInt(new URLSearchParams(window.location.search).get('page') || '1');
     let currentPageSize = parseInt(new URLSearchParams(window.location.search).get('pageSize') || '20');
     let currentFilters = {
-      fase: new URLSearchParams(window.location.search).get('fase') || '',
       obra_id: new URLSearchParams(window.location.search).get('obra_id') || '',
-      chapa_id: new URLSearchParams(window.location.search).get('chapa_id') || '',
       search: new URLSearchParams(window.location.search).get('search') || ''
     };
     
     // Aplicar filtros iniciales
-    if (currentFilters.fase) faseFilter.value = currentFilters.fase;
-    if (currentFilters.chapa_id) chapaFilter.value = currentFilters.chapa_id;
     if (currentFilters.search) searchInput.value = currentFilters.search;
 
     // Restaurar proyecto activo desde localStorage o URL
@@ -730,7 +1202,7 @@ Importar CSV
 
     // Funci\xF3n para actualizar el indicador de filtros activos
     function updateFiltersIndicator() {
-      const hasActiveFilters = currentFilters.fase || currentFilters.obra_id || currentFilters.chapa_id || currentFilters.search;
+      const hasActiveFilters = currentFilters.obra_id || currentFilters.search;
       const filtersInfo = document.getElementById('filters-info');
       if (filtersInfo) {
         filtersInfo.style.display = hasActiveFilters ? 'flex' : 'none';
@@ -745,9 +1217,7 @@ Importar CSV
       params.set('page', currentPage.toString());
       params.set('pageSize', currentPageSize.toString());
       
-      if (currentFilters.fase) params.set('fase', currentFilters.fase);
       if (currentFilters.obra_id) params.set('obra_id', currentFilters.obra_id);
-      if (currentFilters.chapa_id) params.set('chapa_id', currentFilters.chapa_id);
       if (currentFilters.search) params.set('search', currentFilters.search);
       
       const newURL = \`\${window.location.pathname}?\${params.toString()}\`;
@@ -758,8 +1228,6 @@ Importar CSV
     }
 
     function applyFilters() {
-      currentFilters.fase = faseFilter.value;
-      currentFilters.chapa_id = chapaFilter.value;
       currentFilters.search = searchInput.value;
       currentPage = 1; // Resetear a la primera p\xE1gina cuando se aplican filtros
       updateFiltersIndicator();
@@ -767,8 +1235,6 @@ Importar CSV
     }
 
     // Event listeners para filtros
-    faseFilter.addEventListener('change', applyFilters);
-    chapaFilter.addEventListener('change', applyFilters);
     
     // Event listener para filtro de proyecto persistente
     activeProjectFilter.addEventListener('change', function() {
@@ -797,13 +1263,9 @@ Importar CSV
 
     // Event listener para limpiar filtros
     clearFiltersBtn.addEventListener('click', () => {
-      faseFilter.value = '';
       activeProjectFilter.value = '';
-      chapaFilter.value = '';
       searchInput.value = '';
-      currentFilters.fase = '';
       currentFilters.obra_id = '';
-      currentFilters.chapa_id = '';
       currentFilters.search = '';
       updateFiltersIndicator();
       updateURL();
@@ -1042,14 +1504,16 @@ Importar CSV
       }
     }
   });
-<\/script>`], ["", " <!-- Barra de filtro de proyecto persistente --> ", '<div class="project-filter-bar" data-astro-cid-vag3ingl> <div class="filter-container" data-astro-cid-vag3ingl> <div class="filter-label" data-astro-cid-vag3ingl> <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" data-astro-cid-vag3ingl> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" data-astro-cid-vag3ingl></path> </svg> <span data-astro-cid-vag3ingl>Proyecto Activo:</span> </div> <select class="project-filter-select" id="active-project-filter" data-astro-cid-vag3ingl> <option value="" data-astro-cid-vag3ingl>Todos los proyectos</option> ', ' </select> <div class="filter-info" data-astro-cid-vag3ingl> <span class="text-sm text-gray-500" data-astro-cid-vag3ingl>Esta selecci\xF3n se mantendr\xE1 activa en futuras visitas</span> </div> </div> </div> <div class="piezas-section" data-astro-cid-vag3ingl> <div class="stats-grid" data-astro-cid-vag3ingl> <div class="stat-card" data-astro-cid-vag3ingl> <div class="stat-icon inventory" data-astro-cid-vag3ingl> <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" data-astro-cid-vag3ingl> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" data-astro-cid-vag3ingl></path> </svg> </div> <div class="stat-content" data-astro-cid-vag3ingl> <div class="stat-number" data-astro-cid-vag3ingl>', '</div> <div class="stat-label" data-astro-cid-vag3ingl>Total Piezas</div> </div> </div> <div class="stat-card" data-astro-cid-vag3ingl> <div class="stat-icon fabrication" data-astro-cid-vag3ingl> <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" data-astro-cid-vag3ingl> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" data-astro-cid-vag3ingl></path> </svg> </div> <div class="stat-content" data-astro-cid-vag3ingl> <div class="stat-number" data-astro-cid-vag3ingl>', '</div> <div class="stat-label" data-astro-cid-vag3ingl>Para cortar</div> </div> </div> <div class="stat-card" data-astro-cid-vag3ingl> <div class="stat-icon ready" data-astro-cid-vag3ingl> <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" data-astro-cid-vag3ingl> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" data-astro-cid-vag3ingl></path> </svg> </div> <div class="stat-content" data-astro-cid-vag3ingl> <div class="stat-number" data-astro-cid-vag3ingl>', '</div> <div class="stat-label" data-astro-cid-vag3ingl>Cortado</div> </div> </div> </div> <div class="piezas-table" data-astro-cid-vag3ingl> <div class="table-header" data-astro-cid-vag3ingl> <h3 data-astro-cid-vag3ingl>Piezas Registradas</h3> <div class="table-filters" data-astro-cid-vag3ingl> <div class="filters-info" id="filters-info" style="display: none;" data-astro-cid-vag3ingl> <span class="filters-badge" data-astro-cid-vag3ingl>Filtros activos</span> </div> ', ' <select class="filter-select" id="fase-filter" data-astro-cid-vag3ingl> <option value="" data-astro-cid-vag3ingl>Todas las fases</option> <option value="0"', ' data-astro-cid-vag3ingl>Para cortar</option> <option value="1"', ' data-astro-cid-vag3ingl>Cortado</option> </select> <select class="filter-select" id="chapa-filter" data-astro-cid-vag3ingl> <option value="" data-astro-cid-vag3ingl>Todas las chapas</option> ', ' </select> <input type="text" class="filter-input" id="search-input" placeholder="Buscar por c\xF3digo de pieza o colada..."', ` title="Escribe el c\xF3digo de la pieza o n\xFAmero de colada para buscar" data-astro-cid-vag3ingl> <button class="btn-clear-filters" id="clear-filters-btn" title="Limpiar todos los filtros" data-astro-cid-vag3ingl> <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" data-astro-cid-vag3ingl> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" data-astro-cid-vag3ingl></path> </svg> </button> <button class="btn-import" onclick="openModal('modal-import-csv')" data-astro-cid-vag3ingl> <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" data-astro-cid-vag3ingl> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" data-astro-cid-vag3ingl></path> </svg>
+<\/script>`], ["", " <!-- Barra de filtro de proyecto persistente --> ", '<div class="project-filter-bar" data-astro-cid-vag3ingl> <div class="filter-container" data-astro-cid-vag3ingl> <div class="filter-label" data-astro-cid-vag3ingl> <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" data-astro-cid-vag3ingl> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" data-astro-cid-vag3ingl></path> </svg> <span data-astro-cid-vag3ingl>Proyecto Activo:</span> </div> <select class="project-filter-select" id="active-project-filter" data-astro-cid-vag3ingl> <option value="" data-astro-cid-vag3ingl>Todos los proyectos</option> ', ' </select> <div class="filter-info" data-astro-cid-vag3ingl> <span class="text-sm text-gray-500" data-astro-cid-vag3ingl>Esta selecci\xF3n se mantendr\xE1 activa en futuras visitas</span> </div> </div> </div> <div class="piezas-section" data-astro-cid-vag3ingl> <div class="stats-grid" data-astro-cid-vag3ingl> <div class="stat-card" data-astro-cid-vag3ingl> <div class="stat-icon inventory" data-astro-cid-vag3ingl> <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" data-astro-cid-vag3ingl> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" data-astro-cid-vag3ingl></path> </svg> </div> <div class="stat-content" data-astro-cid-vag3ingl> <div class="stat-number" data-astro-cid-vag3ingl>', '</div> <div class="stat-label" data-astro-cid-vag3ingl>Total Piezas</div> </div> </div> <div class="stat-card" data-astro-cid-vag3ingl> <div class="stat-icon fabrication" data-astro-cid-vag3ingl> <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" data-astro-cid-vag3ingl> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4" data-astro-cid-vag3ingl></path> </svg> </div> <div class="stat-content" data-astro-cid-vag3ingl> <div class="stat-number" data-astro-cid-vag3ingl>', '</div> <div class="stat-label" data-astro-cid-vag3ingl>Para cortar</div> </div> </div> <div class="stat-card" data-astro-cid-vag3ingl> <div class="stat-icon ready" data-astro-cid-vag3ingl> <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" data-astro-cid-vag3ingl> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" data-astro-cid-vag3ingl></path> </svg> </div> <div class="stat-content" data-astro-cid-vag3ingl> <div class="stat-number" data-astro-cid-vag3ingl>', '</div> <div class="stat-label" data-astro-cid-vag3ingl>Cortado</div> </div> </div> </div> <div class="piezas-table" data-astro-cid-vag3ingl> <div class="table-header" data-astro-cid-vag3ingl> <h3 data-astro-cid-vag3ingl>Piezas Registradas</h3> <div class="table-filters" data-astro-cid-vag3ingl> <div class="filters-info" id="filters-info" style="display: none;" data-astro-cid-vag3ingl> <span class="filters-badge" data-astro-cid-vag3ingl>Filtros activos</span> </div> ', ' <input type="text" class="filter-input" id="search-input" placeholder="Buscar por c\xF3digo de pieza o colada..."', ` title="Escribe el c\xF3digo de la pieza o n\xFAmero de colada para buscar" data-astro-cid-vag3ingl> <button class="btn-clear-filters" id="clear-filters-btn" title="Limpiar todos los filtros" data-astro-cid-vag3ingl> <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" data-astro-cid-vag3ingl> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" data-astro-cid-vag3ingl></path> </svg> </button> <button class="btn-import" onclick="openModal('modal-import-csv')" data-astro-cid-vag3ingl> <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" data-astro-cid-vag3ingl> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" data-astro-cid-vag3ingl></path> </svg>
 Importar CSV
-</button> </div> </div> `, " <!-- Paginaci\xF3n --> ", " </div> </div> <!-- Modal para Nueva Pieza --> ", " <!-- Modal para Importar CSV --> ", " <!-- Modales de Detalles din\xE1micos --> ", `  <script type="module">
+</button> <div class="export-buttons" data-astro-cid-vag3ingl> <button class="btn-export" onclick="exportTableData('csv')" title="Exportar a CSV" data-astro-cid-vag3ingl> <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" data-astro-cid-vag3ingl> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" data-astro-cid-vag3ingl></path> </svg>
+CSV
+</button> <button class="btn-export" onclick="exportTableData('xlsx')" title="Exportar a Excel" data-astro-cid-vag3ingl> <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" data-astro-cid-vag3ingl> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" data-astro-cid-vag3ingl></path> </svg>
+Excel
+</button> </div> </div> </div> `, " <!-- Script para hacer los datos disponibles para Tabulator --> <script>(function(){", "\n      window.piezasData = piezas;\n    })();<\/script> <!-- Paginaci\xF3n --> ", " </div> </div> <!-- Modal para Nueva Pieza --> ", " <!-- Modal para Importar CSV --> ", " <!-- Modales de Detalles din\xE1micos --> ", `  <script type="module">
   // Filtros en tiempo real
   document.addEventListener('DOMContentLoaded', function() {
-    const faseFilter = document.getElementById('fase-filter');
     const activeProjectFilter = document.getElementById('active-project-filter');
-    const chapaFilter = document.getElementById('chapa-filter');
     const searchInput = document.getElementById('search-input');
     const clearFiltersBtn = document.getElementById('clear-filters-btn');
     
@@ -1057,15 +1521,11 @@ Importar CSV
     let currentPage = parseInt(new URLSearchParams(window.location.search).get('page') || '1');
     let currentPageSize = parseInt(new URLSearchParams(window.location.search).get('pageSize') || '20');
     let currentFilters = {
-      fase: new URLSearchParams(window.location.search).get('fase') || '',
       obra_id: new URLSearchParams(window.location.search).get('obra_id') || '',
-      chapa_id: new URLSearchParams(window.location.search).get('chapa_id') || '',
       search: new URLSearchParams(window.location.search).get('search') || ''
     };
     
     // Aplicar filtros iniciales
-    if (currentFilters.fase) faseFilter.value = currentFilters.fase;
-    if (currentFilters.chapa_id) chapaFilter.value = currentFilters.chapa_id;
     if (currentFilters.search) searchInput.value = currentFilters.search;
 
     // Restaurar proyecto activo desde localStorage o URL
@@ -1085,7 +1545,7 @@ Importar CSV
 
     // Funci\xF3n para actualizar el indicador de filtros activos
     function updateFiltersIndicator() {
-      const hasActiveFilters = currentFilters.fase || currentFilters.obra_id || currentFilters.chapa_id || currentFilters.search;
+      const hasActiveFilters = currentFilters.obra_id || currentFilters.search;
       const filtersInfo = document.getElementById('filters-info');
       if (filtersInfo) {
         filtersInfo.style.display = hasActiveFilters ? 'flex' : 'none';
@@ -1100,9 +1560,7 @@ Importar CSV
       params.set('page', currentPage.toString());
       params.set('pageSize', currentPageSize.toString());
       
-      if (currentFilters.fase) params.set('fase', currentFilters.fase);
       if (currentFilters.obra_id) params.set('obra_id', currentFilters.obra_id);
-      if (currentFilters.chapa_id) params.set('chapa_id', currentFilters.chapa_id);
       if (currentFilters.search) params.set('search', currentFilters.search);
       
       const newURL = \\\`\\\${window.location.pathname}?\\\${params.toString()}\\\`;
@@ -1113,8 +1571,6 @@ Importar CSV
     }
 
     function applyFilters() {
-      currentFilters.fase = faseFilter.value;
-      currentFilters.chapa_id = chapaFilter.value;
       currentFilters.search = searchInput.value;
       currentPage = 1; // Resetear a la primera p\xE1gina cuando se aplican filtros
       updateFiltersIndicator();
@@ -1122,8 +1578,6 @@ Importar CSV
     }
 
     // Event listeners para filtros
-    faseFilter.addEventListener('change', applyFilters);
-    chapaFilter.addEventListener('change', applyFilters);
     
     // Event listener para filtro de proyecto persistente
     activeProjectFilter.addEventListener('change', function() {
@@ -1152,13 +1606,9 @@ Importar CSV
 
     // Event listener para limpiar filtros
     clearFiltersBtn.addEventListener('click', () => {
-      faseFilter.value = '';
       activeProjectFilter.value = '';
-      chapaFilter.value = '';
       searchInput.value = '';
-      currentFilters.fase = '';
       currentFilters.obra_id = '';
-      currentFilters.chapa_id = '';
       currentFilters.search = '';
       updateFiltersIndicator();
       updateURL();
@@ -1398,7 +1848,7 @@ Importar CSV
     }
   });
 <\/script>`])), renderComponent($$result, "PageHeader", $$PageHeader, { "title": "Gesti\xF3n de Piezas", "subtitle": "Control de inventario y seguimiento de piezas individuales", "actionButton": { text: "Nueva Pieza", onClick: "openModal('modal-nueva-pieza')" }, "data-astro-cid-vag3ingl": true }), maybeRenderHead(), (obras || []).map((obra) => renderTemplate`<option${addAttribute(obra.id.toString(), "value")}${addAttribute(filters.obra_id === obra.id.toString(), "selected")} data-astro-cid-vag3ingl>${obra.nombre}</option>`), totalPiezas, piezasPorFase["Para cortar"] || 0, piezasPorFase["Cortado"] || 0, filters.search && renderTemplate`<div class="search-results-info" data-astro-cid-vag3ingl> <span class="search-badge" data-astro-cid-vag3ingl> <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" data-astro-cid-vag3ingl> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" data-astro-cid-vag3ingl></path> </svg> ${totalPiezas} resultado${filters.search && totalPiezas !== 1 ? "s" : ""} para "${filters.search}"
-</span> </div>`, addAttribute(filters.fase === "0", "selected"), addAttribute(filters.fase === "1", "selected"), chapaOptions.map((chapa) => renderTemplate`<option${addAttribute(chapa.value, "value")}${addAttribute(filters.chapa_id === chapa.value, "selected")} data-astro-cid-vag3ingl>${chapa.label}</option>`), addAttribute(filters.search || "", "value"), renderComponent($$result, "TablePieza", $$TablePieza, { "piezas": piezas, "data-astro-cid-vag3ingl": true }), renderComponent($$result, "Pagination", $$Pagination, { "currentPage": currentPage, "totalPages": totalPages, "totalItems": totalPiezas || 0, "pageSize": pageSize, "startItem": startItem, "endItem": endItem, "data-astro-cid-vag3ingl": true }), renderComponent($$result, "Modal", $$Modal, { "id": "modal-nueva-pieza", "title": "Nueva Pieza", "size": "lg", "data-astro-cid-vag3ingl": true }, { "default": async ($$result2) => renderTemplate` ${renderComponent($$result2, "PiezasForm", $$PiezasForm, { "data-astro-cid-vag3ingl": true })} ` }), renderComponent($$result, "Modal", $$Modal, { "id": "modal-import-csv", "title": "Importar Piezas desde CSV", "size": "lg", "data-astro-cid-vag3ingl": true }, { "default": async ($$result2) => renderTemplate` <div class="import-csv-form" data-astro-cid-vag3ingl> <div class="obra-selection" data-astro-cid-vag3ingl> ${renderComponent($$result2, "FormField", $$FormField, { "label": "Obra de Destino", "name": "obra_id", "type": "select", "options": obraOptions, "required": true, "data-astro-cid-vag3ingl": true })} </div> <div class="csv-instructions" data-astro-cid-vag3ingl> <h4 data-astro-cid-vag3ingl>Formato del archivo CSV</h4> <p data-astro-cid-vag3ingl>El archivo debe contener las siguientes columnas:</p> <ul data-astro-cid-vag3ingl> <li data-astro-cid-vag3ingl><strong data-astro-cid-vag3ingl>Conjunto</strong> - Código del conjunto (se creará si no existe)</li> <li data-astro-cid-vag3ingl><strong data-astro-cid-vag3ingl>Parte</strong> - Código único de la pieza</li> <li data-astro-cid-vag3ingl><strong data-astro-cid-vag3ingl>Apodo</strong> - Campo adicional (opcional)</li> <li data-astro-cid-vag3ingl><strong data-astro-cid-vag3ingl>Perfil</strong> - Tipo de material/perfil</li> <li data-astro-cid-vag3ingl><strong data-astro-cid-vag3ingl>Longitud(mm)</strong> - Longitud en milímetros</li> <li data-astro-cid-vag3ingl><strong data-astro-cid-vag3ingl>Peso</strong> - Peso de la pieza</li> </ul> <p data-astro-cid-vag3ingl><strong data-astro-cid-vag3ingl>Nota:</strong> El archivo debe usar punto y coma (;) como separador.</p> </div> <div class="csv-upload" data-astro-cid-vag3ingl> <input type="file" id="csv-file" accept=".csv" data-astro-cid-vag3ingl> <div class="upload-area" id="upload-area" data-astro-cid-vag3ingl> <svg width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor" data-astro-cid-vag3ingl> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" data-astro-cid-vag3ingl></path> </svg> <p data-astro-cid-vag3ingl>Arrastra tu archivo CSV aquí o haz clic para seleccionar</p> </div> </div> <div class="csv-preview" id="csv-preview" style="display: none;" data-astro-cid-vag3ingl> <h4 data-astro-cid-vag3ingl>Vista previa del archivo</h4> <div class="preview-table" id="preview-table" data-astro-cid-vag3ingl></div> </div> <div class="form-actions" data-astro-cid-vag3ingl> <button type="button" class="btn-cancel" data-close-modal="modal-import-csv" data-astro-cid-vag3ingl>
+</span> </div>`, addAttribute(filters.search || "", "value"), renderComponent($$result, "TablePieza", $$TablePieza, { "piezas": piezas, "data-astro-cid-vag3ingl": true }), defineScriptVars({ piezas }), renderComponent($$result, "Pagination", $$Pagination, { "currentPage": currentPage, "totalPages": totalPages, "totalItems": totalPiezas || 0, "pageSize": pageSize, "startItem": startItem, "endItem": endItem, "data-astro-cid-vag3ingl": true }), renderComponent($$result, "Modal", $$Modal, { "id": "modal-nueva-pieza", "title": "Nueva Pieza", "size": "lg", "data-astro-cid-vag3ingl": true }, { "default": async ($$result2) => renderTemplate` ${renderComponent($$result2, "PiezasForm", $$PiezasForm, { "data-astro-cid-vag3ingl": true })} ` }), renderComponent($$result, "Modal", $$Modal, { "id": "modal-import-csv", "title": "Importar Piezas desde CSV", "size": "lg", "data-astro-cid-vag3ingl": true }, { "default": async ($$result2) => renderTemplate` <div class="import-csv-form" data-astro-cid-vag3ingl> <div class="obra-selection" data-astro-cid-vag3ingl> ${renderComponent($$result2, "FormField", $$FormField, { "label": "Obra de Destino", "name": "obra_id", "type": "select", "options": obraOptions, "required": true, "data-astro-cid-vag3ingl": true })} </div> <div class="csv-instructions" data-astro-cid-vag3ingl> <h4 data-astro-cid-vag3ingl>Formato del archivo CSV</h4> <p data-astro-cid-vag3ingl>El archivo debe contener las siguientes columnas:</p> <ul data-astro-cid-vag3ingl> <li data-astro-cid-vag3ingl><strong data-astro-cid-vag3ingl>Conjunto</strong> - Código del conjunto (se creará si no existe)</li> <li data-astro-cid-vag3ingl><strong data-astro-cid-vag3ingl>Parte</strong> - Código único de la pieza</li> <li data-astro-cid-vag3ingl><strong data-astro-cid-vag3ingl>Apodo</strong> - Campo adicional (opcional)</li> <li data-astro-cid-vag3ingl><strong data-astro-cid-vag3ingl>Perfil</strong> - Tipo de material/perfil</li> <li data-astro-cid-vag3ingl><strong data-astro-cid-vag3ingl>Longitud(mm)</strong> - Longitud en milímetros</li> <li data-astro-cid-vag3ingl><strong data-astro-cid-vag3ingl>Peso</strong> - Peso de la pieza</li> </ul> <p data-astro-cid-vag3ingl><strong data-astro-cid-vag3ingl>Nota:</strong> El archivo debe usar punto y coma (;) como separador.</p> </div> <div class="csv-upload" data-astro-cid-vag3ingl> <input type="file" id="csv-file" accept=".csv" data-astro-cid-vag3ingl> <div class="upload-area" id="upload-area" data-astro-cid-vag3ingl> <svg width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor" data-astro-cid-vag3ingl> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" data-astro-cid-vag3ingl></path> </svg> <p data-astro-cid-vag3ingl>Arrastra tu archivo CSV aquí o haz clic para seleccionar</p> </div> </div> <div class="csv-preview" id="csv-preview" style="display: none;" data-astro-cid-vag3ingl> <h4 data-astro-cid-vag3ingl>Vista previa del archivo</h4> <div class="preview-table" id="preview-table" data-astro-cid-vag3ingl></div> </div> <div class="form-actions" data-astro-cid-vag3ingl> <button type="button" class="btn-cancel" data-close-modal="modal-import-csv" data-astro-cid-vag3ingl>
 Cancelar
 </button> <button type="button" class="btn-submit" id="import-btn" disabled data-astro-cid-vag3ingl> <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" data-astro-cid-vag3ingl> <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" data-astro-cid-vag3ingl></path> </svg>
 Importar Piezas
