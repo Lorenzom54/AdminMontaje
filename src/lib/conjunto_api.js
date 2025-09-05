@@ -29,17 +29,24 @@ async function obtenerEstadosDeBD() {
     return [];
   }
   
+  console.log('Fases obtenidas de la base de datos:', fases);
   return fases;
 }
 
 // Función auxiliar para agregar estados a un conjunto
 async function agregarEstadosAConjunto(conjunto) {
   if (conjunto && !conjunto.estados) {
-    const estados = await obtenerEstadosDeBD();
-    return {
-      ...conjunto,
-      estados: estados
-    };
+    // Si el conjunto tiene estados específicos guardados, usarlos
+    if (conjunto.estados && Array.isArray(conjunto.estados) && conjunto.estados.length > 0) {
+      return conjunto; // Ya tiene estados específicos
+    } else {
+      // Si no tiene estados específicos, usar los estados por defecto
+      const estados = await obtenerEstadosDeBD();
+      return {
+        ...conjunto,
+        estados: estados.map(fase => fase.fase)
+      };
+    }
   }
   return conjunto;
 }
@@ -61,14 +68,19 @@ export async function fetchConjuntos() {
     return [];
   }
 
-  // Agregar el array de estados a cada conjunto si no existe
+  // NO sobrescribir los estados específicos de los conjuntos
   if (conjuntos) {
-    const fases = await obtenerEstadosDeBD();
-    conjuntos = conjuntos.map(conjunto => ({
-      ...conjunto,
-      estados: conjunto.estados || fases.map(fase => fase.fase),
-      fases: conjunto.fases || fases
-    }));
+    conjuntos = conjuntos.map(conjunto => {
+      console.log(`Conjunto ${conjunto.codigo}:`, {
+        tieneEstados: !!conjunto.estados,
+        esArray: Array.isArray(conjunto.estados),
+        longitud: conjunto.estados?.length,
+        estados: conjunto.estados
+      });
+      
+      // Mantener los estados tal como están en la base de datos
+      return conjunto;
+    });
   }
   
   console.log('Conjuntos obtenidos:', conjuntos?.length || 0);
@@ -90,6 +102,13 @@ export async function fetchConjuntoById(id) {
     console.error('Error al obtener conjunto:', error.message);
     return null;
   }
+
+  console.log(`Conjunto por ID ${id}:`, {
+    tieneEstados: !!conjunto.estados,
+    esArray: Array.isArray(conjunto.estados),
+    longitud: conjunto.estados?.length,
+    estados: conjunto.estados
+  });
 
   if (conjunto && !conjunto.estados) {
     const estados = await obtenerEstadosDeBD();
@@ -195,10 +214,27 @@ export async function searchConjuntos(filters = {}) {
   // Agregar el array de estados a cada conjunto si no existe
   if (data) {
     const estados = await obtenerEstadosDeBD();
-    return data.map(conjunto => ({
-      ...conjunto,
-      estados: conjunto.estados || estados
-    }));
+    return data.map(conjunto => {
+      console.log(`Conjunto ${conjunto.codigo} en búsqueda:`, {
+        tieneEstados: !!conjunto.estados,
+        esArray: Array.isArray(conjunto.estados),
+        longitud: conjunto.estados?.length,
+        estados: conjunto.estados
+      });
+      
+      // Si el conjunto ya tiene estados específicos guardados, usarlos
+      if (conjunto.estados && Array.isArray(conjunto.estados) && conjunto.estados.length > 0) {
+        console.log(`✅ Conjunto ${conjunto.codigo} mantiene sus estados específicos en búsqueda:`, conjunto.estados);
+        return conjunto; // Mantener los estados específicos
+      } else {
+        // Si no tiene estados específicos, usar los estados por defecto
+        console.log(`⚠️ Conjunto ${conjunto.codigo} usa estados por defecto en búsqueda`);
+        return {
+          ...conjunto,
+          estados: conjunto.estados || estados
+        };
+      }
+    });
   }
 
   return data;
@@ -221,11 +257,18 @@ export async function fetchConjuntoByCodigo(codigo) {
     return null;
   }
 
-  if (conjunto && !conjunto.estados) {
+  console.log(`Conjunto por código ${codigo}:`, {
+    tieneEstados: !!conjunto.estados,
+    esArray: Array.isArray(conjunto.estados),
+    longitud: conjunto.estados?.length,
+    estados: conjunto.estados
+  });
+
+  if (conjunto && (!conjunto.estados || conjunto.estados.length === 0)) {
     const estados = await obtenerEstadosDeBD();
     return {
       ...conjunto,
-      estados: estados
+      estados: estados.map(f => f.fase)
     };
   }
 
@@ -284,7 +327,13 @@ export async function actualizarFasesConjunto(conjuntoId) {
       return { success: false, error: 'Conjunto no encontrado' };
     }
 
-    // Obtener las fases de la obra
+    // Si el conjunto ya tiene estados específicos, no sobrescribirlos
+    if (conjunto.estados && Array.isArray(conjunto.estados) && conjunto.estados.length > 0) {
+      console.log(`Conjunto ${conjunto.codigo} ya tiene estados específicos, no se actualizarán`);
+      return { success: true, data: conjunto, message: 'Estados específicos preservados' };
+    }
+
+    // Solo actualizar si no tiene estados específicos
     const { getObraFasesPiezas, getObraFasesConjuntos } = await import('./obra_api.js');
     const fasesPiezas = await getObraFasesPiezas(conjunto.obra_id);
     const fasesConjuntos = await getObraFasesConjuntos(conjunto.obra_id);

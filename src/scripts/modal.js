@@ -141,13 +141,6 @@ class ModalManager {
         const fasesConjuntos = [
           "Incompleto", 
           "Para montar", 
-          "Montado 1", 
-          "Soldado 1", 
-          "Montado 2", 
-          "Montado 3", 
-          "Soldado 3", 
-          "Montado", 
-          "Soldado", 
           "Completado"
         ];
         

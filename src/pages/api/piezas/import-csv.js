@@ -1,8 +1,33 @@
 import { addPieza } from '../../../lib/pieza_api.js';
 import { fetchConjuntoByCodigo, addConjunto } from '../../../lib/conjunto_api.js';
-import { fetchFaseConjuntosForSelect } from '../../../lib/fase_conjuntos_api.js';
 
 export const prerender = false;
+
+// Función para generar estados dinámicamente basándose en el número de fases
+function generarEstadosPorFases(numFases) {
+  console.log(` GENERANDO ESTADOS: numFases = ${numFases}, tipo = ${typeof numFases}`);
+  
+  const estadosBase = ["Incompleto", "Para montar", "Completado"];
+  
+  if (numFases <= 0) {
+    console.log(`⚠️ numFases <= 0, retornando estados base:`, estadosBase);
+    return estadosBase;
+  }
+  
+  const estados = ["Incompleto", "Para montar"];
+  
+  // Agregar fases de montaje y soldadura según el número
+  for (let i = 1; i <= numFases; i++) {
+    estados.push(`Montaje ${i}`);
+    estados.push(`Soldadura ${i}`);
+  }
+  
+  estados.push("Completado");
+  
+  console.log(`✅ Estados generados para ${numFases} fases:`, estados);
+  return estados;
+}
+
 
 export async function POST({ request }) {
   try {
@@ -19,19 +44,31 @@ export async function POST({ request }) {
       });
     }
 
-    // Obtener las fases de conjuntos para encontrar el estado "Incompleto"
-    const fasesConjuntos = await fetchFaseConjuntosForSelect();
-    const estadoIncompleto = fasesConjuntos.find(fase => 
-      fase.fase.toLowerCase().includes('incompleto') || 
-      fase.fase.toLowerCase().includes('pendiente') ||
-      fase.fase.toLowerCase().includes('inicial')
-    );
+    // Analizar el CSV para determinar los diferentes números de fases
+    const fasesUnicas = new Set();
+    csvData.forEach((row, index) => {
+      const numFases = parseInt(row.FASES) || 0;
+      fasesUnicas.add(numFases);
+      if (index < 10) { // Solo mostrar las primeras 10 filas para no saturar
+        console.log(` Fila ${index + 1}: CONJUNTO=${row.CONJUNTO}, FASES=${row.FASES}, numFases=${numFases}`);
+      }
+    });
+
+    console.log(' Números de fases únicos encontrados en el CSV:', Array.from(fasesUnicas));
+    
+    // Generar estados para cada número de fases (sin crear en BD)
+    const fasesPorNumero = new Map();
+    for (const numFases of fasesUnicas) {
+      console.log(`\n🔄 Generando estados para ${numFases} fases...`);
+      const estados = generarEstadosPorFases(numFases);
+      fasesPorNumero.set(numFases, { estados });
+      console.log(`📋 Estados para ${numFases} fases:`, estados);
+    }
     
     // Usar 0 como estado por defecto para conjuntos (Incompleto)
     const estadoPorDefecto = 0;
     
     console.log('Estado por defecto para conjuntos:', estadoPorDefecto);
-    console.log('Fases disponibles:', fasesConjuntos.map(f => `${f.id}: ${f.fase}`));
 
     const results = {
       conjuntosCreados: 0,
@@ -54,11 +91,16 @@ export async function POST({ request }) {
         const row = csvData[index];
         
         try {
-          const conjuntoCodigo = row.Conjunto?.trim();
-          const piezaCodigo = row.Parte?.trim();
-          const tipoMaterial = row.Perfil?.trim() || 'chapas y perfiles';
-          const colada = row.Apodo?.trim() || null;
+          // Usar los nombres correctos de las columnas del CSV (en mayúsculas)
+          const conjuntoCodigo = row.CONJUNTO?.trim();
+          const piezaCodigo = row.PARTE?.trim();
+          const tipoMaterial = row.PERFIL?.trim() || 'chapas y perfiles';
+          const colada = row['APODO PIEZA']?.trim() || null;
+          const numFases = parseInt(row.FASES) || 0; // Cambiar de 'fases' a 'FASES'
           
+          // Agregar log para ver qué número de fases se está leyendo
+          console.log(`Fila ${index + 1}: Conjunto ${conjuntoCodigo}, Fases del CSV: ${row.FASES}, numFases parseado: ${numFases}`);
+
           if (!conjuntoCodigo || !piezaCodigo) {
             results.errores.push(`Fila ${index + 1}: Conjunto y Parte son obligatorios`);
             continue;
@@ -67,20 +109,25 @@ export async function POST({ request }) {
           let conjuntoId;
           
           // Verificar si ya tenemos el conjunto en cache
-          if (conjuntosCache.has(conjuntoCodigo)) {
-            conjuntoId = conjuntosCache.get(conjuntoCodigo);
+          const cacheKey = `${conjuntoCodigo}_${numFases}`;
+          if (conjuntosCache.has(cacheKey)) {
+            conjuntoId = conjuntosCache.get(cacheKey);
           } else {
             // Buscar conjunto existente
             let conjunto = await fetchConjuntoByCodigo(conjuntoCodigo);
             
             if (!conjunto) {
-              // Crear nuevo conjunto
+              // Obtener los estados correspondientes para este conjunto
+              const fasesInfo = fasesPorNumero.get(numFases);
+              
+              // Crear nuevo conjunto con los estados específicos
               const conjuntoResult = await addConjunto({
                 codigo: conjuntoCodigo,
                 obra_id: parseInt(selectedObraId),
-                estado_actual: estadoPorDefecto, // Estado por defecto dinámico
+                estado_actual: estadoPorDefecto,
                 is_completed: false,
-                descripcion: `Conjunto ${conjuntoCodigo}`
+                descripcion: `Conjunto ${conjuntoCodigo}`,
+                estados: fasesInfo ? fasesInfo.estados : ["Incompleto", "Para montar", "Completado"]
               });
               
               if (!conjuntoResult.success) {
@@ -90,10 +137,47 @@ export async function POST({ request }) {
               
               conjunto = conjuntoResult.data;
               results.conjuntosCreados++;
+              
+              // Log de los estados que se asignaron a este conjunto
+              if (fasesInfo) {
+                console.log(`✅ Conjunto ${conjuntoCodigo} creado con ${numFases} fases:`, fasesInfo.estados);
+              }
+            } else {
+              // El conjunto ya existe, verificar si necesita actualizar sus estados
+              const fasesInfo = fasesPorNumero.get(numFases);
+              if (fasesInfo && fasesInfo.estados) {
+                // Verificar si los estados actuales son diferentes a los que deberían tener
+                const estadosActuales = conjunto.estados || [];
+                const estadosEsperados = fasesInfo.estados;
+                
+                // Comparar si los estados son diferentes
+                const sonDiferentes = JSON.stringify(estadosActuales) !== JSON.stringify(estadosEsperados);
+                
+                if (sonDiferentes) {
+                  console.log(`Actualizando estados del conjunto existente ${conjuntoCodigo}:`);
+                  console.log(`Estados actuales:`, estadosActuales);
+                  console.log(`Estados nuevos:`, estadosEsperados);
+                  
+                  // Actualizar el conjunto con los nuevos estados
+                  const { updateConjunto } = await import('../../../lib/conjunto_api.js');
+                  const updateResult = await updateConjunto(conjunto.id, {
+                    estados: estadosEsperados
+                  });
+                  
+                  if (updateResult.success) {
+                    console.log(`✅ Conjunto ${conjuntoCodigo} actualizado con nuevos estados`);
+                    conjunto = updateResult.data;
+                  } else {
+                    console.error(`❌ Error al actualizar conjunto ${conjuntoCodigo}:`, updateResult.error);
+                  }
+                } else {
+                  console.log(`Conjunto ${conjuntoCodigo} ya tiene los estados correctos`);
+                }
+              }
             }
             
             conjuntoId = conjunto.id;
-            conjuntosCache.set(conjuntoCodigo, conjuntoId);
+            conjuntosCache.set(cacheKey, conjuntoId);
           }
 
           // Crear la pieza

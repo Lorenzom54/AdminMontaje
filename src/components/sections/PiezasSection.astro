@@ -6,38 +6,28 @@ import PiezasForm from '../forms/PiezasForm.astro';
 import DetailModal from '../DetailModal.astro';
 import TablePieza from '../table/TablePieza.astro';
 import PiezaDetail from '../detail/PiezaDetail.astro';
-import Pagination from '../Pagination.astro';
 import { fetchPiezas, fetchPiezasCount, searchPiezas, searchPiezasCount, fetchChapasForSelect } from '../../lib/pieza_api';
 import { fetchObrasForSelect } from '../../lib/conjunto_api';
 
-// Obtener parámetros de paginación de la URL
+// Obtener parámetros de la URL
 const url = new URL(Astro.request.url);
-const currentPage = parseInt(url.searchParams.get('page') || '1');
-const pageSize = parseInt(url.searchParams.get('pageSize') || '20');
 
 // Obtener filtros de la URL
 const filters = {
   fase: url.searchParams.get('fase'),
   obra_id: url.searchParams.get('obra_id'),
-  chapa_id: url.searchParams.get('chapa_id'),
-  search: url.searchParams.get('search')
+  chapa_id: url.searchParams.get('chapa_id')
 };
 
-// Aplicar filtros si existen
-let piezas, totalPiezas;
-if (filters.obra_id || filters.search) {
+// Obtener todas las piezas (Tabulator manejará la paginación)
+let piezas;
+if (filters.obra_id) {
   const searchFilters: Record<string, any> = {};
   if (filters.obra_id) searchFilters.obra_id = filters.obra_id;
-  if (filters.search) {
-    // Buscar en código o colada usando el parámetro search
-    searchFilters.search = filters.search;
-  }
   
-  piezas = await searchPiezas(searchFilters, currentPage, pageSize);
-  totalPiezas = await searchPiezasCount(searchFilters);
+  piezas = await searchPiezas(searchFilters, 1, 10000); // Obtener todas las piezas
 } else {
-  piezas = await fetchPiezas(currentPage, pageSize);
-  totalPiezas = await fetchPiezasCount();
+  piezas = await fetchPiezas(1, 10000); // Obtener todas las piezas
 }
 
 const obras = await fetchObrasForSelect();
@@ -61,10 +51,6 @@ const piezasPorFase = piezas.reduce((acc, pieza) => {
   return acc;
 }, {} as Record<string, number>);
 
-// Calcular datos de paginación
-const totalPages = Math.ceil((totalPiezas || 0) / pageSize);
-const startItem = (totalPiezas || 0) > 0 ? (currentPage - 1) * pageSize + 1 : 0;
-const endItem = Math.min(currentPage * pageSize, totalPiezas || 0);
 ---
 
 <PageHeader 
@@ -103,7 +89,7 @@ const endItem = Math.min(currentPage * pageSize, totalPiezas || 0);
         </svg>
       </div>
       <div class="stat-content">
-        <div class="stat-number">{totalPiezas}</div>
+        <div class="stat-number">{piezas.length}</div>
         <div class="stat-label">Total Piezas</div>
       </div>
     </div>
@@ -137,33 +123,6 @@ const endItem = Math.min(currentPage * pageSize, totalPiezas || 0);
     <div class="table-header">
       <h3>Piezas Registradas</h3>
       <div class="table-filters">
-        <div class="filters-info" id="filters-info" style="display: none;">
-          <span class="filters-badge">Filtros activos</span>
-        </div>
-        {filters.search && (
-          <div class="search-results-info">
-            <span class="search-badge">
-              <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-              </svg>
-              {totalPiezas} resultado{filters.search && totalPiezas !== 1 ? 's' : ''} para "{filters.search}"
-            </span>
-          </div>
-        )}
-
-        <input 
-          type="text" 
-          class="filter-input" 
-          id="search-input"
-          placeholder="Buscar por código de pieza o colada..."
-          value={filters.search || ''}
-          title="Escribe el código de la pieza o número de colada para buscar"
-        />
-        <button class="btn-clear-filters" id="clear-filters-btn" title="Limpiar todos los filtros">
-          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
         <button class="btn-import" onclick="openModal('modal-import-csv')">
           <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
@@ -194,15 +153,6 @@ const endItem = Math.min(currentPage * pageSize, totalPiezas || 0);
       window.piezasData = piezas;
     </script>
     
-    <!-- Paginación -->
-    <Pagination 
-      currentPage={currentPage}
-      totalPages={totalPages}
-      totalItems={totalPiezas || 0}
-      pageSize={pageSize}
-      startItem={startItem}
-      endItem={endItem}
-    />
   </div>
 </div>
 
@@ -758,19 +708,12 @@ const endItem = Math.min(currentPage * pageSize, totalPiezas || 0);
   // Filtros en tiempo real
   document.addEventListener('DOMContentLoaded', function() {
     const activeProjectFilter = document.getElementById('active-project-filter');
-    const searchInput = document.getElementById('search-input');
-    const clearFiltersBtn = document.getElementById('clear-filters-btn');
     
-    // Estado de paginación
-    let currentPage = parseInt(new URLSearchParams(window.location.search).get('page') || '1');
-    let currentPageSize = parseInt(new URLSearchParams(window.location.search).get('pageSize') || '20');
+    // Estado de filtros
     let currentFilters = {
-      obra_id: new URLSearchParams(window.location.search).get('obra_id') || '',
-      search: new URLSearchParams(window.location.search).get('search') || ''
+      obra_id: new URLSearchParams(window.location.search).get('obra_id') || ''
     };
     
-    // Aplicar filtros iniciales
-    if (currentFilters.search) searchInput.value = currentFilters.search;
 
     // Restaurar proyecto activo desde localStorage o URL
     const savedProjectId = localStorage.getItem('activeProjectId');
@@ -789,7 +732,7 @@ const endItem = Math.min(currentPage * pageSize, totalPiezas || 0);
 
     // Función para actualizar el indicador de filtros activos
     function updateFiltersIndicator() {
-      const hasActiveFilters = currentFilters.obra_id || currentFilters.search;
+      const hasActiveFilters = currentFilters.obra_id;
       const filtersInfo = document.getElementById('filters-info');
       if (filtersInfo) {
         filtersInfo.style.display = hasActiveFilters ? 'flex' : 'none';
@@ -801,11 +744,8 @@ const endItem = Math.min(currentPage * pageSize, totalPiezas || 0);
 
     function updateURL() {
       const params = new URLSearchParams();
-      params.set('page', currentPage.toString());
-      params.set('pageSize', currentPageSize.toString());
       
       if (currentFilters.obra_id) params.set('obra_id', currentFilters.obra_id);
-      if (currentFilters.search) params.set('search', currentFilters.search);
       
       const newURL = `${window.location.pathname}?${params.toString()}`;
       window.history.pushState({}, '', newURL);
@@ -814,12 +754,6 @@ const endItem = Math.min(currentPage * pageSize, totalPiezas || 0);
       window.location.reload();
     }
 
-    function applyFilters() {
-      currentFilters.search = searchInput.value;
-      currentPage = 1; // Resetear a la primera página cuando se aplican filtros
-      updateFiltersIndicator();
-      updateURL();
-    }
 
     // Event listeners para filtros
     
@@ -836,51 +770,11 @@ const endItem = Math.min(currentPage * pageSize, totalPiezas || 0);
       
       // Actualizar filtros y recargar
       currentFilters.obra_id = selectedProjectId;
-      currentPage = 1;
       updateFiltersIndicator();
       updateURL();
     });
     
-    // Debounce para el input de búsqueda
-    let searchTimeout;
-    searchInput.addEventListener('input', () => {
-      clearTimeout(searchTimeout);
-      searchTimeout = setTimeout(applyFilters, 500);
-    });
-
-    // Event listener para limpiar filtros
-    clearFiltersBtn.addEventListener('click', () => {
-      activeProjectFilter.value = '';
-      searchInput.value = '';
-      currentFilters.obra_id = '';
-      currentFilters.search = '';
-      updateFiltersIndicator();
-      updateURL();
-    });
     
-    // Event listeners para paginación
-    document.addEventListener('click', function(e) {
-      if (e.target.matches('[data-page]') || e.target.closest('[data-page]')) {
-        e.preventDefault();
-        const button = e.target.matches('[data-page]') ? e.target : e.target.closest('[data-page]');
-        const page = parseInt(button.getAttribute('data-page'));
-        
-        if (page && page !== currentPage && !button.disabled) {
-          currentPage = page;
-          updateURL();
-        }
-      }
-    });
-    
-    // Event listener para cambio de tamaño de página
-    const pageSizeSelect = document.getElementById('page-size-select');
-    if (pageSizeSelect) {
-      pageSizeSelect.addEventListener('change', function() {
-        currentPageSize = parseInt(this.value);
-        currentPage = 1; // Resetear a la primera página
-        updateURL();
-      });
-    }
 
     // Funcionalidad de importación CSV
     const csvFile = document.getElementById('csv-file');
