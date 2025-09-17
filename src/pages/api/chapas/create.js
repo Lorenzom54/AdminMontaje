@@ -23,7 +23,7 @@ export async function POST({ request }) {
     
     // Preparar datos para inserción
     const chapaData = {
-      codigo: parseInt(codigo), // Asegurar que sea número
+      codigo: codigo, // Mantener como string si es necesario
       tipo_acero: tipo_acero,
       colada: colada || null,
       espesor: espesor || null,
