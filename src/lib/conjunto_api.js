@@ -360,6 +360,27 @@ export async function actualizarFasesConjunto(conjuntoId) {
   }
 }
 
+// Obtener fases de piezas de un conjunto específico
+export async function getFasesPiezasByConjunto(conjuntoId) {
+  try {
+    const { data: conjunto, error } = await supabase
+      .from('conjuntos')
+      .select('fases_piezas')
+      .eq('id', conjuntoId)
+      .single();
+
+    if (error) {
+      console.error('Error al obtener fases de piezas del conjunto:', error.message);
+      return [];
+    }
+
+    return conjunto?.fases_piezas || [];
+  } catch (err) {
+    console.error('Error inesperado al obtener fases de piezas del conjunto:', err.message);
+    return [];
+  }
+}
+
 // Función para actualizar todos los conjuntos existentes
 export async function actualizarFasesTodosConjuntos() {
   try {

@@ -79,7 +79,7 @@ export async function fetchPiezas(page = 1, pageSize = 20) {
     .from('piezas')
     .select(`
       *,
-      conjuntos:conjunto_id(codigo, obras:obra_id(nombre))
+      conjuntos:conjunto_id(codigo, fases_piezas, obras:obra_id(nombre))
     `)
     .order('created_at', { ascending: false })
     .range(offset, offset + pageSize - 1)
@@ -112,7 +112,7 @@ export async function fetchPiezaById(id) {
     .from('piezas')
     .select(`
       *,
-      conjuntos:conjunto_id(codigo, obras:obra_id(nombre))
+      conjuntos:conjunto_id(codigo, fases_piezas, obras:obra_id(nombre))
     `)
     .eq('id', id)
     .single()
@@ -181,6 +181,18 @@ export async function updatePieza(id, updates) {
         cleanUpdates.chapa_id = parseInt(cleanUpdates.chapa_id);
         if (isNaN(cleanUpdates.chapa_id)) {
           cleanUpdates.chapa_id = null;
+        }
+      }
+    }
+    
+    // Asegurar que estado_actual sea un número válido o null
+    if (cleanUpdates.estado_actual !== undefined) {
+      if (cleanUpdates.estado_actual === '' || cleanUpdates.estado_actual === null) {
+        cleanUpdates.estado_actual = null;
+      } else {
+        cleanUpdates.estado_actual = parseInt(cleanUpdates.estado_actual);
+        if (isNaN(cleanUpdates.estado_actual)) {
+          cleanUpdates.estado_actual = null;
         }
       }
     }
@@ -281,7 +293,7 @@ export async function searchPiezas(filters = {}, page = 1, pageSize = 20) {
   
   let query = supabase.from('piezas').select(`
     *,
-    conjuntos:conjunto_id(codigo, obras:obra_id(nombre)),
+    conjuntos:conjunto_id(codigo, fases_piezas, obras:obra_id(nombre)),
     chapas:chapa_id(codigo)
   `);
 

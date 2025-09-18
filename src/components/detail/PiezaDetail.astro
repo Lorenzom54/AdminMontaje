@@ -11,7 +11,12 @@ interface Props {
     conjunto_id: number;
     chapa_id: number;
     created_at: string;
-    conjuntos?: { codigo: string; obras?: { nombre: string } };
+    estado_actual?: number;
+    conjuntos?: { 
+      codigo: string; 
+      fases_piezas?: string[];
+      obras?: { nombre: string } 
+    };
     chapas?: { codigo: number };
   };
 }
@@ -19,6 +24,7 @@ interface Props {
 const { pieza } = Astro.props;
 
 const FASES = await getFasesMap();
+
 
 // Función para formatear fechas
 function formatDate(dateString: string) {
@@ -61,7 +67,23 @@ function formatDate(dateString: string) {
       <h3 class="section-title">Estado y Relaciones</h3>
       <div class="info-grid">
         <div class="info-item">
-          <label class="info-label">Fase</label>
+          <label class="info-label">Estado Actual</label>
+          <div class="info-value editable" 
+               data-field="estado_actual" 
+               data-type="select" 
+               data-value={pieza.estado_actual?.toString() || "0"} 
+               data-options={JSON.stringify((pieza.conjuntos?.fases_piezas && pieza.conjuntos.fases_piezas.length > 0 
+                 ? pieza.conjuntos.fases_piezas 
+                 : Object.values(FASES)).map((estado, i) => ({ value: i.toString(), label: estado })))}>
+            <span class="estado-actual-badge">
+              {(pieza.conjuntos?.fases_piezas && pieza.conjuntos.fases_piezas.length > 0 
+                ? pieza.conjuntos.fases_piezas 
+                : Object.values(FASES))[pieza.estado_actual || 0] || 'Sin estado'}
+            </span>
+          </div>
+        </div>
+        <div class="info-item">
+          <label class="info-label">Fase (Legacy)</label>
           <div class="info-value">
             <span class={`fase-badge fase-${pieza.fase}`}>
               {FASES[pieza.fase as keyof typeof FASES] || 'Desconocida'}
@@ -204,6 +226,17 @@ function formatDate(dateString: string) {
   .fase-badge.fase-5 {
     background: #e0e7ff;
     color: #3730a3;
+  }
+
+  .estado-actual-badge {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: #3b82f6;
+    color: white;
   }
 
   .fase-overview {
