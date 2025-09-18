@@ -219,26 +219,20 @@ const chapaOptions = chapas?.map(c => ({ value: c.id.toString(), label: `#${c.co
 
   // Event listener para el cambio de conjunto
   document.addEventListener('DOMContentLoaded', function() {
-    console.log('=== DEBUG: DOM cargado, buscando conjunto-select ===');
     const conjuntoSelect = document.getElementById('conjunto-select');
-    console.log('Conjunto select encontrado:', conjuntoSelect);
 
     if (conjuntoSelect) {
       // Cargar fases para el conjunto ya seleccionado (si existe)
       const conjuntoIdActual = conjuntoSelect.value;
       if (conjuntoIdActual) {
-        console.log('=== DEBUG: Conjunto ya seleccionado al cargar:', conjuntoIdActual);
         loadFasesByConjunto(conjuntoIdActual);
       }
 
       // Event listener para cambios futuros
       conjuntoSelect.addEventListener('change', function() {
         const conjuntoId = this.value;
-        console.log('=== DEBUG: Conjunto seleccionado:', conjuntoId);
         loadFasesByConjunto(conjuntoId);
       });
-    } else {
-      console.error('No se encontró el elemento conjunto-select');
     }
   });
 
