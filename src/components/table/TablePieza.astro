@@ -218,6 +218,8 @@ function formatDate(dateString: string) {
   function getFaseName(fase) {
     if (fase === 0) return 'Para cortar';
     if (fase === 1) return 'Cortado';
+    if (fase === 2) return 'Chaflanado';
+    if (fase === 3) return 'Repasado';
     return `Fase ${fase}`;
   }
 
@@ -375,7 +377,9 @@ function formatDate(dateString: string) {
           headerFilterOptions: [
             { label: 'Todas', value: '' },
             { label: 'Para cortar', value: '0' },
-            { label: 'Cortado', value: '1' }
+            { label: 'Cortado', value: '1' },
+            { label: 'Chaflanado', value: '2' },
+            { label: 'Repasado', value: '3' }
           ],
           formatter: function(cell) {
             const fase = cell.getValue();

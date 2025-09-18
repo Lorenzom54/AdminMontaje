@@ -46,7 +46,11 @@ const chapaOptions = (chapas || []).map(chapa => ({
 }));
 // Calcular estadísticas dinámicas (usar total real, no solo la página actual)
 const piezasPorFase = piezas.reduce((acc, pieza) => {
-  const fase = pieza.fase === 0 ? 'Para cortar' : pieza.fase === 1 ? 'Cortado' : `Fase ${pieza.fase}`;
+  const fase = pieza.fase === 0 ? 'Para cortar' : 
+              pieza.fase === 1 ? 'Cortado' : 
+              pieza.fase === 2 ? 'Chaflanado' : 
+              pieza.fase === 3 ? 'Repasado' : 
+              `Fase ${pieza.fase}`;
   acc[fase] = (acc[fase] || 0) + 1;
   return acc;
 }, {} as Record<string, number>);

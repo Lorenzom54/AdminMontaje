@@ -9,7 +9,6 @@ interface Props {
   options?: Array<{ value: string; label: string }>;
   rows?: number;
   help?: string;
-  id?: string;
 }
 
 const { 
@@ -21,19 +20,18 @@ const {
   value = '', 
   options,
   rows = 3,
-  help,
-  id
+  help 
 } = Astro.props;
 ---
 
 <div class="form-field">
-  <label class="form-label" for={id || name}>
+  <label class="form-label" for={name}>
     {label}
     {required && <span class="required">*</span>}
   </label>
   
   {type === 'select' && options ? (
-    <select class="form-input" name={name} id={id || name} required={required}>
+    <select class="form-input" name={name} id={name} required={required}>
       <option value="">Seleccionar...</option>
       {options.map(option => (
         <option value={option.value} selected={value === option.value}>
@@ -45,7 +43,7 @@ const {
     <textarea 
       class="form-input" 
       name={name} 
-      id={id || name} 
+      id={name} 
       rows={rows}
       placeholder={placeholder}
       required={required}
@@ -53,9 +51,9 @@ const {
   ) : (
     <input 
       class="form-input" 
-      type={type as any} 
+      type={type} 
       name={name} 
-      id={id || name} 
+      id={name} 
       placeholder={placeholder}
       value={value}
       required={required}

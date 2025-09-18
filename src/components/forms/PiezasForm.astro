@@ -16,7 +16,7 @@ const conjuntoOptions = conjuntos?.map(c => ({ value: c.id.toString(), label: c.
 const chapaOptions = chapas?.map(c => ({ value: c.id.toString(), label: `#${c.codigo}` })) || [];
 ---
 
-<form class="piezas-form" id="piezas-form" data-default-fases={JSON.stringify(faseOptions)}>
+<form class="piezas-form" id="piezas-form">
   <div class="form-grid">
     <div class="form-column">
       <FormField 
@@ -45,7 +45,6 @@ const chapaOptions = chapas?.map(c => ({ value: c.id.toString(), label: `#${c.co
         type="select"
         options={faseOptions}
         required={true}
-        id="fase-select"
       />
       
       <FormField 
@@ -53,7 +52,6 @@ const chapaOptions = chapas?.map(c => ({ value: c.id.toString(), label: `#${c.co
         name="conjunto_id" 
         type="select"
         options={conjuntoOptions}
-        id="conjunto-select"
       />
       
       <FormField 
@@ -154,88 +152,6 @@ const chapaOptions = chapas?.map(c => ({ value: c.id.toString(), label: `#${c.co
 </style>
 
 <script type="module">
-  // Fases por defecto (fallback)
-  const form = document.getElementById('piezas-form');
-  const defaultFases = JSON.parse(form.getAttribute('data-default-fases') || '[]');
-
-     // Función para cargar fases dinámicamente basadas en el conjunto seleccionado
-     async function loadFasesByConjunto(conjuntoId) {
-       const faseSelect = document.getElementById('fase-select');
-
-       if (!conjuntoId) {
-         updateFaseSelect(defaultFases);
-         return;
-       }
-
-       try {
-         const response = await fetch(`/api/conjuntos/${conjuntoId}/fases-piezas`);
-         const result = await response.json();
-
-         if (result.success && result.data && result.data.length > 0) {
-           // Usar las fases del conjunto
-           const fasesOptions = result.data.map((fase, index) => ({
-             value: index.toString(),
-             label: fase
-           }));
-           updateFaseSelect(fasesOptions);
-         } else {
-           // Fallback a fases por defecto
-           updateFaseSelect(defaultFases);
-         }
-       } catch (error) {
-         console.error('Error al cargar fases del conjunto:', error);
-         // Fallback a fases por defecto
-         updateFaseSelect(defaultFases);
-       }
-     }
-
-     // Función para actualizar las opciones del select de fases
-     function updateFaseSelect(fasesOptions) {
-       const faseSelect = document.getElementById('fase-select');
-       if (!faseSelect) {
-         console.error('No se encontró el elemento fase-select');
-         return;
-       }
-
-       // Guardar el valor actual seleccionado
-       const valorActual = faseSelect.value;
-
-       // Limpiar opciones existentes
-       faseSelect.innerHTML = '<option value="">Seleccionar...</option>';
-
-       // Agregar nuevas opciones
-       fasesOptions.forEach(option => {
-         const optionElement = document.createElement('option');
-         optionElement.value = option.value;
-         optionElement.textContent = option.label;
-         faseSelect.appendChild(optionElement);
-       });
-
-       // Restaurar el valor seleccionado si existe en las nuevas opciones
-       if (valorActual && fasesOptions.some(opt => opt.value === valorActual)) {
-         faseSelect.value = valorActual;
-       }
-     }
-
-  // Event listener para el cambio de conjunto
-  document.addEventListener('DOMContentLoaded', function() {
-    const conjuntoSelect = document.getElementById('conjunto-select');
-
-    if (conjuntoSelect) {
-      // Cargar fases para el conjunto ya seleccionado (si existe)
-      const conjuntoIdActual = conjuntoSelect.value;
-      if (conjuntoIdActual) {
-        loadFasesByConjunto(conjuntoIdActual);
-      }
-
-      // Event listener para cambios futuros
-      conjuntoSelect.addEventListener('change', function() {
-        const conjuntoId = this.value;
-        loadFasesByConjunto(conjuntoId);
-      });
-    }
-  });
-
   document.getElementById('piezas-form').addEventListener('submit', async (e) => {
     e.preventDefault();
 
