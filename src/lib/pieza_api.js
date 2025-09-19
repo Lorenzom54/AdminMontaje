@@ -498,13 +498,18 @@ export async function importPiezasFromCSV(csvData) {
 export async function updatePiecesWithChapaId(pieceCode, count, chapaId) {
   try {
     // Buscar piezas que coincidan con el código y no tengan chapa asignada
-    // Priorizar piezas que pertenezcan a un conjunto
+    // Priorizar piezas que pertenezcan a un conjunto, ordenadas por código de conjunto
     const { data: availablePieces, error: searchError } = await supabase
       .from('piezas')
-      .select('id, codigo, conjunto_id')
+      .select(`
+        id, 
+        codigo, 
+        conjunto_id,
+        conjuntos:conjunto_id(codigo)
+      `)
       .eq('codigo', pieceCode)
       .is('chapa_id', null)
-      .order('conjunto_id', { ascending: false, nullsLast: true }) // Priorizar piezas con conjunto
+      .order('conjuntos.codigo', { ascending: true, nullsLast: true }) // Ordenar por código de conjunto (alfabéticamente, case-insensitive)
       .limit(count);
 
     if (searchError) {
