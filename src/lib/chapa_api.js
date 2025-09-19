@@ -64,17 +64,35 @@ export async function updateChapa(id, updates) {
 
 // Eliminar chapa
 export async function deleteChapa(id) {
-  const { data, error } = await supabase
-    .from('chapas')
-    .delete()
-    .eq('id', id)
+  try {
+    // Primero, actualizar todas las piezas que tienen esta chapa asignada
+    // para establecer su chapa_id a null (eliminar la relación)
+    const { error: updateError } = await supabase
+      .from('piezas')
+      .update({ chapa_id: null })
+      .eq('chapa_id', id);
 
-  if (error) {
-    console.error('Error al eliminar chapa:', error.message);
-    return { success: false, error: error.message };
+    if (updateError) {
+      console.error('Error al actualizar piezas relacionadas:', updateError.message);
+      return { success: false, error: `Error al actualizar piezas relacionadas: ${updateError.message}` };
+    }
+
+    // Ahora eliminar la chapa
+    const { data, error } = await supabase
+      .from('chapas')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      console.error('Error al eliminar chapa:', error.message);
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, data };
+  } catch (err) {
+    console.error('Error inesperado al eliminar chapa:', err.message);
+    return { success: false, error: err.message };
   }
-
-  return { success: true, data };
 }
 
 // Buscar chapas por filtros
