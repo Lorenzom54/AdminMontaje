@@ -81,7 +81,8 @@ export async function fetchPiezas(page = 1, pageSize = 20) {
     .from('piezas')
     .select(`
       *,
-      conjuntos:conjunto_id(codigo, obras:obra_id(nombre))
+      conjuntos:conjunto_id(codigo, obras:obra_id(nombre)),
+      chapas:chapa_id(codigo)
     `)
     .order('created_at', { ascending: false })
     .range(offset, offset + pageSize - 1)

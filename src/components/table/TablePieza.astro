@@ -30,6 +30,9 @@ function formatDate(dateString: string) {
 <style>
   .table-container {
     padding: 20px;
+    min-height: 500px;
+    display: flex;
+    flex-direction: column;
   }
 
   /* Personalización de Tabulator */
@@ -84,12 +87,20 @@ function formatDate(dateString: string) {
     background: #f8fafc;
     border-top: 1px solid #e2e8f0;
     padding: 12px 16px;
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
   }
 
   :global(.tabulator-paginator) {
     background: transparent;
     border: none;
     color: #6b7280;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
   }
 
   :global(.tabulator-page) {
@@ -118,6 +129,23 @@ function formatDate(dateString: string) {
     background: #f3f4f6;
     color: #9ca3af;
     cursor: not-allowed;
+  }
+
+  /* Mejorar visibilidad del contador de paginación */
+  :global(.tabulator-paginator .tabulator-page-size) {
+    margin: 0 10px;
+    font-weight: 500;
+  }
+
+  :global(.tabulator-paginator .tabulator-page-counter) {
+    margin: 0 10px;
+    font-weight: 500;
+    color: #374151;
+  }
+
+  #piezas-table {
+    flex: 1;
+    min-height: 400px;
   }
 
   /* Estilos para badges y elementos especiales */
@@ -316,8 +344,8 @@ function formatDate(dateString: string) {
       selectable: true,
       sortable: true,
       filterable: true,
-      height: 'auto',
-      maxHeight: '600px',
+      height: 'calc(100vh - 200px)',
+      minHeight: '400px',
       locale: 'es',
       langs: {
         es: {
