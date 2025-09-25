@@ -498,26 +498,25 @@ export async function importPiezasFromCSV(csvData) {
 export async function updatePiecesWithChapaId(pieceCode, count, chapaId) {
   try {
     // Buscar piezas que coincidan con el código y no tengan chapa asignada
-    // Priorizar piezas que pertenezcan a un conjunto, ordenadas por código de conjunto
-    const { data: availablePieces, error: searchError } = await supabase
+    // Obtener todas las piezas disponibles para poder ordenarlas correctamente
+    const { data: allAvailablePieces, error: searchError } = await supabase
       .from('piezas')
       .select(`
         id, 
         codigo, 
         conjunto_id,
+        created_at,
         conjuntos:conjunto_id(codigo)
       `)
       .eq('codigo', pieceCode)
-      .is('chapa_id', null)
-      .order('conjuntos.codigo', { ascending: true, nullsLast: true }) // Ordenar por código de conjunto (alfabéticamente, case-insensitive)
-      .limit(count);
+      .is('chapa_id', null);
 
     if (searchError) {
       console.error('Error al buscar piezas:', searchError);
       return { success: false, error: searchError.message, updated: 0 };
     }
 
-    if (!availablePieces || availablePieces.length === 0) {
+    if (!allAvailablePieces || allAvailablePieces.length === 0) {
       return { 
         success: true, 
         updated: 0, 
@@ -525,7 +524,30 @@ export async function updatePiecesWithChapaId(pieceCode, count, chapaId) {
       };
     }
 
-    const piecesToUpdate = availablePieces.slice(0, count);
+    // Ordenar las piezas manualmente para un mejor control
+    const sortedPieces = allAvailablePieces.sort((a, b) => {
+      // Primero por código de conjunto (si existe)
+      const conjuntoA = a.conjuntos?.codigo || '';
+      const conjuntoB = b.conjuntos?.codigo || '';
+      
+      if (conjuntoA && conjuntoB) {
+        // Ordenamiento natural para códigos alfanuméricos
+        return conjuntoA.localeCompare(conjuntoB, undefined, { 
+          numeric: true, 
+          sensitivity: 'base' 
+        });
+      }
+      
+      // Si uno tiene conjunto y otro no, priorizar el que tiene conjunto
+      if (conjuntoA && !conjuntoB) return -1;
+      if (!conjuntoA && conjuntoB) return 1;
+      
+      // Si ambos tienen o no tienen conjunto, ordenar por fecha de creación
+      return new Date(a.created_at) - new Date(b.created_at);
+    });
+
+    // Tomar solo las primeras N piezas
+    const piecesToUpdate = sortedPieces.slice(0, count);
     const pieceIds = piecesToUpdate.map(p => p.id);
 
     // Actualizar las piezas seleccionadas
