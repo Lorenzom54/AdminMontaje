@@ -219,11 +219,41 @@ function formatDate(dateString: string) {
 
   // Función para marcar corte
   window.cutChapa = async function(id, codigo) {
-    if (!confirm(`¿Estás seguro de que quieres marcar como cortadas todas las piezas de la chapa #${codigo}?`)) {
+    // Preguntar por el apodo de la chapa
+    const apodo = prompt(`Ingresa el apodo de la chapa #${codigo}:`);
+    
+    if (apodo === null) {
+      // Usuario canceló
+      return;
+    }
+    
+    if (!apodo.trim()) {
+      alert('Debes ingresar un apodo para la chapa');
+      return;
+    }
+
+    if (!confirm(`¿Estás seguro de que quieres marcar como cortadas todas las piezas de la chapa #${codigo} con apodo "${apodo.trim()}"?`)) {
       return;
     }
 
     try {
+      // Primero actualizar el campo colada de la chapa
+      const updateResponse = await fetch(`/api/chapas/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ colada: apodo.trim() })
+      });
+
+      const updateResult = await updateResponse.json();
+      
+      if (!updateResult.success) {
+        alert('Error al actualizar el apodo de la chapa: ' + updateResult.error);
+        return;
+      }
+
+      // Luego marcar las piezas como cortadas
       const response = await fetch(`/api/chapas/${id}/cut`, {
         method: 'POST'
       });
@@ -231,14 +261,14 @@ function formatDate(dateString: string) {
       const result = await response.json();
       
       if (result.success) {
-        alert(`Se marcaron ${result.updated} piezas como cortadas de la chapa #${codigo}`);
+        alert(`Se marcaron ${result.updated} piezas como cortadas de la chapa #${codigo} con apodo "${apodo.trim()}"`);
         location.reload();
       } else {
         alert('Error al marcar piezas como cortadas: ' + result.error);
       }
     } catch (error) {
       console.error('Error:', error);
-      alert('Error al marcar piezas como cortadas');
+      alert('Error al procesar la solicitud');
     }
   };
 

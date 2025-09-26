@@ -583,26 +583,91 @@ export async function updatePiecesWithChapaId(pieceCode, count, chapaId) {
   }
 }
 
+// Función para extraer el sufijo de la colada (después de DS)
+function extractSuffixFromColada(colada) {
+  if (!colada) return '';
+  
+  // Buscar el patrón DS seguido de caracteres
+  const match = colada.match(/DS(.+)$/);
+  return match ? match[1] : '';
+}
+
+// Función para actualizar el nombre de una pieza con el sufijo
+function updatePieceName(originalName, suffix) {
+  if (!suffix) return originalName;
+  
+  // Remover cualquier sufijo existente (después del último guión)
+  const baseName = originalName.split('-')[0];
+  
+  // Agregar el nuevo sufijo
+  return `${baseName}-${suffix}`;
+}
+
 // Marcar como cortadas (avanzar fase) todas las piezas de una chapa
 export async function markPiezasCortadasByChapaId(chapaId) {
   try {
+    console.log('🔍 Iniciando markPiezasCortadasByChapaId para chapa ID:', chapaId);
+    
+    // Primero obtener la información de la chapa para extraer el sufijo de la colada
+    const { data: chapaData, error: chapaError } = await supabase
+      .from('chapas')
+      .select('colada')
+      .eq('id', parseInt(chapaId))
+      .single();
+
+    if (chapaError) {
+      console.error('Error al obtener información de la chapa:', chapaError);
+      return { success: false, error: chapaError.message, updated: 0 };
+    }
+
+    console.log('📋 Datos de la chapa obtenidos:', chapaData);
+
+    // Extraer el sufijo de la colada
+    const suffix = extractSuffixFromColada(chapaData.colada);
+    console.log('🔤 Sufijo extraído de la colada:', suffix);
+    
     // Usar los valores numéricos directamente - primer estado (0) al segundo estado (1)
     const faseParaCortar = 0; // Primer estado
     const faseCortado = 1;    // Segundo estado
 
-    const { data, error } = await supabase
+    // Obtener las piezas que van a cambiar de estado
+    const { data: piezasToUpdate, error: selectError } = await supabase
       .from('piezas')
-      .update({ fase: faseCortado })
+      .select('id, codigo')
       .eq('chapa_id', parseInt(chapaId))
-      .eq('fase', faseParaCortar)
-      .select('id');
+      .eq('fase', faseParaCortar);
 
-    if (error) {
-      console.error('Error al marcar piezas como cortadas:', error);
-      return { success: false, error: error.message, updated: 0 };
+    if (selectError) {
+      console.error('Error al obtener piezas:', selectError);
+      return { success: false, error: selectError.message, updated: 0 };
     }
 
-    return { success: true, updated: (data?.length || 0) };
+    console.log('🔧 Piezas a actualizar:', piezasToUpdate);
+
+    // Actualizar cada pieza con el nuevo código y fase
+    let updatedCount = 0;
+    for (const pieza of piezasToUpdate) {
+      const newCode = updatePieceName(pieza.codigo, suffix);
+      console.log(`🔄 Actualizando pieza ${pieza.id}: "${pieza.codigo}" -> "${newCode}"`);
+      
+      const { error: updateError } = await supabase
+        .from('piezas')
+        .update({ 
+          fase: faseCortado,
+          codigo: newCode
+        })
+        .eq('id', pieza.id);
+
+      if (updateError) {
+        console.error(`Error al actualizar pieza ${pieza.id}:`, updateError);
+        continue;
+      }
+      
+      updatedCount++;
+    }
+
+    console.log(`✅ Proceso completado. ${updatedCount} piezas actualizadas.`);
+    return { success: true, updated: updatedCount };
   } catch (err) {
     console.error('Error inesperado al marcar piezas como cortadas:', err);
     return { success: false, error: err.message, updated: 0 };
